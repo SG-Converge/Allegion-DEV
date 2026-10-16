@@ -1,0 +1,293 @@
+#region Prolog
+
+FALSE = 0;
+TRUE = 1;
+LF     = CHAR(10);
+
+sLogFile = '.\model_upload\logs\' | GetProcessName() | '.log';
+
+# --- Cubes
+sROInputCube     = 'RO Input';
+sROReportingCube = 'PL Reporting';
+
+# --- Dimensions
+sScenarioDim   = 'Scenario';
+sProductDim    = 'Product';
+sFunctionDim   = 'Function';
+sAccountDim    = 'Account';
+sEntityDim     = 'Entity';
+
+sROEntityDim   = 'RO Entity';
+sROProductDim  = 'RO Product';
+sROFunctionDim = 'RO Function';
+sROAccountDim  = 'RO Account';
+sItemDim       = 'RO Item';
+
+# --- Members
+sROEntityRoot  = 'All Entities';
+sROProductRoot  = 'All Products';
+sROFunctionRoot  = 'All Functions';
+sROAccountRoot  = 'All Accounts';
+
+# --- Set file to import if provided
+If( pFilename @<> '' );
+    DatasourceNameForServer = pFilename;
+EndIf;
+
+sWROScenario = pWorkingScenario;
+
+#------------------------------------------
+# Destination View:  RO Input
+#------------------------------------------
+
+sCubeName = sROInputCube;
+
+# --- Clear out all data from the input cube
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { EXCEPT(TM1FILTERBYLEVEL(TM1SUBSETALL([Scenario].[Scenario]) , 0) , {[Scenario].[Scenario].[Actual]} , ALL) } %LF%
+        SET EntitySet     as { TM1FilterByLevel( TM1SubsetAll( [RO Entity] ), 0 ) } %LF%
+        SET ItemSet       as { TM1FilterByLevel( TM1SubsetAll( [RO Item] ), 0 ) } %LF%
+        SET MeasureSet    as { TM1FilterByLevel( TM1SubsetAll( [RO Input Measure] ), 0 ) } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * EntitySet * ItemSet ON 1 %LF%
+
+    FROM [%sCubeName%] %LF%
+' );
+
+
+sViewName =  GetProcessName() | ' - RO Input ';
+ViewCreateByMDX( sCubeName, sViewName, sViewMDX, TRUE );
+ViewZeroOut( sCubeName, sViewName );
+
+#endregion
+#region Metadata
+
+sYear = inYear;
+sScenario = inScenario;
+sVersion = inVersion;
+sAdjustment = inAdjustment;
+sFunction = infunction;
+sProduct = inProduct;
+sEntity = inEntity;
+sAccount = inAccount;
+sText = inText;
+sCategory = inCategory;
+
+# --- Convert the scenario
+sScenario = inScenario;
+sScenario = If( sScenario @= '3_9', 'RO 3+9', sScenario );
+sScenario = If( sScenario @= '6_6', 'RO 6+6', sScenario );
+sScenario = If( sScenario @= '9_3', 'RO 9+3', sScenario );
+
+# --- Now, check to see if we have the elements in the dimensions
+bIsUnmapped = FALSE;
+If( DIMIX( sScenarioDim, sScenario ) = 0 );
+    bIsUnmapped = TRUE;
+    sScenario = 'Unmapped Scenario';
+EndIf;
+
+#----------------------------------------------------------
+#                        ENTITY
+#----------------------------------------------------------
+sMasterDim  = sEntityDim;
+sRODim      = sROEntityDim;
+sRORoot     = sROEntityRoot;
+sElemID     = sEntity;
+sUnmappedID = 'Unmapped Entity';
+
+# --- Check to see if the element is in the RO dimension.  If not, we
+# --- may be able to add it automatically.
+If( DIMIX( sRODim, sElemID ) = 0 );
+    # --- If the element is in the master dimension and it is a leaf level
+    # --- element, then we can add it to the RO dimension without issue.
+    If( DIMIX( sMasterDim, sElemID ) > 0 & ELLEV( sMasterDim, sElemID ) = 0);
+        # --- Element stays as-is and will be added
+    Else;
+        bIsUnmapped = TRUE;
+        sElemID = sUnmappedID;
+    EndIf;
+    DimensionElementInsert( sRODim, '', sElemID, 'N' );
+    DimensionElementComponentAdd( sRODim, sRORoot, sElemID, 1 );
+EndIf;
+
+#----------------------------------------------------------
+#                        PRODUCT
+#----------------------------------------------------------
+sMasterDim  = sProductDim;
+sRODim      = sROProductDim;
+sRORoot     = sROProductRoot;
+sElemID     = sProduct;
+sUnmappedID = 'Unmapped Product';
+
+# --- Check to see if the element is in the RO dimension.  If not, we
+# --- may be able to add it automatically.
+If( DIMIX( sRODim, sElemID ) = 0 );
+    # --- If the element is in the master dimension and it is a leaf level
+    # --- element, then we can add it to the RO dimension without issue.
+    If( DIMIX( sMasterDim, sElemID ) > 0 & ELLEV( sMasterDim, sElemID ) = 0);
+        # --- Element stays as-is and will be added
+    Else;
+        bIsUnmapped = TRUE;
+        sElemID = sUnmappedID;
+    EndIf;
+    DimensionElementInsert( sRODim, '', sElemID, 'N' );
+    DimensionElementComponentAdd( sRODim, sRORoot, sElemID, 1 );
+EndIf;
+
+#----------------------------------------------------------
+#                        FUNCTION
+#----------------------------------------------------------
+sMasterDim  = sFunctionDim;
+sRODim      = sROFunctionDim;
+sRORoot     = sROFunctionRoot;
+sElemID     = sFunction;
+sUnmappedID = 'Unmapped Function';
+
+# --- Check to see if the element is in the RO dimension.  If not, we
+# --- may be able to add it automatically.
+If( DIMIX( sRODim, sElemID ) = 0 );
+    # --- If the element is in the master dimension and it is a leaf level
+    # --- element, then we can add it to the RO dimension without issue.
+    If( DIMIX( sMasterDim, sElemID ) > 0 & ELLEV( sMasterDim, sElemID ) = 0);
+        # --- Element stays as-is and will be added
+    Else;
+        bIsUnmapped = TRUE;
+        sElemID = sUnmappedID;
+    EndIf;
+    DimensionElementInsert( sRODim, '', sElemID, 'N' );
+    DimensionElementComponentAdd( sRODim, sRORoot, sElemID, 1 );
+EndIf;
+
+#----------------------------------------------------------
+#                        ACCOUNT
+#----------------------------------------------------------
+sMasterDim  = sAccountDim;
+sRODim      = sROAccountDim;
+sRORoot     = sROAccountRoot;
+sElemID     = sAccount;
+sUnmappedID = 'Unmapped Account';
+
+# --- Check to see if the element is in the RO dimension.  If not, we
+# --- may be able to add it automatically.
+If( DIMIX( sRODim, sElemID ) = 0 );
+    # --- If the element is in the master dimension and it is a leaf level
+    # --- element, then we can add it to the RO dimension without issue.
+    If( DIMIX( sMasterDim, sElemID ) > 0 & ELLEV( sMasterDim, sElemID ) = 0);
+        # --- Element stays as-is and will be added
+    Else;
+        bIsUnmapped = TRUE;
+        sElemID = sUnmappedID;
+    EndIf;
+    DimensionElementInsert( sRODim, '', sElemID, 'N' );
+    DimensionElementComponentAdd( sRODim, sRORoot, sElemID, 1 );
+EndIf;
+
+If( bIsUnmapped = TRUE );
+    ASCIIOutput( sLogFile, 'Unmapped record - Loaded', 
+        sCubeName, sYear, sScenario, sVersion, sAdjustment, sFunction, sProduct, 
+        sEntity, sAccount, sText, sCategory
+    );
+EndIf;
+ 
+#endregion
+#region Data
+
+sYear = inYear;
+sScenario = inScenario;
+sVersion = inVersion;
+sAdjustment = inAdjustment;
+sFunction = infunction;
+sProduct = inProduct;
+sEntity = inEntity;
+sAccount = inAccount;
+sText = inText;
+sCategory = inCategory;
+
+nJan = If( inJan @= '#Mi', 0, NUMBR( inJan ) );
+nFeb = If( inFeb @= '#Mi', 0, NUMBR( inFeb ) );
+nMar = If( inMar @= '#Mi', 0, NUMBR( inMar ) );
+nApr = If( inApr @= '#Mi', 0, NUMBR( inApr ) );
+nMay = If( inMay @= '#Mi', 0, NUMBR( inMay ) );
+nJun = If( inJun @= '#Mi', 0, NUMBR( inJun ) );
+nJul = If( inJul @= '#Mi', 0, NUMBR( inJul ) );
+nAug = If( inAug @= '#Mi', 0, NUMBR( inAug ) );
+nSep = If( inSep @= '#Mi', 0, NUMBR( inSep ) );
+nOct = If( inOct @= '#Mi', 0, NUMBR( inOct ) );
+nNov = If( inNov @= '#Mi', 0, NUMBR( inNov ) );
+nDec = If( inDec @= '#Mi', 0, NUMBR( inDec ) );
+
+# --- Convert the scenario
+sScenario = inScenario;
+sScenario = If( sScenario @= '3_9', 'RO 3+9', sScenario );
+sScenario = If( sScenario @= '6_6', 'RO 6+6', sScenario );
+sScenario = If( sScenario @= '9_3', 'RO 9+3', sScenario );
+
+# --- Now, check to see if we have the elements in the dimensions
+sScenario = If( DIMIX( sScenarioDim, sScenario ) = 0, 'Unmapped Scenario', sScenario );
+sEntity   = If( DIMIX( sROEntityDim, sEntity ) = 0, 'Unmapped Entity', sEntity );
+sProduct  = If( DIMIX( sROProductDim, sProduct ) = 0, 'Unmapped Product', sProduct );
+sFunction = If( DIMIX( sROFunctionDim, sFunction ) = 0, 'Unmapped Function', sFunction );
+sAccount  = If( DIMIX( sROAccountDim, sAccount ) = 0, 'Unmapped Account', sAccount );
+
+# --- Determine the type of entry
+sType = '';
+sType = If( UPPER( SUBST( sAdjustment, 1, 1 ) )  @= 'R', 'Risk', sType );
+sType = If( UPPER( SUBST( sAdjustment, 1, 1 ) )  @= 'O', 'Opportunity', sType );
+
+# --- Determine which item number to load into 
+nItemNum = CellGetN( sCubeName, sScenario, sEntity, 'All RO Items', 'Count' ) + 1;
+sItem = 'RO ' | NumberToStringEx( nItemNum, '000', '', '' );
+
+sAccount = ATTRS( 'RO Account', sAccount, 'Caption' );
+sProduct = ATTRS( 'RO Product', sProduct, 'Caption' );
+
+CellPutS( sType, sCubeName, sScenario, sEntity, sItem, 'Type' );
+CellPutS( sProduct, sCubeName, sScenario, sEntity, sItem, 'Product' );
+CellPutS( sAccount, sCubeName, sScenario, sEntity, sItem, 'Account' );
+CellPutS( sCategory, sCubeName, sScenario, sEntity, sItem, 'Category' );
+CellPutS( sText, sCubeName, sScenario, sEntity, sItem, 'Comments' );
+
+CellPutN( nJan, sCubeName, sScenario, sEntity, sItem, 'Jan' );
+CellPutN( nFeb, sCubeName, sScenario, sEntity, sItem, 'Feb' );
+CellPutN( nMar, sCubeName, sScenario, sEntity, sItem, 'Mar' );
+CellPutN( nApr, sCubeName, sScenario, sEntity, sItem, 'Apr' );
+CellPutN( nMay, sCubeName, sScenario, sEntity, sItem, 'May' );
+CellPutN( nJun, sCubeName, sScenario, sEntity, sItem, 'Jun' );
+CellPutN( nJul, sCubeName, sScenario, sEntity, sItem, 'Jul' );
+CellPutN( nAug, sCubeName, sScenario, sEntity, sItem, 'Aug' );
+CellPutN( nSep, sCubeName, sScenario, sEntity, sItem, 'Sep' );
+CellPutN( nOct, sCubeName, sScenario, sEntity, sItem, 'Oct' );
+CellPutN( nNov, sCubeName, sScenario, sEntity, sItem, 'Nov' );
+CellPutN( nDec, sCubeName, sScenario, sEntity, sItem, 'Dec' );
+
+# --- Indicate this item has been populated
+CellPutN( 1, sCubeName, sScenario, sEntity, sItem, 'Count' );
+
+
+If( sScenario @= sWROScenario );
+    CellPutS( sType, sCubeName, 'Working RO', sEntity, sItem, 'Type' );
+    CellPutS( sProduct, sCubeName, 'Working RO', sEntity, sItem, 'Product' );
+    CellPutS( sAccount, sCubeName, 'Working RO', sEntity, sItem, 'Account' );
+    CellPutS( sCategory, sCubeName, 'Working RO', sEntity, sItem, 'Category' );
+    CellPutS( sText, sCubeName, 'Working RO', sEntity, sItem, 'Comments' );
+
+    CellPutN( nJan, sCubeName, 'Working RO', sEntity, sItem, 'Jan' );
+    CellPutN( nFeb, sCubeName, 'Working RO', sEntity, sItem, 'Feb' );
+    CellPutN( nMar, sCubeName, 'Working RO', sEntity, sItem, 'Mar' );
+    CellPutN( nApr, sCubeName, 'Working RO', sEntity, sItem, 'Apr' );
+    CellPutN( nMay, sCubeName, 'Working RO', sEntity, sItem, 'May' );
+    CellPutN( nJun, sCubeName, 'Working RO', sEntity, sItem, 'Jun' );
+    CellPutN( nJul, sCubeName, 'Working RO', sEntity, sItem, 'Jul' );
+    CellPutN( nAug, sCubeName, 'Working RO', sEntity, sItem, 'Aug' );
+    CellPutN( nSep, sCubeName, 'Working RO', sEntity, sItem, 'Sep' );
+    CellPutN( nOct, sCubeName, 'Working RO', sEntity, sItem, 'Oct' );
+    CellPutN( nNov, sCubeName, 'Working RO', sEntity, sItem, 'Nov' );
+    CellPutN( nDec, sCubeName, 'Working RO', sEntity, sItem, 'Dec' );
+
+    # --- Indicate this item has been populated
+    CellPutN( 1, sCubeName, 'Working RO', sEntity, sItem, 'Count' );
+EndIf;
+#endregion

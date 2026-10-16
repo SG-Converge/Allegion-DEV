@@ -1,0 +1,229 @@
+#region Prolog
+
+FALSE = 0;
+TRUE = 1;
+LF     = CHAR(10);
+
+sLogFile = '.\model_upload\logs\' | GetProcessName() | '-' | pPeriod | '.log';
+
+# --- Cubes
+sPLInputCube     = 'PL Input';
+sPLReportingCube = 'PL Reporting';
+sBSInputCube     = 'BS Input';
+sBSReportingCube = 'BS Reporting';
+sFXCube        = 'FX Rates';
+
+# --- Dimensions
+sScenarioDim   = 'Scenario';
+sPeriodDim     = 'Period';
+sCurrencyDim   = 'Currency';
+sEntityDim     = 'Entity';
+sProductDim    = 'Product';
+sFunctionDim   = 'Function';
+sAccountDim    = 'PL Account';
+
+# --- Members
+sLoadMeasure   = 'Historical Reorg Amount';
+
+sPeriod = pPeriod;
+sYear = SUBST( pPeriod, 1, 4 );
+sFY = SUBST( pPeriod, 3, 2 );
+sMonth = ATTRS( 'Period XRef', pPeriod, 'Calendar Month Short' );
+sFilename = Expand( '.\model_upload\Uploads\Historical\Planning\%sYear%\PLAN_Pandl_FY%sFY%_%sMonth%_toIBM.txt' );
+
+sActualEndPeriod = CellGetS( 'Global Assumptions', 'Actual End Period', 'String' );
+DatasourceNameForServer = sFilename;
+
+
+#------------------------------------------
+# Destination View:  PL Input
+#------------------------------------------
+
+sCubeName = sPLInputCube;
+
+
+# --- Clear out all data EXCEPT Actual
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { [Scenario].[Actual] } %LF%
+        SET PeriodSet     as { DISTINCT(DESCENDANTS([Period].[Period].[%sPeriod%] , 99 , LEAVES)) } %LF%
+        SET EntitySet     as { TM1FilterByLevel( TM1SubsetAll( [Entity] ), 0 ) } %LF%
+        SET ProductSet    as { TM1FilterByLevel( TM1SubsetAll( [Product] ), 0 ) } %LF%
+        SET FunctionSet   as { TM1FilterByLevel( TM1SubsetAll( [Function] ), 0 ) } %LF%
+        SET AccountSet    as { TM1FilterByLevel( TM1SubsetAll( [PL Account] ), 0 ) } %LF%
+        SET MeasureSet    as { [PL Input Measure].[%sLoadMeasure%] } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * PeriodSet * EntitySet * ProductSet * FunctionSet * AccountSet ON 1 %LF%
+
+    FROM [%sCubeName%] %LF%
+' );
+
+#ASCIIOutput( sLogFile, sCubeName, sViewMDX );
+
+sViewName =  GetProcessName() | ' - PL Input ' | pPeriod;
+ViewCreateByMDX( sCubeName, sViewName, sViewMDX, TRUE );
+ViewZeroOut( sCubeName, sViewName );
+
+
+
+#------------------------------------------
+# Destination View:  PL Reporting
+#------------------------------------------
+
+sCubeName = sPLReportingCube;
+
+# --- Clear out all data EXCEPT Actual
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { [Scenario].[Actual] } %LF%
+        SET PeriodSet     as { DISTINCT(DESCENDANTS([Period].[Period].[%sPeriod%] , 99 , LEAVES)) } %LF%
+        SET CurrencySet   as { TM1FilterByLevel( TM1SubsetAll( [Currency] ), 0 ) } %LF%
+        SET EntitySet     as { TM1FilterByLevel( TM1SubsetAll( [Entity] ), 0 ) } %LF%
+        SET ProductSet    as { TM1FilterByLevel( TM1SubsetAll( [Product] ), 0 ) } %LF%
+        SET FunctionSet   as { TM1FilterByLevel( TM1SubsetAll( [Function] ), 0 ) } %LF%
+        SET AccountSet    as { TM1FilterByLevel( TM1SubsetAll( [PL Account] ), 0 ) } %LF%
+        SET MeasureSet    as { [PL Reporting Measure].[%sLoadMeasure%] } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * PeriodSet * CurrencySet * EntitySet * ProductSet * FunctionSet * AccountSet ON 1 %LF%
+
+    FROM [%sCubeName%] %LF%
+' );
+
+sViewName =  GetProcessName()| ' - PL Reporting ' | pPeriod;
+ViewCreateByMDX( sCubeName, sViewName, sViewMDX, TRUE );
+ViewZeroOut( sCubeName, sViewName );
+
+
+#------------------------------------------
+# Destination View:  BS Input
+#------------------------------------------
+
+sCubeName = sBSInputCube;
+
+# --- Clear out all data EXCEPT Actual
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { [Scenario].[Actual] } %LF%
+        SET PeriodSet     as { DISTINCT(DESCENDANTS([Period].[Period].[%sPeriod%] , 99 , LEAVES)) } %LF%
+        SET EntitySet     as { TM1FilterByLevel( TM1SubsetAll( [Entity] ), 0 ) } %LF%
+        SET ProductSet    as { TM1FilterByLevel( TM1SubsetAll( [Product] ), 0 ) } %LF%
+        SET AccountSet    as { TM1FilterByLevel( TM1SubsetAll( [BS Account] ), 0 ) } %LF%
+        SET MeasureSet    as { [BS Input Measure].[%sLoadMeasure%] } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * PeriodSet * EntitySet * ProductSet * AccountSet ON 1 %LF%
+
+    FROM [%sCubeName%] %LF%
+' );
+
+ASCIIOutput( sLogFile, sCubeName, sViewMDX );
+
+sViewName =  GetProcessName() | ' - BS Input ' | pPeriod;
+ViewCreateByMDX( sCubeName, sViewName, sViewMDX, TRUE );
+ViewZeroOut( sCubeName, sViewName );
+
+#------------------------------------------
+# Destination View:  BS Reporting
+#------------------------------------------
+
+sCubeName = sBSReportingCube;
+
+# --- Clear out all data EXCEPT Actual
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { [Scenario].[Actual] } %LF%
+        SET PeriodSet     as { DISTINCT(DESCENDANTS([Period].[Period].[%sPeriod%] , 99 , LEAVES)) } %LF%
+        SET CurrencySet   as { TM1FilterByLevel( TM1SubsetAll( [Currency] ), 0 ) } %LF%
+        SET EntitySet     as { TM1FilterByLevel( TM1SubsetAll( [Entity] ), 0 ) } %LF%
+        SET ProductSet    as { TM1FilterByLevel( TM1SubsetAll( [Product] ), 0 ) } %LF%
+        SET AccountSet    as { TM1FilterByLevel( TM1SubsetAll( [BS Account] ), 0 ) } %LF%
+        SET MeasureSet    as { [BS Reporting Measure].[%sLoadMeasure%] } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * PeriodSet *  CurrencySet * EntitySet * ProductSet * AccountSet ON 1 %LF%
+
+    FROM [%sCubeName%] %LF%
+' );
+
+ASCIIOutput( sLogFile, sCubeName, sViewMDX );
+
+sViewName =  GetProcessName()| ' - BS Reporting ' | pPeriod;
+ViewCreateByMDX( sCubeName, sViewName, sViewMDX, TRUE );
+ViewZeroOut( sCubeName, sViewName );
+
+
+#endregion
+#region Data
+
+sVersion = inVersion;
+sScenario = inScenario;
+sCurrency = inCurrency;
+sEntity = inEntity;
+sProduct = inProduct;
+sFunction = infunction;
+sAccount = inAccount;
+nValue = inValue;
+
+# --- We only want to deal with Actual SeconSubmit for reorgs
+If( sVersion @<> 'SecondSubmit' ); ItemSkip; EndIf;
+If( sScenario @<> 'ACTUAL' ); ItemSkip; EndIf;
+
+# --- We don't want Rates at this point
+If( sAccount @= 'EOPRATE' ); ItemSkip; EndIf;
+If( sAccount @= 'AVGRATE' ); ItemSkip; EndIf;
+
+# --- Clean up the currency
+sCurrency = If( sCurrency @= 'Entity_Currency', 'Local', sCurrency );
+
+# --- Clean up function
+sFunction = IF( sFunction @= '50000', '50000_INPUT', sfunction );
+
+
+# --- Now, check to see if we have the elements in the dimensions
+bIsUnmapped = FALSE;
+If( DIMIX( sScenarioDim, sScenario ) = 0 );
+    bIsUnmapped = TRUE;
+    sScenario = 'Unmapped Scenario';
+EndIf;
+
+If( DIMIX( sEntityDim, sEntity ) = 0 );
+    If( DIMIX( sEntityDim, sEntity | '_INPUT') > 0 );
+        sEntity = sEntity | '_INPUT';
+    Else;
+        bIsUnmapped = TRUE;
+        sEntity = 'Unmapped Entity';
+    EndIf;
+EndIf;
+
+If( DIMIX( sProductDim, sProduct ) = 0 );
+    bIsUnmapped = TRUE;
+    sProduct = 'Unmapped Product';
+EndIf;
+
+If( DIMIX( sFunctionDim, sFunction ) = 0 );
+    bIsUnmapped = TRUE;
+    sFunction = 'Unmapped Function';
+EndIf;
+
+
+If( ELISANC( 'BS Account', 'TB', sAccount ) = TRUE );
+    If( sCurrency @= 'Local' );
+        CellIncrementN( nValue, sBSinputCube, sScenario, sPeriod, sEntity, sProduct, sAccount, sLoadMeasure );
+    EndIf;
+    
+    CellIncrementN( nValue, sBSReportingCube, sScenario, sPeriod, sCurrency, sEntity, sProduct, sAccount, sLoadMeasure );
+Else;
+
+    If( sCurrency @= 'Local' );
+        CellIncrementN( nValue, sPLinputCube, 'Actual', sPeriod, sEntity, sProduct, sFunction, sAccount, sLoadMeasure );
+    EndIf;
+    
+    CellIncrementN( nValue, sPLReportingCube, 'Actual', sPeriod, sCurrency, sEntity, sProduct, sFunction, sAccount, sLoadMeasure );
+EndIf;
+#endregion

@@ -1,0 +1,1043 @@
+#region Prolog
+
+#==============================================================================
+#                             sys_Cube - Scenario Copy
+#
+#  This process will copy all of the data from the specified scenario 
+#  for the provided list of cube(s) and load it into a new scenario.   The 
+#  scenario copy process will run in parallel, first exporting all cube(s) to
+#  text files, and then once that is complete, it will load all cube(s)
+#  simultaneiously.   By default, scenario copy is assumed to copy only base
+#  level data to a new scenario.   If a snapshot is required, set the pSnapshot
+#  parameter to 1.   All ruled values will be copied to the destination
+#  scenario.
+#
+#  An expression can be used for the cube(s) to perform the scenario copy, which
+#  will, by default, use the }Cubes dimension to resolve the list.  To use a
+#  different dimension, prefix the expression with the dimension name in brackets.
+#
+#  The following cube expression formats are supported:
+#
+#       FORMAT                      EXAMPLE
+#       member                      Financials
+#       member;member               Balance Sheet;Cash Flow;Labor
+#       {expr}                      Level:0
+#       [dim]{expr}                 [Custom Cubes Dim]!Scenario Copy Cubes
+#
+#  The following list of expression types are supported.   
+#
+#   *       = All elements in the dimension
+#   {       = Item is the name of an existing subset
+#   !       = Drill down to the leaves of the specified element
+#   #       = Only elements at level # are included in subset (i.e. #0 for Level 0)
+#   &       = Use the supplied MDX to create the subset
+#   Subset: = Item is the name of an existing subset
+#   Drill:  = Drill down to the leaves of the specified element
+#   Level:  = Only elements at specified level # are included in subset
+#   MDX:    = Use the supplied MDX to create the subset
+#
+#  CALLS:
+#       sys_View - Create
+#       sys_View - Clear
+#       sys_Cube - Export Data
+#       sys_Cube - Import Data
+#
+#    Date      WHO  Description
+#  ----------  ---  -----------------------------------------------------------
+#  2023-08-04  SWG  Created.
+#
+#==============================================================================
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = ATTRS( '}Clients', TM1User(), '}TM1_DefaultDisplayValue' );
+sProcessName = GetProcessName();
+sDateStamp = TIMST( NOW, '\Y-\m-\d' );
+sTimeStamp = TIMST( NOW, '\Y-\m-\d \h.\i.\s' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+# --- Static Values
+ERROR  = 1; WARN   = 2; STATS  = 3;
+INFO   = 4; DEBUG  = 5; TRACE  = 6;
+TRUE   = 1; FALSE  = 0;
+LF     = CHAR(10);
+EXCEL_ADJUSTMENT = 21916;
+
+# --- Cubes
+sConfigCube     = 'sys.Config';
+sStatsCube      = 'sys.Process Stats';
+
+# --- Dimensions
+sCubesDimName = '}Cubes';
+
+# --- Subsets
+sCubesSubsetName = sTempName;
+
+# --- Values
+bParallelMode = TRUE;
+nErrorCount = 0;
+bUseTemporaryObjects = TRUE;
+bErrorOnEmptySubset = TRUE;
+bLogNonUpdateableCells = TRUE;
+bSuppressZeros = TRUE;
+nMaxRetries = 10;
+nSleepDuration = 500;
+sRecordFormat = 'tab';
+
+sSourceViewName = Expand('_tmp_%sUniqueName%_Source' );
+sDestViewName = Expand('_tmp_%sUniqueName%_Dest' );
+
+sTempDir = CellGetS( sConfigCube, 'Temporary Directory', 'String' );
+
+#==============================================================================
+#                               LOGGING SECTION
+#==============================================================================
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Started At' );
+CellPutS( sUser, sStatsCube, sProcessName, 'Executed By' );
+
+# --- Setup Logging
+nLogLevel = CellGetN( sStatsCube, sProcessName, 'Logging Level' );
+sLogDir = CellGetS( sConfigCube, 'Log Directory', 'String' );
+sLogFile = sLogDir | sUniqueName | '.log';
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+
+# --- Log startup
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Started');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+# --- Report how the script was executed 
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand( '%LF%
+        ============================================================================ %LF%
+                        %sProcessName%                                               %LF%
+        ============================================================================ %LF%
+        Executed by [%sUser%]                                                        %LF%
+              pMemberExpr            = [%pMemberExpr%]  %LF%
+              pScenarioDimName       = [%pScenarioDimName%]  %LF%
+              pSourceScenario        = [%pSourceScenario%]  %LF%
+              pDestScenario          = [%pDestScenario%]  %LF%
+              pPeriodDimName         = [%pPeriodDimName%]  %LF%
+              pSourcePeriodExpr      = [%pSourcePeriodExpr%]  %LF%
+              pDestPeriodExpr        = [%pDestPeriodExpr%]  %LF%
+              pDestOffset            = [%pDestOffset%]  %LF%
+              pSnapshot              = [%pSnapshot%]  %LF%
+              pSuppressControlCubes  = [%pSuppressControlCubes%]  %LF%
+              pSuppressRollups       = [%pSuppressRollups%]  %LF%
+              pSuppressRollupStrings = [%pSuppressRollupStrings%]  %LF%
+              pViewTimeoutMins       = [%pViewTimeoutMins%]  %LF%
+              pExportTimeoutMins     = [%pExportTimeoutMins%]  %LF%
+              pClearTimeoutMins      = [%pClearTimeoutMins%]  %LF%
+              pImportTimeoutMins     = [%pImportTimeoutMins%]  %LF%
+        ============================================================================ %LF%
+    ');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+#==============================================================================
+#                        PARAMETER VALIDATION SECTION
+#==============================================================================
+
+# --- Copy the parameters to internal values
+sSourceScenario = pSourceScenario;
+sScenarioDimName = pScenarioDimName;
+sDestScenario = pDestScenario;
+sCubesExpr = pMemberExpr;
+sPeriodDimName = pPeriodDimName;
+sSourcePeriod = pSourcePeriodExpr;
+sDestPeriod = pDestPeriodExpr;
+nOffset = pDestOffset;
+
+# --- Identify if period is to be used
+bUsePeriod = TRUE;
+If( sPeriodDimName @= ''); bUsePeriod = FALSE; EndIf;
+If( sSourcePeriod @= ''); bUsePeriod = FALSE; EndIf;
+
+
+#------------------------------------------------------------------------------
+#                   Validate Dimension Names
+#------------------------------------------------------------------------------
+
+# --- Validate the scenario dimension exists
+If( bParallelMode = FALSE );
+    If( DimensionExists( sScenarioDimName ) = 0 );
+        sMsgLevel = 'ERROR';
+        sMessage = Expand( 'Specified scenario dimension [%sScenarioDimName%] does not exist');
+        ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+        ProcessError();
+    EndIf;
+
+    If( bUsePeriod = TRUE & DimensionExists( sPeriodDimName ) = 0 );
+        sMsgLevel = 'ERROR';
+        sMessage = Expand( 'Specified period dimension [%sPeriodDimName%] does not exist');
+        ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+        ProcessError();
+    EndIf;
+EndIf;
+
+#------------------------------------------------------------------------------
+#                   Validate Source Scenario Member
+#------------------------------------------------------------------------------
+
+# --- Validate the source  members exist
+If( bParallelMode = FALSE );
+    If( DimensionElementExists( sScenarioDimName, sSourceScenario ) = 0 );
+        sMsgLevel = 'ERROR';
+        sMessage = Expand( 'Specified source scenario [%sSourceScenario%] does not exist in dimension [%sScenarioDimName%]');
+        ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+        ProcessError();
+    EndIf;
+
+    If( bUsePeriod = TRUE & DimensionElementExists( sPeriodDimName, sSourcePeriod ) = 0 );
+        sMsgLevel = 'ERROR';
+        sMessage = Expand( 'Specified source period [%sSourcePeriod%] does not exist in dimension [%sPeriodDimName%]');
+        ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+        ProcessError();
+    EndIf;
+EndIf;
+
+#------------------------------------------------------------------------------
+#                   Normalize Remaining Parameters
+#------------------------------------------------------------------------------
+# --- Setup view options
+bSnapshot              = If( pSnapshot = 0, FALSE, TRUE );
+bSuppressControlCubes  = If( pSuppressControlCubes = 0, FALSE, TRUE );
+bSuppressRollups       = If( pSuppressRollups = 0, FALSE, TRUE );
+bSuppressRollupStrings = If( pSuppressRollupStrings = 0, FALSE, TRUE );
+
+
+# --- Setup timeout options
+nImportTimeout = pImportTimeoutMins;
+nExportTimeout = pExportTimeoutMins;
+nViewTimeout = pViewTimeoutMins;
+nClearTimeout = pClearTimeoutMins;
+
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+
+#------------------------------------------------------------------------------
+#                       ADD DESTINATION VERSION (if needed)
+#------------------------------------------------------------------------------
+
+# TODO:  Is it necessary to make this a threaded process to avoid locking?
+
+# --- Make sure the destination scenario exists.   If not, add it.
+sDimName = sScenarioDimName;
+If( bParallelMode = FALSE );
+    If( DimensionElementExists( sDimName, sDestScenario ) = 0 );
+        If( nLogLevel >= INFO );
+            sMsgLevel = 'INFO';
+            sMessage = Expand( 'Destination scenario [%sDestScenario%] added to dimension [%sDimName%]');
+            ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+        EndIf;    
+        DimensionElementInsertDirect( sDimName, '', sDestScenario, 'N' );
+    EndIf;
+EndIf;
+
+#------------------------------------------------------------------------------
+#                       CREATE FILTERED CUBES LIST
+#------------------------------------------------------------------------------
+
+# --- Prepare for a working subset
+sWorkingSubsetName = sCubesSubsetName | '_working';
+bUseTemporaryObjects = TRUE;
+
+# --- Generate the list of cubes to process
+ExecuteProcess( 'sys_Subset - Create', 
+        'pDimName', sCubesDimName,
+        'pSubsetName', sWorkingSubsetName,
+        'pMemberExpr', sCubesExpr,
+        'pUseTemporaryObjects', bUseTemporaryObjects,
+        'pErrorOnEmptySubset', TRUE,
+        'pParallelMode', TRUE
+    );
+
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = TIMST( NOW, '\M-\D-\Y \H:\i:\s' ) | ': Cubes Selected For Scenario Copy';
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;    
+
+
+# --- Now create a new subset with only those cubes that contain the scenario 
+# --- dimension being copied.
+SubsetCreate( sCubesDimName, sCubesSubsetName, TRUE );
+nCubeIndex = 0;
+nCubeCount = SubsetGetSize( sCubesDimName, sWorkingSubsetName );
+While( nCubeIndex < nCubeCount );
+    nCubeIndex = nCubeIndex + 1;
+    sCubeName = SubsetGetElementName( sCubesDimName, sWorkingSubsetName, nCubeIndex );
+    
+    sFirstChar = SUBST( sCubeName, 1, 1 );
+    If( bSuppressControlCubes = TRUE & sFirstChar @= '}');
+      # --- Skip the control cube
+    Else;
+        nDimCount = CubeDimensionCountGet( sCubeName );
+
+        nCubeDimIndex = 0;
+        nPeriodDimIndex = 0;
+        nScenarioDimIndex = 0;
+        While( nCubeDimIndex < nDimCount );
+            nCubeDimIndex = nCubeDimIndex + 1;
+            sCubeDimName = TABDIM( sCubeName, nCubeDimIndex );
+    
+            If( LOWER(sCubeDimName) @= LOWER(sScenarioDimName) );
+                nScenarioDimIndex = nCubeDimIndex;
+            EndIf;
+    
+            If( LOWER(sCubeDimName) @= LOWER(sPeriodDimName) );
+                nPeriodDimIndex = nCubeDimIndex;
+            EndIf;
+        End;
+
+        # --- If we have a scenario dimension, check if a period dimension
+        # --- was also specified.   If must have both if both were provided.
+        If( bUsePeriod = TRUE & nPeriodDimIndex > 0 & nScenarioDimIndex > 0 );
+            SubsetElementInsert( sCubesDimName, sCubesSubsetName, sCubeName, 0 );
+            
+            If( nLogLevel >= DEBUG );
+                sMsgLevel = 'DEBUG';
+                sMessage = TIMST( NOW, '\M-\D-\Y \H:\i:\s' ) | Expand( ':     [%sCubeName%]   (scenario + period matched)' );
+                ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+            EndIf;  
+
+        ElseIf( bUsePeriod = FALSE & nScenarioDimIndex > 0 );
+            SubsetElementInsert( sCubesDimName, sCubesSubsetName, sCubeName, 0 );
+            
+            If( nLogLevel >= DEBUG );
+                sMsgLevel = 'DEBUG';
+                sMessage = TIMST( NOW, '\M-\D-\Y \H:\i:\s' ) | Expand( ':     [%sCubeName%]   (scenario matched)' );
+                ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+            EndIf;  
+        EndIf;
+         
+     EndIf;
+End;
+
+# --- Make sure we ended up with some cubes to process
+nCubeCount = SubsetGetSize( sCubesDimName, sCubesSubsetName );
+If( nCubeCount = 0 );
+    If( bUsePeriod = FALSE );
+        sMessage = Expand( 'No cubes using expression [%sCubesExpr%] found with dimension [%sScenarioDimName%].  Check logs for detail');
+    Else;
+        sMessage = Expand( 'No cubes with expression [%sCubesExpr%] have scenario dimension [%sScenarioDimName%] that also has period dimension [%sPeriodDimName%] found.  Check logs for detail');
+    EndIf;
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+    ProcessError;
+EndIf;
+
+#------------------------------------------------------------------------------
+#                    PARALLEL VIEW CREATION (by cube)
+#------------------------------------------------------------------------------
+
+# --- Setup the multi-threading file unique operation suffix
+sSemaphoreSufix = '.view.complete';
+
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = TIMST( NOW, '\M-\D-\Y \H:\i:\s' ) | ': View Create';
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;    
+
+# --- Loop through the filtered list of cubes and perform create the
+# --- views which isolate all the scenario data.
+nThreadCount = 0;
+nCubeIndex = 0;
+nCubeCount = SubsetGetSize( sCubesDimName, sCubesSubsetName );
+While( nCubeIndex < nCubeCount );
+    nCubeIndex = nCubeIndex + 1;
+    sCubeName = SubsetGetElementName( sCubesDimName, sCubesSubsetName, nCubeIndex );
+    sViewName = Expand( '%sSourceViewName%_%sCubeName%' );
+    
+    # TODO:  This code could be eliminated if we could use attributes on the 
+    #        }Cubes dimension -  NEED TO DISCUSS
+    # --- Find where the scenario dimension is within the cube
+    nCubeDimIndex = 0;
+    nPeriodDimIndex = 0;
+    nScenarioDimIndex = 0;
+    While( nCubeDimIndex < nDimCount );
+        nCubeDimIndex = nCubeDimIndex + 1;
+        sCubeDimName = TABDIM( sCubeName, nCubeDimIndex );
+
+        If( LOWER(sCubeDimName) @= LOWER(sScenarioDimName) );
+            nScenarioDimIndex = nCubeDimIndex;
+        EndIf;
+
+        If( LOWER(sCubeDimName) @= LOWER(sPeriodDimName) );
+            nPeriodDimIndex = nCubeDimIndex;
+            # LogOutput( 'INFO', Expand( 'Cube: %sCubeName% - %sPeriodDimName%:  %sCubeDimName% - %nCubeDimIndex%' ) );
+        EndIf;
+    End;
+    
+    If( nScenarioDimIndex > 0 );
+        # --- Keep track of how many threads were initiated
+        nThreadCount = nThreadCount + 1;
+
+        # --- Create a semaphore file to control the threading
+        sSemaphoreFilename = sLogDir | sUniqueName | sCubeName | sSemaphoreSufix;
+
+        # --- Set the member expression for the scenario dimension
+        sMemberExpr1  = If( nScenarioDimIndex =  1, sSourceScenario, '#0' );
+        sMemberExpr2  = If( nScenarioDimIndex =  2, sSourceScenario, '#0' );
+        sMemberExpr3  = If( nScenarioDimIndex =  3, sSourceScenario, '#0' );
+        sMemberExpr4  = If( nScenarioDimIndex =  4, sSourceScenario, '#0' );
+        sMemberExpr5  = If( nScenarioDimIndex =  5, sSourceScenario, '#0' );
+        sMemberExpr6  = If( nScenarioDimIndex =  6, sSourceScenario, '#0' );
+        sMemberExpr7  = If( nScenarioDimIndex =  7, sSourceScenario, '#0' );
+        sMemberExpr8  = If( nScenarioDimIndex =  8, sSourceScenario, '#0' );
+        sMemberExpr9  = If( nScenarioDimIndex =  9, sSourceScenario, '#0' );
+        sMemberExpr10 = If( nScenarioDimIndex = 10, sSourceScenario, '#0' );
+        sMemberExpr11 = If( nScenarioDimIndex = 11, sSourceScenario, '#0' );
+        sMemberExpr12 = If( nScenarioDimIndex = 12, sSourceScenario, '#0' );
+        sMemberExpr13 = If( nScenarioDimIndex = 13, sSourceScenario, '#0' );
+        sMemberExpr14 = If( nScenarioDimIndex = 14, sSourceScenario, '#0' );
+        sMemberExpr15 = If( nScenarioDimIndex = 15, sSourceScenario, '#0' );
+        sMemberExpr16 = If( nScenarioDimIndex = 16, sSourceScenario, '#0' );
+        sMemberExpr17 = If( nScenarioDimIndex = 17, sSourceScenario, '#0' );
+        sMemberExpr18 = If( nScenarioDimIndex = 18, sSourceScenario, '#0' );
+        sMemberExpr19 = If( nScenarioDimIndex = 19, sSourceScenario, '#0' );
+        sMemberExpr20 = If( nScenarioDimIndex = 20, sSourceScenario, '#0' );
+
+        # --- If we are to use the period, then also set the period member expression
+        If( bUsePeriod = TRUE );
+            If( nPeriodDimIndex =  1); sMemberExpr1  = sSourcePeriod; EndIf;
+            If( nPeriodDimIndex =  2); sMemberExpr2  = sSourcePeriod; EndIf;
+            If( nPeriodDimIndex =  3); sMemberExpr3  = sSourcePeriod; EndIf;
+            If( nPeriodDimIndex =  4); sMemberExpr4  = sSourcePeriod; EndIf;
+            If( nPeriodDimIndex =  5); sMemberExpr5  = sSourcePeriod; EndIf;
+            If( nPeriodDimIndex =  6); sMemberExpr6  = sSourcePeriod; EndIf;
+            If( nPeriodDimIndex =  7); sMemberExpr7  = sSourcePeriod; EndIf;
+            If( nPeriodDimIndex =  8); sMemberExpr8  = sSourcePeriod; EndIf;
+            If( nPeriodDimIndex =  9); sMemberExpr9  = sSourcePeriod; EndIf;
+            If( nPeriodDimIndex = 10); sMemberExpr10 = sSourcePeriod; EndIf;
+            If( nPeriodDimIndex = 11); sMemberExpr11 = sSourcePeriod; EndIf;
+            If( nPeriodDimIndex = 12); sMemberExpr12 = sSourcePeriod; EndIf;
+            If( nPeriodDimIndex = 13); sMemberExpr13 = sSourcePeriod; EndIf;
+            If( nPeriodDimIndex = 14); sMemberExpr14 = sSourcePeriod; EndIf;
+            If( nPeriodDimIndex = 15); sMemberExpr15 = sSourcePeriod; EndIf;
+            If( nPeriodDimIndex = 16); sMemberExpr16 = sSourcePeriod; EndIf;
+            If( nPeriodDimIndex = 17); sMemberExpr17 = sSourcePeriod; EndIf;
+            If( nPeriodDimIndex = 18); sMemberExpr18 = sSourcePeriod; EndIf;
+            If( nPeriodDimIndex = 19); sMemberExpr19 = sSourcePeriod; EndIf;
+            If( nPeriodDimIndex = 20); sMemberExpr20 = sSourcePeriod; EndIf;
+        EndIf;
+
+        # AsciiOutput( sLogFile, 'sys_View - Create',
+        #     'pCubeName', sCubeName,
+        #     'pViewName', sViewName,
+        #     'pMemberExpr1',  sMemberExpr1,
+        #     'pMemberExpr2',  sMemberExpr2,
+        #     'pMemberExpr3',  sMemberExpr3,
+        #     'pMemberExpr4',  sMemberExpr4,
+        #     'pMemberExpr5',  sMemberExpr5,
+        #     'pMemberExpr6',  sMemberExpr6,
+        #     'pMemberExpr7',  sMemberExpr7,
+        #     'pMemberExpr8',  sMemberExpr8,
+        #     'pMemberExpr9',  sMemberExpr9,
+        #     'pMemberExpr10', sMemberExpr10,
+        #     'pMemberExpr11', sMemberExpr11,
+        #     'pMemberExpr12', sMemberExpr12,
+        #     'pMemberExpr13', sMemberExpr13,
+        #     'pMemberExpr14', sMemberExpr14,
+        #     'pMemberExpr15', sMemberExpr15,
+        #     'pMemberExpr16', sMemberExpr16,
+        #     'pMemberExpr17', sMemberExpr17,
+        #     'pMemberExpr18', sMemberExpr18,
+        #     'pMemberExpr19', sMemberExpr19,
+        #     'pMemberExpr20', sMemberExpr20
+        # );
+
+        # --- Create a view using the scenario 
+        RunProcess( 'sys_View - Create',
+            'pCubeName', sCubeName,
+            'pViewName', sViewName,
+            'pMemberExpr1',  sMemberExpr1,
+            'pMemberExpr2',  sMemberExpr2,
+            'pMemberExpr3',  sMemberExpr3,
+            'pMemberExpr4',  sMemberExpr4,
+            'pMemberExpr5',  sMemberExpr5,
+            'pMemberExpr6',  sMemberExpr6,
+            'pMemberExpr7',  sMemberExpr7,
+            'pMemberExpr8',  sMemberExpr8,
+            'pMemberExpr9',  sMemberExpr9,
+            'pMemberExpr10', sMemberExpr10,
+            'pMemberExpr11', sMemberExpr11,
+            'pMemberExpr12', sMemberExpr12,
+            'pMemberExpr13', sMemberExpr13,
+            'pMemberExpr14', sMemberExpr14,
+            'pMemberExpr15', sMemberExpr15,
+            'pMemberExpr16', sMemberExpr16,
+            'pMemberExpr17', sMemberExpr17,
+            'pMemberExpr18', sMemberExpr18,
+            'pMemberExpr19', sMemberExpr19,
+            'pMemberExpr20', sMemberExpr20,
+            'pUseTemporaryObjects', FALSE,
+            'pErrorOnEmptySubset', bErrorOnEmptySubset,
+            'pSuppressZeros', bSuppressZeros,
+            'pSuppressRollups', bSuppressRollups,
+            'pSuppressCalculations', If( bSnapshot = TRUE, FALSE, TRUE ),
+            'pSuppressRollupStrings', bSuppressRollupStrings,
+            'pSemaphoreFilename', sSemaphoreFilename
+        );
+
+    EndIf;
+End;
+
+
+#------------------------------------------------------------------------------
+#               WAIT FOR ALL PARALLEL PROCESSES TO COMPLETE
+#------------------------------------------------------------------------------
+nTimeout = nViewTimeout;
+nStartTime = NOW;
+nFinishedThreadCount = 0;
+While( nFinishedThreadCount < nThreadCount );
+
+    # --- Wait for all view creates to complete
+    nCubeIndex = 0;
+    nCubeCount = SubsetGetSize( sCubesDimName, sCubesSubsetName );
+    While( nCubeIndex < nCubeCount );
+        nCubeIndex = nCubeIndex + 1;
+        sCubeName = SubsetGetElementName( sCubesDimName, sCubesSubsetName, nCubeIndex );
+
+        # --- Create a semaphore file to control the threading
+        sSemaphoreFilename = sLogDir | sUniqueName | sCubeName | sSemaphoreSufix;
+
+        If( FileExists( sSemaphoreFilename ) = TRUE );
+            If( nLogLevel >= DEBUG );
+                sMsgLevel = 'DEBUG';
+                sMessage = TIMST( NOW, '\M-\D-\Y \H:\i:\s' ) | Expand( ':     [%sCubeName%] completed' );
+                ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+            EndIf;    
+        
+            ASCIIDelete( sSemaphoreFilename );
+            nFinishedThreadCount = nFinishedThreadCount + 1;
+        EndIf;
+    End;
+
+    # --- Sleep between checking
+    Sleep( nSleepDuration );
+
+    nElapsed = (( NOW - nStartTime ) * 86400 ) / 60;
+    If( nElapsed > nTimeout );
+        sMsgLevel = 'ERROR';
+        sMessage = Expand( 'Timeout occured waiting for threads to complete.  Check logs for detail');
+        sMessage = TIMST( NOW, '\M-\D-\Y \H:\i:\s' ) | Expand( ':     [%sCubeName%] completed' );
+        ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+        ProcessError;    
+    EndIf;
+End;
+
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = TIMST( NOW, '\M-\D-\Y \H:\i:\s' ) | ': View Create operations completed successfully';
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;    
+
+
+#------------------------------------------------------------------------------
+#                    PARALLEL DATA EXPORT (by cube)
+#------------------------------------------------------------------------------
+
+# --- Setup the multi-threading file unique operation suffix
+sSemaphoreSufix = '.export.complete';
+
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = TIMST( NOW, '\M-\D-\Y \H:\i:\s' ) | ': Cube Data Export';
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;   
+
+# --- Loop through the filtered list of cubes and perform all the exports
+# --- in parallel.
+nCubeIndex = 0;
+nCubeCount = SubsetGetSize( sCubesDimName, sCubesSubsetName );
+While( nCubeIndex < nCubeCount );
+    nCubeIndex = nCubeIndex + 1;
+    sCubeName = SubsetGetElementName( sCubesDimName, sCubesSubsetName, nCubeIndex );
+    sViewName = Expand( '%sSourceViewName%_%sCubeName%' );
+    sFilename = Expand('%sTempDir%_tmp_%sUniqueName%_%sCubeName%.txt' );
+    
+    # --- Create a semaphore file to control the threading
+    sSemaphoreFilename = sLogDir | sUniqueName | sCubeName | sSemaphoreSufix;
+
+    RunProcess( 'sys_Cube - Data Export',
+        'pFilename', sFileName,
+        'pCubeName', sCubeName,
+        'pViewName', sViewName,
+        'pRecordFormat', sRecordFormat,
+        'pOverwriteFile', 1,
+        'pSemaphoreFilename', sSemaphoreFilename
+    );
+
+End;
+
+#------------------------------------------------------------------------------
+#               WAIT FOR ALL PARALLEL PROCESSES TO COMPLETE
+#------------------------------------------------------------------------------
+nTimeout = nExportTimeout;
+nStartTime = NOW;
+nFinishedThreadCount = 0;
+While( nFinishedThreadCount < nThreadCount );
+
+    # --- Wait for all view creates to complete
+    nCubeIndex = 0;
+    nCubeCount = SubsetGetSize( sCubesDimName, sCubesSubsetName );
+    While( nCubeIndex < nCubeCount );
+        nCubeIndex = nCubeIndex + 1;
+        sCubeName = SubsetGetElementName( sCubesDimName, sCubesSubsetName, nCubeIndex );
+
+        # --- Create a semaphore file to control the threading
+        sSemaphoreFilename = sLogDir | sUniqueName | sCubeName | sSemaphoreSufix;
+
+        If( FileExists( sSemaphoreFilename ) = TRUE );
+            If( nLogLevel >= DEBUG );
+                sMsgLevel = 'DEBUG';
+                sMessage = TIMST( NOW, '\M-\D-\Y \H:\i:\s' ) | Expand( ':     [%sCubeName%] completed' );
+                ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+            EndIf; 
+            
+            ASCIIDelete( sSemaphoreFilename );
+            nFinishedThreadCount = nFinishedThreadCount + 1;
+        EndIf;
+    End;
+
+    # --- Sleep between checking
+    Sleep( nSleepDuration );
+
+    nElapsed = (( NOW - nStartTime ) * 86400 ) / 60;
+    If( nElapsed > nTimeout );
+        sMsgLevel = 'DEBUG';
+        sMessage = Expand( 'Timeout occured waiting for threads to complete.  Check logs for detail');
+        ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+        ProcessError;    
+    EndIf;
+End;
+
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = TIMST( NOW, '\M-\D-\Y \H:\i:\s' ) | ': Data Export operations completed successfully';
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+
+#------------------------------------------------------------------------------
+#                         DELETE SOURCE VIEWS (not parallel)
+#------------------------------------------------------------------------------
+
+# --- Remove all the views that were created to extract source data
+nCubeIndex = 0;
+nCubeCount = SubsetGetSize( sCubesDimName, sCubesSubsetName );
+While( nCubeIndex < nCubeCount );
+    nCubeIndex = nCubeIndex + 1;
+    sCubeName = SubsetGetElementName( sCubesDimName, sCubesSubsetName, nCubeIndex );
+    sViewName = Expand( '%sSourceViewName%_%sCubeName%' );
+    
+    # --- Create a view using the scenario 
+    ExecuteProcess( 'sys_View - Delete',
+        'pCubeName', sCubeName,
+        'pViewName', sViewName
+    );
+End;
+
+
+#------------------------------------------------------------------------------
+#                    PARALLEL VIEW CLEAR (by cube)
+#------------------------------------------------------------------------------
+
+# --- Setup the multi-threading file unique operation suffix
+sSemaphoreSufix = '.clear.complete';
+
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = TIMST( NOW, '\M-\D-\Y \H:\i:\s' ) | ': View Clear';
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf; 
+
+# --- Loop through the filtered list of cubes and perform create the
+# --- views which isolate all the scenario data.
+nThreadCount = 0;
+nCubeIndex = 0;
+nCubeCount = SubsetGetSize( sCubesDimName, sCubesSubsetName );
+While( nCubeIndex < nCubeCount );
+    nCubeIndex = nCubeIndex + 1;
+    sCubeName = SubsetGetElementName( sCubesDimName, sCubesSubsetName, nCubeIndex );
+
+    # --- Disable cube logging
+    CubeSetLogChanges( sCubeName, FALSE );
+
+    # --- Find where the scenario dimension is within the cube
+    nCubeDimIndex = 0;
+    While( nCubeDimIndex < nDimCount );
+        nCubeDimIndex = nCubeDimIndex + 1;
+        sCubeDimName = TABDIM( sCubeName, nCubeDimIndex );
+
+        If( LOWER(sCubeDimName) @= LOWER(sScenarioDimName) );
+            nScenarioDimIndex = nCubeDimIndex;
+        EndIf;
+        
+        If( LOWER(sCubeDimName) @= LOWER(sPeriodDimName) );
+            nPeriodDimIndex = nCubeDimIndex;
+        EndIf;
+    End;
+
+    If( nScenarioDimIndex > 0 );
+        # --- Keep track of how many threads were initiated
+        nThreadCount = nThreadCount + 1;
+
+        # --- Create a semaphore file to control the threading
+        sSemaphoreFilename = sLogDir | sUniqueName | sCubeName | sSemaphoreSufix;
+
+        # --- Set the member expression for the scenario dimension
+        sMemberExpr1  = If( nScenarioDimIndex =  1, sDestScenario, '#0' );
+        sMemberExpr2  = If( nScenarioDimIndex =  2, sDestScenario, '#0' );
+        sMemberExpr3  = If( nScenarioDimIndex =  3, sDestScenario, '#0' );
+        sMemberExpr4  = If( nScenarioDimIndex =  4, sDestScenario, '#0' );
+        sMemberExpr5  = If( nScenarioDimIndex =  5, sDestScenario, '#0' );
+        sMemberExpr6  = If( nScenarioDimIndex =  6, sDestScenario, '#0' );
+        sMemberExpr7  = If( nScenarioDimIndex =  7, sDestScenario, '#0' );
+        sMemberExpr8  = If( nScenarioDimIndex =  8, sDestScenario, '#0' );
+        sMemberExpr9  = If( nScenarioDimIndex =  9, sDestScenario, '#0' );
+        sMemberExpr10 = If( nScenarioDimIndex = 10, sDestScenario, '#0' );
+        sMemberExpr11 = If( nScenarioDimIndex = 11, sDestScenario, '#0' );
+        sMemberExpr12 = If( nScenarioDimIndex = 12, sDestScenario, '#0' );
+        sMemberExpr13 = If( nScenarioDimIndex = 13, sDestScenario, '#0' );
+        sMemberExpr14 = If( nScenarioDimIndex = 14, sDestScenario, '#0' );
+        sMemberExpr15 = If( nScenarioDimIndex = 15, sDestScenario, '#0' );
+        sMemberExpr16 = If( nScenarioDimIndex = 16, sDestScenario, '#0' );
+        sMemberExpr17 = If( nScenarioDimIndex = 17, sDestScenario, '#0' );
+        sMemberExpr18 = If( nScenarioDimIndex = 18, sDestScenario, '#0' );
+        sMemberExpr19 = If( nScenarioDimIndex = 19, sDestScenario, '#0' );
+        sMemberExpr20 = If( nScenarioDimIndex = 20, sDestScenario, '#0' );
+
+        # --- If we are to use the period, then also set the period member expression
+        If( bUsePeriod = TRUE );
+            If( nPeriodDimIndex =  1); sMemberExpr1  = sDestPeriod; EndIf;
+            If( nPeriodDimIndex =  2); sMemberExpr2  = sDestPeriod; EndIf;
+            If( nPeriodDimIndex =  3); sMemberExpr3  = sDestPeriod; EndIf;
+            If( nPeriodDimIndex =  4); sMemberExpr4  = sDestPeriod; EndIf;
+            If( nPeriodDimIndex =  5); sMemberExpr5  = sDestPeriod; EndIf;
+            If( nPeriodDimIndex =  6); sMemberExpr6  = sDestPeriod; EndIf;
+            If( nPeriodDimIndex =  7); sMemberExpr7  = sDestPeriod; EndIf;
+            If( nPeriodDimIndex =  8); sMemberExpr8  = sDestPeriod; EndIf;
+            If( nPeriodDimIndex =  9); sMemberExpr9  = sDestPeriod; EndIf;
+            If( nPeriodDimIndex = 10); sMemberExpr10 = sDestPeriod; EndIf;
+            If( nPeriodDimIndex = 11); sMemberExpr11 = sDestPeriod; EndIf;
+            If( nPeriodDimIndex = 12); sMemberExpr12 = sDestPeriod; EndIf;
+            If( nPeriodDimIndex = 13); sMemberExpr13 = sDestPeriod; EndIf;
+            If( nPeriodDimIndex = 14); sMemberExpr14 = sDestPeriod; EndIf;
+            If( nPeriodDimIndex = 15); sMemberExpr15 = sDestPeriod; EndIf;
+            If( nPeriodDimIndex = 16); sMemberExpr16 = sDestPeriod; EndIf;
+            If( nPeriodDimIndex = 17); sMemberExpr17 = sDestPeriod; EndIf;
+            If( nPeriodDimIndex = 18); sMemberExpr18 = sDestPeriod; EndIf;
+            If( nPeriodDimIndex = 19); sMemberExpr19 = sDestPeriod; EndIf;
+            If( nPeriodDimIndex = 20); sMemberExpr20 = sDestPeriod; EndIf;
+        EndIf;
+        
+        # --- Create a view using the scenario 
+        RunProcess( 'sys_View - Clear',
+            'pCubeName', sCubeName,
+            'pMemberExpr1',  sMemberExpr1,
+            'pMemberExpr2',  sMemberExpr2,
+            'pMemberExpr3',  sMemberExpr3,
+            'pMemberExpr4',  sMemberExpr4,
+            'pMemberExpr5',  sMemberExpr5,
+            'pMemberExpr6',  sMemberExpr6,
+            'pMemberExpr7',  sMemberExpr7,
+            'pMemberExpr8',  sMemberExpr8,
+            'pMemberExpr9',  sMemberExpr9,
+            'pMemberExpr10', sMemberExpr10,
+            'pMemberExpr11', sMemberExpr11,
+            'pMemberExpr12', sMemberExpr12,
+            'pMemberExpr13', sMemberExpr13,
+            'pMemberExpr14', sMemberExpr14,
+            'pMemberExpr15', sMemberExpr15,
+            'pMemberExpr16', sMemberExpr16,
+            'pMemberExpr17', sMemberExpr17,
+            'pMemberExpr18', sMemberExpr18,
+            'pMemberExpr19', sMemberExpr19,
+            'pMemberExpr20', sMemberExpr20,
+            'pSemaphoreFilename', sSemaphoreFilename
+        );
+        
+    EndIf;
+End;
+
+#------------------------------------------------------------------------------
+#               WAIT FOR ALL PARALLEL PROCESSES TO COMPLETE
+#------------------------------------------------------------------------------
+nTimeout = nClearTimeout;
+nStartTime = NOW;
+nFinishedThreadCount = 0;
+While( nFinishedThreadCount < nThreadCount );
+
+    # --- Wait for all view creates to complete
+    nCubeIndex = 0;
+    nCubeCount = SubsetGetSize( sCubesDimName, sCubesSubsetName );
+    While( nCubeIndex < nCubeCount );
+        nCubeIndex = nCubeIndex + 1;
+        sCubeName = SubsetGetElementName( sCubesDimName, sCubesSubsetName, nCubeIndex );
+
+        # --- Create a semaphore file to control the threading
+        sSemaphoreFilename = sLogDir | sUniqueName | sCubeName | sSemaphoreSufix;
+
+        If( FileExists( sSemaphoreFilename ) = TRUE );
+            If( nLogLevel >= DEBUG );
+                sMsgLevel = 'DEBUG';
+                sMessage = TIMST( NOW, '\M-\D-\Y \H:\i:\s' ) | Expand( ':     [%sCubeName%] completed' );
+                ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+            EndIf; 
+
+            ASCIIDelete( sSemaphoreFilename );
+            nFinishedThreadCount = nFinishedThreadCount + 1;
+        EndIf;
+    End;
+
+    # --- Sleep between checking
+    Sleep( nSleepDuration );
+
+    nElapsed = (( NOW - nStartTime ) * 86400 ) / 60;
+    If( nElapsed > nTimeout );
+        sMsgLevel = 'DEBUG';
+        sMessage = Expand( 'Timeout occured waiting for threads to complete.  Check logs for detail');
+        ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+        ProcessError;    
+    EndIf;
+End;
+
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = TIMST( NOW, '\M-\D-\Y \H:\i:\s' ) | ': View Clear operations completed successfully';
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+#------------------------------------------------------------------------------
+#                    PARALLEL DATA IMPORT (by cube)
+#------------------------------------------------------------------------------
+
+# --- Setup the multi-threading file unique operation suffix
+sSemaphoreSufix = '.import.complete';
+
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = TIMST( NOW, '\M-\D-\Y \H:\i:\s' ) | ': Cube Data Import';
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+# --- Loop through the filtered list of cubes and perform all the exports
+# --- in parallel.
+nCubeIndex = 0;
+nCubeCount = SubsetGetSize( sCubesDimName, sCubesSubsetName );
+While( nCubeIndex < nCubeCount );
+    nCubeIndex = nCubeIndex + 1;
+    sCubeName = SubsetGetElementName( sCubesDimName, sCubesSubsetName, nCubeIndex );
+    sFilename = Expand('%sTempDir%_tmp_%sUniqueName%_%sCubeName%.txt' );
+
+    # --- Find where the scenario dimension is within the cube
+    nCubeDimIndex = 0;
+    While( nCubeDimIndex < nDimCount );
+        nCubeDimIndex = nCubeDimIndex + 1;
+        sCubeDimName = TABDIM( sCubeName, nCubeDimIndex );
+
+        If( LOWER(sCubeDimName) @= LOWER(sScenarioDimName) );
+            nScenarioDimIndex = nCubeDimIndex;
+        EndIf;
+    End;
+
+    If( nScenarioDimIndex > 0 );
+        # --- Create a semaphore file to control the threading
+        sSemaphoreFilename = sLogDir | sUniqueName | sCubeName | sSemaphoreSufix;
+        
+        # --- Set the member expression for the scenario dimension
+        sMemberExpr1  = If( nScenarioDimIndex =  1, sDestScenario, '' );
+        sMemberExpr2  = If( nScenarioDimIndex =  2, sDestScenario, '' );
+        sMemberExpr3  = If( nScenarioDimIndex =  3, sDestScenario, '' );
+        sMemberExpr4  = If( nScenarioDimIndex =  4, sDestScenario, '' );
+        sMemberExpr5  = If( nScenarioDimIndex =  5, sDestScenario, '' );
+        sMemberExpr6  = If( nScenarioDimIndex =  6, sDestScenario, '' );
+        sMemberExpr7  = If( nScenarioDimIndex =  7, sDestScenario, '' );
+        sMemberExpr8  = If( nScenarioDimIndex =  8, sDestScenario, '' );
+        sMemberExpr9  = If( nScenarioDimIndex =  9, sDestScenario, '' );
+        sMemberExpr10 = If( nScenarioDimIndex = 10, sDestScenario, '' );
+        sMemberExpr11 = If( nScenarioDimIndex = 11, sDestScenario, '' );
+        sMemberExpr12 = If( nScenarioDimIndex = 12, sDestScenario, '' );
+        sMemberExpr13 = If( nScenarioDimIndex = 13, sDestScenario, '' );
+        sMemberExpr14 = If( nScenarioDimIndex = 14, sDestScenario, '' );
+        sMemberExpr15 = If( nScenarioDimIndex = 15, sDestScenario, '' );
+        sMemberExpr16 = If( nScenarioDimIndex = 16, sDestScenario, '' );
+        sMemberExpr17 = If( nScenarioDimIndex = 17, sDestScenario, '' );
+        sMemberExpr18 = If( nScenarioDimIndex = 18, sDestScenario, '' );
+        sMemberExpr19 = If( nScenarioDimIndex = 19, sDestScenario, '' );
+        sMemberExpr20 = If( nScenarioDimIndex = 20, sDestScenario, '' );
+
+        # --- If we are to use the period, then also set the period member expression
+        If( bUsePeriod = TRUE );
+            If( nPeriodDimIndex =  1); sMemberExpr1  = '=PeriodOffset(%vCol1%,'  | STR( nOffset, 0, 0 ) | ')'; EndIf;
+            If( nPeriodDimIndex =  2); sMemberExpr2  = '=PeriodOffset(%vCol2%,'  | STR( nOffset, 0, 0 ) | ')'; EndIf;
+            If( nPeriodDimIndex =  3); sMemberExpr3  = '=PeriodOffset(%vCol3%,'  | STR( nOffset, 0, 0 ) | ')'; EndIf;
+            If( nPeriodDimIndex =  4); sMemberExpr4  = '=PeriodOffset(%vCol4%,'  | STR( nOffset, 0, 0 ) | ')'; EndIf;
+            If( nPeriodDimIndex =  5); sMemberExpr5  = '=PeriodOffset(%vCol5%,'  | STR( nOffset, 0, 0 ) | ')'; EndIf;
+            If( nPeriodDimIndex =  6); sMemberExpr6  = '=PeriodOffset(%vCol6%,'  | STR( nOffset, 0, 0 ) | ')'; EndIf;
+            If( nPeriodDimIndex =  7); sMemberExpr7  = '=PeriodOffset(%vCol7%,'  | STR( nOffset, 0, 0 ) | ')'; EndIf;
+            If( nPeriodDimIndex =  8); sMemberExpr8  = '=PeriodOffset(%vCol8%,'  | STR( nOffset, 0, 0 ) | ')'; EndIf;
+            If( nPeriodDimIndex =  9); sMemberExpr9  = '=PeriodOffset(%vCol9%,'  | STR( nOffset, 0, 0 ) | ')'; EndIf;
+            If( nPeriodDimIndex = 10); sMemberExpr10 = '=PeriodOffset(%vCol10%,' | STR( nOffset, 0, 0 ) | ')'; EndIf;
+            If( nPeriodDimIndex = 11); sMemberExpr11 = '=PeriodOffset(%vCol11%,' | STR( nOffset, 0, 0 ) | ')'; EndIf;
+            If( nPeriodDimIndex = 12); sMemberExpr12 = '=PeriodOffset(%vCol12%,' | STR( nOffset, 0, 0 ) | ')'; EndIf;
+            If( nPeriodDimIndex = 13); sMemberExpr13 = '=PeriodOffset(%vCol13%,' | STR( nOffset, 0, 0 ) | ')'; EndIf;
+            If( nPeriodDimIndex = 14); sMemberExpr14 = '=PeriodOffset(%vCol14%,' | STR( nOffset, 0, 0 ) | ')'; EndIf;
+            If( nPeriodDimIndex = 15); sMemberExpr15 = '=PeriodOffset(%vCol15%,' | STR( nOffset, 0, 0 ) | ')'; EndIf;
+            If( nPeriodDimIndex = 16); sMemberExpr16 = '=PeriodOffset(%vCol16%,' | STR( nOffset, 0, 0 ) | ')'; EndIf;
+            If( nPeriodDimIndex = 17); sMemberExpr17 = '=PeriodOffset(%vCol17%,' | STR( nOffset, 0, 0 ) | ')'; EndIf;
+            If( nPeriodDimIndex = 18); sMemberExpr18 = '=PeriodOffset(%vCol18%,' | STR( nOffset, 0, 0 ) | ')'; EndIf;
+            If( nPeriodDimIndex = 19); sMemberExpr19 = '=PeriodOffset(%vCol19%,' | STR( nOffset, 0, 0 ) | ')'; EndIf;
+            If( nPeriodDimIndex = 20); sMemberExpr20 = '=PeriodOffset(%vCol20%,' | STR( nOffset, 0, 0 ) | ')'; EndIf;
+        EndIf;
+
+        RunProcess( 'sys_Cube - Data Import',
+            'pFilename', sFileName,
+            'pCubeName', sCubeName,
+            'pMemberExpr1',  sMemberExpr1,
+            'pMemberExpr2',  sMemberExpr2,
+            'pMemberExpr3',  sMemberExpr3,
+            'pMemberExpr4',  sMemberExpr4,
+            'pMemberExpr5',  sMemberExpr5,
+            'pMemberExpr6',  sMemberExpr6,
+            'pMemberExpr7',  sMemberExpr7,
+            'pMemberExpr8',  sMemberExpr8,
+            'pMemberExpr9',  sMemberExpr9,
+            'pMemberExpr10', sMemberExpr10,
+            'pMemberExpr11', sMemberExpr11,
+            'pMemberExpr12', sMemberExpr12,
+            'pMemberExpr13', sMemberExpr13,
+            'pMemberExpr14', sMemberExpr14,
+            'pMemberExpr15', sMemberExpr15,
+            'pMemberExpr16', sMemberExpr16,
+            'pMemberExpr17', sMemberExpr17,
+            'pMemberExpr18', sMemberExpr18,
+            'pMemberExpr19', sMemberExpr19,
+            'pMemberExpr20', sMemberExpr20,
+            'pRecordFormat', sRecordFormat,
+            'pHeaderRecords', 1,
+            'pIncrementCubeCells', 0,
+            'pLogNonUpdateableCells', bLogNonUpdateableCells,
+            'pSemaphoreFilename', sSemaphoreFilename
+        );
+        
+    EndIf;
+
+End;
+
+#------------------------------------------------------------------------------
+#               WAIT FOR ALL PARALLEL PROCESSES TO COMPLETE
+#------------------------------------------------------------------------------
+nTimeout = nImportTimeout;
+nStartTime = NOW;
+nFinishedThreadCount = 0;
+While( nFinishedThreadCount < nThreadCount );
+
+    # --- Wait for all view creates to complete
+    nCubeIndex = 0;
+    nCubeCount = SubsetGetSize( sCubesDimName, sCubesSubsetName );
+    While( nCubeIndex < nCubeCount );
+        nCubeIndex = nCubeIndex + 1;
+        sCubeName = SubsetGetElementName( sCubesDimName, sCubesSubsetName, nCubeIndex );
+
+        # --- Re-enable cube logging
+        CubeSetLogChanges( sCubeName, TRUE );
+
+        # --- Create a semaphore file to control the threading
+        sSemaphoreFilename = sLogDir | sUniqueName | sCubeName | sSemaphoreSufix;
+
+        If( FileExists( sSemaphoreFilename ) = TRUE );
+            If( nLogLevel >= DEBUG );
+                sMsgLevel = 'DEBUG';
+                sMessage = TIMST( NOW, '\M-\D-\Y \H:\i:\s' ) | Expand( ':     [%sCubeName%] completed' );
+                ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+            EndIf;
+
+            ASCIIDelete( sSemaphoreFilename );
+            nFinishedThreadCount = nFinishedThreadCount + 1;
+        EndIf;
+    End;
+
+    # --- Sleep between checking
+    Sleep( nSleepDuration );
+
+    nElapsed = (( NOW - nStartTime ) * 86400 ) / 60;
+    If( nElapsed > nTimeout );
+        sMsgLevel = 'DEBUG';
+        sMessage = Expand( 'Timeout occured waiting for threads to complete.  Check logs for detail');
+        ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+        ProcessError;    
+    EndIf;
+End;
+
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = TIMST( NOW, '\M-\D-\Y \H:\i:\s' ) | ': Data Import operations completed successfully';
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+#------------------------------------------------------------------------------
+#                    DELETE IMPORT FILES
+#------------------------------------------------------------------------------
+
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = TIMST( NOW, '\M-\D-\Y \H:\i:\s' ) | ': Import file deletion';
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+# --- As long as we are not in debug mode, then delete all the files that were created
+If( nLogLevel < DEBUG );
+    nCubeIndex = 0;
+    nCubeCount = SubsetGetSize( sCubesDimName, sCubesSubsetName );
+    While( nCubeIndex < nCubeCount );
+        nCubeIndex = nCubeIndex + 1;
+        sFilename = Expand('%sTempDir%_tmp_%sUniqueName%_%sCubeName%.txt' );
+
+        If( FileExists( sFileName ) = TRUE );
+            ASCIIDelete( sFilename );
+        EndIf;
+    End;
+EndIf;
+#endregion
+#region Epilog
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Completed At' );
+
+# --- If we completed successfully and a normal log level, remove
+# --- the log file.
+If( nLogLevel <= INFO );
+    If( FileExists( sLogFile ) = TRUE ); 
+        ASCIIDelete( sLogFile );
+    EndIf;
+    
+# --- Keep the log file if DEBUG or TRACE
+ElseIf( nLogLevel > INFO );
+    
+    # --- Append to the log (will overwrite if not done before AsciiOutput)
+    If( FileExists( sLogFile ) = TRUE ); 
+        ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+    EndIf;
+    
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Completed');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+#endregion

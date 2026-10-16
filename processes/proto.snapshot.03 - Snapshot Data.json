@@ -1,0 +1,32 @@
+{
+	"@type":"Process",
+	"Name":"proto.snapshot.03 - Snapshot Data",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"proto.snapshot.03 - Snapshot Data.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pForecastType",
+			"Prompt":"Forecast Type (WF/AOP/RO)",
+			"Value":"WF",
+			"Type":"String"
+		},
+		{
+			"Name":"pForecastYear",
+			"Prompt":"",
+			"Value":"2025",
+			"Type":"String"
+		},
+		{
+			"Name":"pDestScenario",
+			"Prompt":"",
+			"Value":"Forecast 3+9 Base",
+			"Type":"String"
+		}
+	],
+	"Variables":[]
+}

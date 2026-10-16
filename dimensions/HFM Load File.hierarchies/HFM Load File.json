@@ -1,0 +1,206 @@
+{
+	"@type":"Hierarchy",
+	"Name":"HFM Load File",
+	"ElementsSortType":"ByHierarchy",
+	"ComponentsSortType":"ByName",
+	"Elements":
+	[
+		{
+			"Name":"All Files",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"hfm_bs_AdjView_lc.txt",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"hfm_bs_AdjView_usd.txt",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"hfm_bs_alternate_elim.txt",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"hfm_bs_begbal.txt",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"hfm_bs_lc.txt",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"hfm_bs_mgt_elim.txt",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"hfm_bs_usd.txt",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"hfm_cf_lc1.txt",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"hfm_cf_lc2.txt",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"hfm_cf_usd1.txt",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"hfm_cf_usd2.txt",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"hfm_eq_alternate_elim.txt",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"hfm_eq_lc.txt",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"hfm_eq_mgt_elim.txt",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"hfm_eq_usd.txt",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"hfm_pl_AdjView_lc.txt",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"hfm_pl_AdjView_usd.txt",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"hfm_pl_alternate_elim.txt",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"hfm_pl_lc.txt",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"hfm_pl_mgt_elim.txt",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"hfm_pl_usd.txt",
+			"Type":"Numeric"
+		}
+	],
+	"Edges":
+	[
+		{
+			"ParentName":"All Files",
+			"ComponentName":"hfm_bs_AdjView_lc.txt",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Files",
+			"ComponentName":"hfm_bs_AdjView_usd.txt",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Files",
+			"ComponentName":"hfm_bs_alternate_elim.txt",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Files",
+			"ComponentName":"hfm_bs_begbal.txt",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Files",
+			"ComponentName":"hfm_bs_lc.txt",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Files",
+			"ComponentName":"hfm_bs_mgt_elim.txt",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Files",
+			"ComponentName":"hfm_bs_usd.txt",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Files",
+			"ComponentName":"hfm_cf_lc1.txt",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Files",
+			"ComponentName":"hfm_cf_lc2.txt",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Files",
+			"ComponentName":"hfm_cf_usd1.txt",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Files",
+			"ComponentName":"hfm_cf_usd2.txt",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Files",
+			"ComponentName":"hfm_eq_alternate_elim.txt",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Files",
+			"ComponentName":"hfm_eq_lc.txt",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Files",
+			"ComponentName":"hfm_eq_mgt_elim.txt",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Files",
+			"ComponentName":"hfm_eq_usd.txt",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Files",
+			"ComponentName":"hfm_pl_AdjView_lc.txt",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Files",
+			"ComponentName":"hfm_pl_AdjView_usd.txt",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Files",
+			"ComponentName":"hfm_pl_alternate_elim.txt",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Files",
+			"ComponentName":"hfm_pl_lc.txt",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Files",
+			"ComponentName":"hfm_pl_mgt_elim.txt",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Files",
+			"ComponentName":"hfm_pl_usd.txt",
+			"Weight":1
+		}
+	],
+	"Subsets@Code.links":[]
+}

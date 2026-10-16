@@ -1,0 +1,283 @@
+#region Prolog
+
+#==============================================================================
+#                               Load MGTAMER File
+#
+#  This script clear the areas of the PL Input cube in preparation for loading
+#  MGTAmer data files.   There are three regions of data to be cleared that
+#  correspond to the data being loaded.   Once the data is cleared, all of the
+#  MGTAmer data should be loaded to avoid partial data content.
+#
+#      Date    WHO  Description
+#  ----------  ---  -----------------------------------------------------------
+#  2026/07/13  SWG  Created.
+#  2026/09/24  SWG  Updated to allow specified scenario to be cleared
+#
+#==============================================================================
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = ATTRS( '}Clients', TM1User(), '}TM1_DefaultDisplayValue' );
+sProcessName = GetProcessName();
+sDateStamp = TIMST( NOW, '\Y-\m-\d' );
+sTimeStamp = TIMST( NOW, '\Y-\m-\d \h.\i.\s' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+# --- Static Values
+ERROR  = 1; WARN   = 2; STATS  = 3;
+INFO   = 4; DEBUG  = 5; TRACE  = 6;
+TRUE   = 1; FALSE  = 0;
+LF     = CHAR(10);
+EXCEL_ADJUSTMENT = 21916;
+
+# --- Setup processing information
+bUseTemporaryObjects = TRUE;
+
+# --- Cubes
+sConfigCube      = 'sys.Config';
+sStatsCube       = 'sys.Process Stats';
+sPLInputCube     = 'PL Input';
+sPLReportingCube = 'PL Reporting';
+sBSInputCube     = 'BS Input';
+sBSReportingCube = 'BS Reporting';
+
+# --- Dimensions
+sScenarioDim   = 'Scenario';
+sPeriodDim     = 'Period';
+sCurrencyDim   = 'Currency';
+sEntityDim     = 'Entity';
+sProductDim    = 'Product';
+sFunctionDim   = 'Function';
+sAccountDim    = 'PL Account';
+
+# --- Members
+sEntityRoot    = 'All Entities';
+sProductRoot   = 'All Products';
+sFunctionRoot  = 'All Functions';
+sAccountRoot   = 'All Accounts';
+sLoadMeasure   = 'Reported Amount';
+sWFScenario    = 'Working Forecast';
+sWAScenario    = 'Working AOP';
+
+# --- Data values
+sFileDir = CellGetS( sConfigCube, 'MgtAmer Upload Directory', 'String' );
+
+#==============================================================================
+#                               LOGGING SECTION
+#==============================================================================
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Started At' );
+CellPutS( sUser, sStatsCube, sProcessName, 'Executed By' );
+
+# --- Setup Logging
+nLogLevel = CellGetN( sStatsCube, sProcessName, 'Logging Level' );
+sLogDir = CellGetS( sConfigCube, 'Log Directory', 'String' );
+sLogFile = sLogDir | sProcessName | '.log';
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log startup
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Started');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+# --- Report how the script was executed 
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand( '%LF%
+        ============================================================================ %LF%
+                        %sProcessName%                                               %LF%
+        ============================================================================ %LF%
+        Executed by [%sUser%]                                                        %LF%
+              pStartingPeriod   = [%pStartingPeriod%]                                            %LF%
+              pScenario         = [%pScenario%]                                                %LF%
+        ============================================================================ %LF%
+    ');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+#==============================================================================
+#                        PARAMETER VALIDATION SECTION
+#==============================================================================
+
+
+sStartingPeriod = pStartingPeriod;
+sYear = SUBST( sStartingPeriod, 1, 4 );
+
+sScenario = pScenario;
+If( sScenario @<> 'Working Forecast' & sScenario @<> 'Working AOP' );
+    sMsgLevel = 'ERROR';
+    sMessage = Expand( 'Specified scenario to load [%sScenario%] is invalid.  Must be Working AOP or Working Forecast');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+    ProcessError();
+EndIf;
+
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+# --- Common to all regions to be cleared.
+sCubeName = sPLInputCube;
+
+sPeriodMDX = Expand( '{ 
+    [Period].[Period].[%sStartingPeriod%]:[Period].[Period].[%sYear%-12]
+}');
+
+
+
+#------------------------------------------
+# Clear MGTAmer region #1
+#------------------------------------------
+# RJL - Updated account selection to exclude 695000 accounts
+
+sEntityMDX = ' 
+    [Entity].[80010010],[Entity].[80010030],[Entity].[80010060],[Entity].[80010200],
+    [Entity].[80200010],[Entity].[80200020],[Entity].[80200030],[Entity].[80200040],
+    [Entity].[80200050],[Entity].[80200060],[Entity].[81040010]';
+sAccountMDX = 'DISTINCT(
+    EXCEPT(DESCENDANTS([PL Account].[PL Account].[600000] , 99 , LEAVES) , 
+    DESCENDANTS([PL Account].[PL Account].[695000] , 99 , LEAVES))
+)'; 
+
+# Original account select
+# sAccountMDX = 'DISTINCT({ 
+#     DESCENDANTS([PL Account].[PL Account].[600000] , 99 , LEAVES),
+#     DESCENDANTS([PL Account].[PL Account].[695000] , 99 , LEAVES) 
+# })'; 
+
+# --- Clear out all data EXCEPT Actual
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { [Scenario].[%sScenario%] } %LF%
+        SET PeriodSet     as { %sPeriodMDX% } %LF%
+        SET EntitySet     as { %sEntityMDX% } %LF%
+        SET ProductSet    as { TM1FilterByLevel( TM1SubsetAll( [Product] ), 0 ) } %LF%
+        SET FunctionSet   as { TM1FilterByLevel( TM1SubsetAll( [Function] ), 0 ) } %LF%
+        SET AccountSet    as { %sAccountMDX% } %LF%
+        SET MeasureSet    as { TM1FilterByLevel( TM1SubsetAll( [PL Input Measure] ), 0 ) } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * PeriodSet * EntitySet * ProductSet * FunctionSet * AccountSet ON 1 %LF%
+
+    FROM [%sCubeName%] %LF%
+' );
+
+sViewName =  GetProcessName() | ' - PL Input ' | sYear;
+ViewCreateByMDX( sCubeName, sViewName, sViewMDX, TRUE );
+ViewZeroOut( sCubeName, sViewName );
+
+ExecuteProcess( 'sys_View - Delete',
+	'pCubeName', sCubeName,
+	'pViewName', sViewName 
+);
+
+
+#------------------------------------------
+# Clear MGTAmer region #2
+#------------------------------------------
+
+sEntityMDX = '[Entity].[80010200]';
+sAccountMDX = 'DISTINCT( 
+    DESCENDANTS([PL Account].[PL Account].[695000] , 99 , LEAVES)
+)'; 
+
+
+# --- Clear out all data EXCEPT Actual
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { [Scenario].[%sScenario%] } %LF%
+        SET PeriodSet     as { %sPeriodMDX% } %LF%
+        SET EntitySet     as { %sEntityMDX% } %LF%
+        SET ProductSet    as { TM1FilterByLevel( TM1SubsetAll( [Product] ), 0 ) } %LF%
+        SET FunctionSet   as { TM1FilterByLevel( TM1SubsetAll( [Function] ), 0 ) } %LF%
+        SET AccountSet    as { %sAccountMDX% } %LF%
+        SET MeasureSet    as { TM1FilterByLevel( TM1SubsetAll( [PL Input Measure] ), 0 ) } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * PeriodSet * EntitySet * ProductSet * FunctionSet * AccountSet ON 1 %LF%
+
+    FROM [%sCubeName%] %LF%
+' );
+
+sViewName =  GetProcessName() | ' - PL Input ' | sYear;
+ViewCreateByMDX( sCubeName, sViewName, sViewMDX, TRUE );
+ViewZeroOut( sCubeName, sViewName );
+
+ExecuteProcess( 'sys_View - Delete',
+	'pCubeName', sCubeName,
+	'pViewName', sViewName 
+);
+
+
+#------------------------------------------
+# Clear MGTAmer region #3
+#------------------------------------------
+
+sEntityMDX = '[Entity].[80010060]';
+sAccountMDX = 'DISTINCT( { 
+    DESCENDANTS([PL Account].[PL Account].[400000] , 99 , LEAVES),
+    Except ( 
+        DESCENDANTS([PL Account].[PL Account].[500000] , 99 , LEAVES), 
+        { [PL Account].[PL Account].[511900] }
+    )
+})';
+
+# --- Clear out all data EXCEPT Actual
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { [Scenario].[%sScenario%] } %LF%
+        SET PeriodSet     as { %sPeriodMDX% } %LF%
+        SET EntitySet     as { %sEntityMDX% } %LF%
+        SET ProductSet    as { TM1FilterByLevel( TM1SubsetAll( [Product] ), 0 ) } %LF%
+        SET FunctionSet   as { TM1FilterByLevel( TM1SubsetAll( [Function] ), 0 ) } %LF%
+        SET AccountSet    as { %sAccountMDX% } %LF%
+        SET MeasureSet    as { TM1FilterByLevel( TM1SubsetAll( [PL Input Measure] ), 0 ) } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * PeriodSet * EntitySet * ProductSet * FunctionSet * AccountSet ON 1 %LF%
+
+    FROM [%sCubeName%] %LF%
+' );
+
+sViewName =  GetProcessName() | ' - PL Input ' | sYear;
+ViewCreateByMDX( sCubeName, sViewName, sViewMDX, TRUE );
+ViewZeroOut( sCubeName, sViewName );
+
+ExecuteProcess( 'sys_View - Delete',
+	'pCubeName', sCubeName,
+	'pViewName', sViewName 
+);
+
+#endregion
+#region Data
+
+#endregion
+#region Epilog
+
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Completed At' );
+
+# --- Append to the log (will overwrite if not done before AsciiOutput)
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log completion
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Completed');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+#endregion

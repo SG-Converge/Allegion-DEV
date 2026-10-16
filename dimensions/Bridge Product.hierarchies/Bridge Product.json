@@ -1,0 +1,45 @@
+{
+	"@type":"Hierarchy",
+	"Name":"Bridge Product",
+	"Elements":
+	[
+		{
+			"Name":"All Products",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"NoProduct",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"008",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"014",
+			"Type":"Numeric"
+		}
+	],
+	"Edges":
+	[
+		{
+			"ParentName":"All Products",
+			"ComponentName":"NoProduct",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Products",
+			"ComponentName":"008",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Products",
+			"ComponentName":"014",
+			"Weight":1
+		}
+	],
+	"Subsets@Code.links":
+	[
+		"Bridge Product.subsets/Loadable Product.json"
+	]
+}

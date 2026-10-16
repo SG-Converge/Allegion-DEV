@@ -1,0 +1,93 @@
+{
+	"@type":"Process",
+	"Name":"fin.cube.Load FX Rates",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"fin.cube.Load FX Rates.ti",
+	"VariablesUIData":
+	[
+		"VarType=32\fColType=827\f",
+		"VarType=32\fColType=827\f",
+		"VarType=32\fColType=827\f",
+		"VarType=32\fColType=827\f",
+		"VarType=32\fColType=827\f",
+		"VarType=33\fColType=827\f"
+	],
+	"DataSource":
+	{
+		"Type":"ASCII",
+		"asciiDecimalSeparator":".",
+		"asciiDelimiterChar":";",
+		"asciiDelimiterType":"Character",
+		"asciiHeaderRecords":0,
+		"asciiQuoteCharacter":"\"",
+		"asciiThousandSeparator":",",
+		"dataSourceNameForClient":"model_upload/Uploads/Historical/HFM/Jan2026/x_hfm_eopfx.txt",
+		"dataSourceNameForServer":"model_upload/Uploads/Historical/HFM/Jan2026/x_hfm_eopfx.txt"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pFilename",
+			"Prompt":"Filename ot import (without directory) ",
+			"Value":"\\Jan2026\\x_hfm_eopfx.txt",
+			"Type":"String"
+		},
+		{
+			"Name":"pPeriod",
+			"Prompt":"Period to clear",
+			"Value":"2026-01",
+			"Type":"String"
+		},
+		{
+			"Name":"pMeasure",
+			"Prompt":"Rate type to clear (Avg Rate, EOP Rate)",
+			"Value":"EOP Rate",
+			"Type":"String"
+		}
+	],
+	"Variables":
+	[
+		{
+			"Name":"inYear",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"inScenario",
+			"Type":"String",
+			"Position":2,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"inMonth",
+			"Type":"String",
+			"Position":3,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"inMeasure",
+			"Type":"String",
+			"Position":4,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"inCurrency",
+			"Type":"String",
+			"Position":5,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"inValue",
+			"Type":"Numeric",
+			"Position":6,
+			"StartByte":0,
+			"EndByte":0
+		}
+	]
+}

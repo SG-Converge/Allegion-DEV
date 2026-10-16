@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"HFM Load File",
+	"Hierarchies@Code.links":
+	[
+		"HFM Load File.hierarchies/HFM Load File.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('HFM Load File')/Hierarchies('HFM Load File')"
+	}
+}

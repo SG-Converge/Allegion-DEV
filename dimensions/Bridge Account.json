@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"Bridge Account",
+	"Hierarchies@Code.links":
+	[
+		"Bridge Account.hierarchies/Bridge Account.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('Bridge Account')/Hierarchies('Bridge Account')"
+	}
+}

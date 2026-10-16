@@ -1,0 +1,280 @@
+{
+	"@type":"Hierarchy",
+	"Name":"RO Entity",
+	"Elements":
+	[
+		{
+			"Name":"All Entities",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"8143",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"8633",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"86300010",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"86310010",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"86310040",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"86340010",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"97540010",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"80150111",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"80150211",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"84110010",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"BR_AMER",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"BR_ASIAPAC",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"BR_CORPORATE",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"BR_EMEIA",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Total Allegion",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Total Americas",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Total SAT",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Total International",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Total APAC",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Total Corporate",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Total EMEA",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Unmapped Entity",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"89000010",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"94500010",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"36500010",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"8691",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"83100010",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"88310010",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"8653",
+			"Type":"Numeric"
+		}
+	],
+	"Edges":
+	[
+		{
+			"ParentName":"All Entities",
+			"ComponentName":"Total Allegion",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Entities",
+			"ComponentName":"Unmapped Entity",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Allegion",
+			"ComponentName":"Total Americas",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Allegion",
+			"ComponentName":"Total International",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Allegion",
+			"ComponentName":"Total Corporate",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Americas",
+			"ComponentName":"BR_AMER",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Americas",
+			"ComponentName":"84110010",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Americas",
+			"ComponentName":"8143",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Americas",
+			"ComponentName":"Total SAT",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total SAT",
+			"ComponentName":"80150111",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total SAT",
+			"ComponentName":"80150211",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total International",
+			"ComponentName":"Total APAC",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total International",
+			"ComponentName":"Total EMEA",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total APAC",
+			"ComponentName":"BR_ASIAPAC",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total APAC",
+			"ComponentName":"8633",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total APAC",
+			"ComponentName":"86300010",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total APAC",
+			"ComponentName":"86310010",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total APAC",
+			"ComponentName":"86310040",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total APAC",
+			"ComponentName":"86340010",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total APAC",
+			"ComponentName":"97540010",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Corporate",
+			"ComponentName":"BR_CORPORATE",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Corporate",
+			"ComponentName":"89000010",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total EMEA",
+			"ComponentName":"BR_EMEIA",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total EMEA",
+			"ComponentName":"36500010",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total EMEA",
+			"ComponentName":"83100010",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total EMEA",
+			"ComponentName":"88310010",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total EMEA",
+			"ComponentName":"8653",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total EMEA",
+			"ComponentName":"8691",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total EMEA",
+			"ComponentName":"94500010",
+			"Weight":1
+		}
+	],
+	"Subsets@Code.links":
+	[
+		"RO Entity.subsets/Default.json",
+		"RO Entity.subsets/RO Input Entity.json"
+	]
+}

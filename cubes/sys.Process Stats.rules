@@ -1,0 +1,41 @@
+#
+['Logging Level'] = N:
+  If( DB('sys.Process Stats', !}Processes, 'Logging Level Selection' ) @= 'ERROR', 
+    1,
+    If( DB('sys.Process Stats', !}Processes, 'Logging Level Selection' ) @= 'WARN', 
+      2,
+      If( DB('sys.Process Stats', !}Processes, 'Logging Level Selection' ) @= 'STATS', 
+        3,
+        If( DB('sys.Process Stats', !}Processes, 'Logging Level Selection' ) @= 'INFO', 
+          4,
+          If( DB('sys.Process Stats', !}Processes, 'Logging Level Selection' ) @= 'DEBUG', 
+            5,
+            If( DB('sys.Process Stats', !}Processes, 'Logging Level Selection' ) @= 'TRACE', 
+              6,
+              If( DB('sys.Process Stats', !}Processes, 'Logging Level Selection' ) @= 'DISABLE', 
+                0,
+                1
+              )
+            )
+          )
+        )
+      )
+    )
+  );
+
+['Last Started Timestamp'] = S:
+  If( ['Started At'] = 0, 
+    '',
+    TIMST( ['Started At'], '\Y-\m-\d \h:\i:\s', 1 )
+  );
+
+['Last Completed Timestamp'] = S:
+  If( ['Completed At'] = 0, 
+    '',
+    TIMST( ['Completed At'], '\Y-\m-\d \h:\i:\s', 1 )
+  );
+
+['Last Elapsed Duration'] = S:
+  TIMST( (['Completed At'] - ['Started At']), '\h:\i:\s', 1 );
+
+

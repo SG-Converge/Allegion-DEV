@@ -1,0 +1,3 @@
+['util.map.Load Rules Measure':'Count'] = N:
+  If( DB('util.map.Load Rules', !util.map.Ruleset, !util.map.Section, !util.map.Rule Item, 'Source' ) @= '', 0, 1 );
+

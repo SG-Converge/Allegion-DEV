@@ -1,0 +1,99 @@
+{
+	"@type":"NativeView",
+	"Name":"Fcst-3.0 Functional Spend",
+	"Columns":
+	[
+		{
+			"Subset":
+			{
+				"@id":"Dimensions('Period')/Hierarchies('Period')/Subsets('2026 Trailing')"
+			}
+		}
+	],
+	"Rows":
+	[
+		{
+			"Subset":
+			{
+				"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Subsets('Functional Spend')"
+			}
+		}
+	],
+	"Titles":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Scenario')/Hierarchies('Scenario')"
+				},
+				"Expression":"{[Scenario].[Scenario].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Scenario')/Hierarchies('Scenario')/Elements('Working Forecast')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('PL Input Measure')/Hierarchies('PL Input Measure')"
+				},
+				"Expression":"{[PL Input Measure].[PL Input Measure].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('PL Input Measure')/Hierarchies('PL Input Measure')/Elements('Reported Amount')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Entity')/Hierarchies('Entity')"
+				},
+				"Alias":"Caption",
+				"Expression":"{{ORDER(TM1FILTERBYLEVEL(TM1SUBSETALL([Entity].[Entity]) , 0) , IIF([Entity].[Entity].CURRENTMEMBER.PROPERTIES(\"Caption\")=\"\", [Entity].[Entity].CURRENTMEMBER.PROPERTIES(\"MEMBER_CAPTION\"), [Entity].[Entity].CURRENTMEMBER.PROPERTIES(\"Caption\")) , BASC)}}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Entity')/Hierarchies('Entity')/Elements('08950010')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Product')/Hierarchies('Product')"
+				},
+				"Alias":"Caption",
+				"Expression":"{{ORDER(TM1FILTERBYLEVEL(TM1SUBSETALL([Product].[Product]) , 0) , IIF([Product].[Product].CURRENTMEMBER.PROPERTIES(\"Caption\")=\"\", [Product].[Product].CURRENTMEMBER.PROPERTIES(\"MEMBER_CAPTION\"), [Product].[Product].CURRENTMEMBER.PROPERTIES(\"Caption\")) , BASC)}}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Product')/Hierarchies('Product')/Elements('001')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"@id":"Dimensions('Function')/Hierarchies('Function')/Subsets('Functional Spend')"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Function')/Hierarchies('Function')/Elements('10000')"
+			}
+		}
+	],
+	"SuppressEmptyColumns":false,
+	"SuppressEmptyRows":false,
+	"FormatString":"0.00",
+	"IsAutocalculate" : true,
+	"IsDeferComputeOnLeafDataEntry" : false,
+	"IsSuppressComputeOnOpen" : false
+}

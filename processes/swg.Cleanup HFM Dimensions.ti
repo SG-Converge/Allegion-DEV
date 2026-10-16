@@ -1,0 +1,26 @@
+#region Prolog
+
+
+DimensionDeleteAllElements( 'HFM Account' );
+DimensionElementInsert( 'HFM Account', '', 'All Accounts', 'C' );
+
+Processbreak;
+
+DimensionDeleteAllElements( 'HFM Scenario' );
+DimensionDeleteAllElements( 'HFM Currency' );
+DimensionDeleteAllElements( 'HFM Entity' );
+DimensionDeleteAllElements( 'HFM Product' );
+DimensionDeleteAllElements( 'HFM Function' );
+DimensionDeleteAllElements( 'HFM Account' );
+
+DimensionElementInsert( 'HFM Scenario', '', 'ACTUAL', 'N' );
+DimensionElementInsert( 'HFM Currency', '', 'Entity_Currency', 'N' );
+DimensionElementInsert( 'HFM Entity', '', 'All Entities', 'C' );
+DimensionElementInsert( 'HFM Product', '', 'All Products', 'C' );
+DimensionElementInsert( 'HFM Function', '', 'All Functions', 'C' );
+DimensionElementInsert( 'HFM Account', '', 'All Accounts', 'C' );
+
+
+
+
+#endregion

@@ -1,0 +1,149 @@
+#region Prolog
+
+
+
+FALSE = 0;
+TRUE = 1;
+LF     = CHAR(10);
+
+sLogFile = '.\model_upload\logs\' | GetProcessName() | '.log';
+
+# --- Cubes
+sPLInputCube         = 'PL Input';
+sPLReportingCube     = 'PL Reporting';
+sBSInputCube         = 'BS Input';
+sBSReportingCube     = 'BS Reporting';
+sROInputCube         = 'RO Input';
+sROReportingCube     = 'RO Reporting';
+sBridgeInputCube     = 'Bridge Input';
+sBridgeReportingCube = 'Bridge Reporting';
+sFXCube              = 'FX Rates';
+sGlobalAssumptions   = 'Global Assumptions';
+sScenarioAssumptions = 'Scenario Assumptions';
+
+sWFScenario = 'Working Foreast';
+sWROScenario = 'Working RO';
+sWAOPScenario = 'Working AOP';
+sAOPScenario  = 'AOP';
+
+bIsAOP            = If( pForecastType @= 'AOP', TRUE, FALSE );
+sForecastPeriod   = pForecastPeriod;
+sForecastMonth    = SUBST( sForecastPeriod, 6, 2 );
+
+If( bIsAOP = TRUE );
+    sForecastScenario = 'AOP';
+    sBridgeScenario   = 'BRIDGE_AOPCY_VPY';
+    sROScenario       = '';
+Else;
+    If( sForecastMonth @= '02' ); sForecastScenario = 'Forecast 2+10'; EndIf;
+    If( sForecastMonth @= '03' ); sForecastScenario = 'Forecast 2+10'; EndIf;
+    If( sForecastMonth @= '05' ); sForecastScenario = 'Forecast 5+7'; EndIf;
+    If( sForecastMonth @= '06' ); sForecastScenario = 'Forecast 5+7'; EndIf;
+    If( sForecastMonth @= '08' ); sForecastScenario = 'Forecast 8+4'; EndIf;
+    If( sForecastMonth @= '09' ); sForecastScenario = 'Forecast 8+4'; EndIf;
+
+    If( sForecastMonth @= '03' ); sROScenario = 'RO 3+9'; EndIf;
+    If( sForecastMonth @= '06' ); sROScenario = 'RO 6+6'; EndIf;
+    If( sForecastMonth @= '09' ); sROScenario = 'RO 9+3'; EndIf;
+
+    If( sForecastMonth @= '03' ); sBridgeScenario = 'BRIDGE_FCST02_10_VPY'; EndIf;
+    If( sForecastMonth @= '06' ); sBridgeScenario = 'BRIDGE_FCST05_07_VPY'; EndIf;
+    If( sForecastMonth @= '09' ); sBridgeScenario = 'BRIDGE_FCST08_04_VPY'; EndIf;
+
+EndIf;
+
+# --- Calculate the various dates required
+sForecastYear = SUBST( sForecastPeriod, 1, 4 );
+sActualEndPeriod = ATTRS( 'Period XRef', sForecastPeriod, 'Period Prior' );
+sHorizonYear = ATTRS( 'Period XRef', sForecastYear, 'Period Prior' );
+sCCBaseYear = sForecastYear;
+sAOPSeedPeriod = sHorizonYear | '-12';
+#sAOPStartYear = ATTRS( 'Period XRef', sForecastYear, 'Period Next' );
+sAOPStartYear = sForecastYear;
+
+# --- Prepare the MDX 
+sPeriodMDX = Expand( '{ [Period].[%sForecastPeriod%] }' );
+sScenarioMDX = 'EXCEPT(TM1SUBSETALL([Scenario]) , {[Scenario].[Actual]})';
+sVersionMDX = 'TM1SUBSETALL([Bridge Version])';
+
+# --- Setup files to load
+sROFilename = './model_upload/Uploads/Historical/Planning/ROPLAN_PandL_ROData to IBM_FY' | SUBST( sForecastYear, 3, 2 ) | '.csv';
+
+#==================================================================================
+#                              SETUP ASSUMPTIONS
+#==================================================================================
+
+
+# --- Update planning assumptions
+CellPutS( sForecastPeriod, sGlobalAssumptions, 'Actual End Period', 'String' );
+CellPutS( sHorizonYear, sGlobalAssumptions, 'Working Forecast Horizon Start Year', 'String' );
+CellPutS( sCCBaseYear, sGlobalAssumptions, 'Constant Currency Base Year', 'String' );
+CellPutS( sAOPStartYear, sGlobalAssumptions, 'Working AOP Start Year', 'String' );
+CellPutS( sAOPSeedPeriod, sGlobalAssumptions, 'Working AOP Seed Period', 'String' );
+
+#==================================================================================
+#                              LOAD FORECAST DATA  (12 Months)
+#==================================================================================
+
+nPeriods = 12;
+nPeriodIdx = 0;
+While( nPeriodIdx < nPeriods );
+    nPeriodIdx = nPeriodIdx + 1;
+    sPeriod = sForecastYear | '-' | NumberToStringEx( nPeriodIdx, '00', '', '' );
+
+    If( sForecastScenario @<> '' );
+        ExecuteProcess( 'proto.cube.Load PL Forecast Data',
+        	'pPeriod', sPeriod,
+        	'pWFScenario', If( bIsAOP = TRUE, '', sForecastScenario ),
+        	'pWAScenario', If( bIsAOP = TRUE, sForecastScenario, '' ),
+        	'pLoadSnapshots', 'No' );
+
+        ExecuteProcess( 'proto.cube.Load Reorg PL Forecast Data',
+        	'pPeriod', sPeriod );
+
+        ExecuteProcess( 'proto.cube.Load BS Forecast Data',
+        	'pPeriod', sPeriod,
+        	'pWFScenario', If( bIsAOP = TRUE, '', sForecastScenario ),
+        	'pWAScenario', If( bIsAOP = TRUE, sForecastScenario, '' ),
+        	'pLoadSnapshots', 'No' );
+        
+        ExecuteProcess( 'proto.cube.Load Reorg BS Forecast Data',
+        	'pPeriod', sPeriod );
+
+    EndIf;
+
+
+    If( sBridgeScenario @<> '');
+        ExecuteProcess( 'proto.cube.Load Bridge Data',
+        	'pPeriod', sPeriod,
+        	'pWFScenario', If( bIsAOP = TRUE, '', sBridgeScenario ),
+        	'pWAScenario', If( bIsAOP = TRUE, sBridgeScenario, '' ) );
+    EndIf;
+End;
+
+
+# --- RO data only exists as a full year.
+If( (FileExists( sROFilename ) = TRUE ) & (bIsAOP = FALSE) & (sROScenario @<> '') );
+    ExecuteProcess( 'proto.cube.Load RO Data',
+        'pFilename', sROFilename,
+        'pWorkingScenario', sROScenario );
+
+    ExecuteProcess( 'fin.cube.Update RO Reporting',
+    	'pSourceScenario', sWROScenario,
+    	'pDestYear', sForecastYear,
+    	'pDestScenario', sWROScenario );
+EndIf;
+
+#endregion
+#region Epilog
+
+CubeProcessFeeders( 'PL Input' );
+CubeProcessFeeders( 'BS Input' );
+CubeProcessFeeders( 'RO Input' );
+CubeProcessFeeders( 'Bridge Input' );
+
+CubeProcessFeeders( 'PL Reporting' );
+CubeProcessFeeders( 'BS Reporting' );
+CubeProcessFeeders( 'RO Reporting' );
+CubeProcessFeeders( 'Bridge Reporting' );
+#endregion

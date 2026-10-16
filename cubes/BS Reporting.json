@@ -1,0 +1,35 @@
+{
+	"@type":"Cube",
+	"Name":"BS Reporting",
+	"Dimensions":
+	[
+		{
+			"@id":"Dimensions('Scenario')"
+		},
+		{
+			"@id":"Dimensions('Period')"
+		},
+		{
+			"@id":"Dimensions('Currency')"
+		},
+		{
+			"@id":"Dimensions('Entity')"
+		},
+		{
+			"@id":"Dimensions('Product')"
+		},
+		{
+			"@id":"Dimensions('BS Account')"
+		},
+		{
+			"@id":"Dimensions('BS Reporting Measure')"
+		}
+	],
+	"Rules@Code.link":"BS Reporting.rules",
+	"Views@Code.links":
+	[
+		"BS Reporting.views/1_BS Reporting_Account by month.json",
+		"BS Reporting.views/HFM Actuals - Unmapped Accounts.json",
+		"BS Reporting.views/Metric OP Cashflow - International.json"
+	]
+}

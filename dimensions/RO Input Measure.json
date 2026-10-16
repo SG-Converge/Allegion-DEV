@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"RO Input Measure",
+	"Hierarchies@Code.links":
+	[
+		"RO Input Measure.hierarchies/RO Input Measure.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('RO Input Measure')/Hierarchies('RO Input Measure')"
+	}
+}

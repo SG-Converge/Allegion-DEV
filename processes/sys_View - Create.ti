@@ -1,0 +1,474 @@
+#region Prolog
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#==============================================================================
+#                             sys_View - Create
+#
+#  This process will create a view using member expressions to represent 
+#  elements to use when creating a view within the respective dimension.
+#  The following expression formats are supported:
+#
+#       FORMAT                      EXAMPLE
+#       member                      Actual
+#       member;member               Actual;Budget;Forecast
+#       {expr}                      Level:0
+#       [dim]{expr}                 [Organization]!IT Department
+#       
+#   To reduce the number of parameters required, the member expressions are
+#   POSITIONAL and must align with the corresponding dimension.   If dimension
+#   referenced by name is desired, the name of the dimension can be specified
+#   by prefixing with the dimension name in square brackets.   When this format 
+#   is used it is STRONGLY recommended that all dimensions be specified and all
+#   member expressions include use the dimension name by reference or the script 
+#   could easily fail.
+#
+#  The following list of expression types are supported.   
+#
+#   *       = All elements in the dimension
+#   {       = Item is the name of an existing subset
+#   !       = Drill down to the leaves of the specified element
+#   #       = Only elements at level # are included in subset (i.e. #0 for Level 0)
+#   &       = Use the supplied MDX to create the subset
+#   Subset: = Item is the name of an existing subset
+#   Drill:  = Drill down to the leaves of the specified element
+#   Level:  = Only elements at specified level # are included in subset
+#   MDX:    = Use the supplied MDX to create the subset
+#
+#   All parameters are optional except pCubeName and pViewName.   If only these
+#   parameters are provided, a typical cube data dump view will be created where
+#   all zero cells, rule values and consolidations are supressed.   The view
+#   will be assumed as temporary.   This facilitates full cube processing with 
+#   a shortened syntax of simply:
+#
+#       ExecuteProcess( 'sys_View - Create', 
+#           'pCubeName', 'Balance Sheet', 'pViewName', 'tmp_All Data');
+#
+#
+#   POSITIONAL EXAMPLE:
+#
+#       ExecuteProcess( 'sys_View - Create', 
+#           'pCubeName', 'Balance Sheet', 'pViewName', 'HR Planning Data',
+#           'pMemberExpr1', 'Forecast;Budget',
+#           'pMemberExpr3', '!Human Resources', 
+#           'pMemberExpr5', 'MDX:{[Period].[Period].[2023 Q3].Children}', 
+#           'pMemberExpr6', 'Subset:HR Export Measures'
+#       );
+#
+#   BY DIMENSION REFERENCE EXAMPLE:
+#
+#       ExecuteProcess( 'sys_View - Create', 
+#           'pCubeName', 'Project Labor', 'pViewName', 'Labor Data',
+#           'pMemberExpr1', '[Project Staff]Level:0', 
+#           'pMemberExpr2', '[Project Labor Measures]FTE;Employee Type;Salary',
+#           'pMemberExpr3', '[Project]Subset:ui_Selected Project', 
+#           'pMemberExpr4', '[Project Version]Draft'
+#       );
+#
+#
+#  CALLS:
+#       sys_View - Delete
+#
+#
+#    Date      WHO  Description
+#  ----------  ---  -----------------------------------------------------------
+#  2006-04-27  SWG  Created.
+#  2008-06-10  MSL  Added functionality to select elements at
+#                   the level entered in the prefix (ie '#0 DimName' 
+#                   will return only members of 'DimName' at level 0).
+#  2016-04-11  WCC  Revamped to make it easier to use and not call any
+#                   sub processes.  Also allows MDX for each dim.
+#  2016-10-14  NDD  Master Copy
+#  2019-04-21  WCC  Updated to use Temp Objects and Logging
+#  2023-07-26  SWG  Script library refresh        
+#
+#==============================================================================
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = TM1User();
+sProcessName = GetProcessName();
+sTimeStamp = TIMST( NOW, '\Y-\m-\d(\h\i\s)' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+# --- Static Values
+TRUE                = 1;
+FALSE               = 0;
+EXCEL_ADJUSTMENT    = 21916;
+
+# --- Setup Logging
+If( FileExists( './model_upload' ) = TRUE );
+    sLogPath = './model_upload/Logs/';
+Else;
+    sLogPath = '/Logs/Processes/';
+EndIf;
+sLogFile = sLogPath | sUniqueName | '.log';
+
+# --- Values
+bDebug = FALSE;
+nErrorCount = 0;
+
+# --- Initialize
+sDim1   = ''; sMemberExpr1  = '*';
+sDim2   = ''; sMemberExpr2  = '*';
+sDim3   = ''; sMemberExpr3  = '*';
+sDim4   = ''; sMemberExpr4  = '*';
+sDim5   = ''; sMemberExpr5  = '*';
+sDim6   = ''; sMemberExpr6  = '*';
+sDim7   = ''; sMemberExpr7  = '*';
+sDim8   = ''; sMemberExpr8  = '*';
+sDim9   = ''; sMemberExpr9  = '*';
+sDim10  = ''; sMemberExpr10 = '*';
+sDim11  = ''; sMemberExpr11 = '*';
+sDim12  = ''; sMemberExpr12 = '*';
+sDim13  = ''; sMemberExpr13 = '*';
+sDim14  = ''; sMemberExpr14 = '*';
+sDim15  = ''; sMemberExpr15 = '*';
+sDim16  = ''; sMemberExpr16 = '*';
+sDim17  = ''; sMemberExpr17 = '*';
+sDim18  = ''; sMemberExpr18 = '*';
+Dim19   = ''; sMemberExpr19 = '*';
+
+#==============================================================================
+#                        PARAMETER VALIDATION SECTION
+#==============================================================================
+
+# --- Copy the parameters to internal values
+bUseTemporaryObjects = pUseTemporaryObjects;
+bErrorOnEmptySubset = pErrorOnEmptySubset;
+bSuppressZeros = pSuppressZeros;
+bSuppressCalculations = pSuppressCalculations;
+bSuppressRollups = pSuppressRollups;
+bSuppressRollupStrings = pSuppressRollupStrings;
+sViewName = pViewName;
+sCubeName = pCubeName;
+sSemaphoreFilename = pSemaphoreFilename;
+bParallelMode = If( TRIM(pSemaphoreFilename) @= '', FALSE, TRUE );
+
+#------------------------------------------------------------------------------
+#                       Validate Cube Name
+#------------------------------------------------------------------------------
+
+# --- Validate the cube exists
+If( CubeExists( sCubeName ) = 0 );
+    sMessage = Expand( 'Specified cube [%sCubeName%] does not exist.');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    nErrorCount = nErrorCount + 1;
+EndIf;
+nDimCount = CubeDimensionCountGet( sCubeName );
+
+
+#------------------------------------------------------------------------------
+#                       Validate Member Expressions
+#------------------------------------------------------------------------------
+
+# --- Unless the dimension has been specified in the parameter list, all
+# --- parameters should be positional.   Capture the associated dimension
+# --- for each parameter as well as the member expression.
+nDimIndex = 0;
+While( nDimIndex < nDimCount );
+    nDimIndex = nDimIndex + 1;
+    sDimName = TABDIM( sCubeName, nDimIndex );
+
+    sParamName = 'pMemberExpr' | NumberToStringEx( nDimIndex, '##', '', '' );
+    sParamValue = Expand( '%' | sParamName | '%' );
+
+    # --- Check to see if the parameter is already by reference, if it is, 
+    # --- then the assumption is the user is managing the dimension references
+    If( SUBST( sParamValue, 1, 1 ) @= '[' );
+        sEndPos = SCAN( ']', sParamValue );
+        sDimName = SUBST( sParamValue, 2, sEndPos - 2 );
+        sExpression = SUBST( sParamValue, sEndPos + 1, 255 );
+    Else;
+        sExpression = sParamValue;
+    EndIf;
+
+    # --- Log the value to a trace file if debugging is on
+    If( bDebug = 1 );
+        TextOutput( sLogFile, sParamName | ': ' | sParamValue );
+    EndIf;
+
+    # --- Make sure the dimension is in the actual cube
+    bCubeDimExists = 0;
+    nCubeDimIndex = 0;
+    While( nCubeDimIndex < nDimCount );
+        nCubeDimIndex = nCubeDimIndex + 1;
+        sCubeDimName = TABDIM( sCubeName, nCubeDimIndex );
+
+        If( LOWER(sCubeDimName) @= LOWER(sDimName) );
+            bCubeDimExists = 1;
+        EndIf;
+    End;
+
+    # --- If we didn't find a match, then report the error
+    If( bCubeDimExists = 0 );
+        sMessage = Expand( 'Dimension [%sDimName%] does not exist in cube [%sCubeName%].   (Parameter [%sParamName%] = [%sParamValue%]).');
+        LogOutput( 'ERROR', sMessage );
+        If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+        nErrorCount = nErrorCount + 1;
+    EndIf;
+
+    # --- Save a copy of the dimensions and expressions provided
+    If( nDimIndex = 1  ); sDim1 = sDimName; sMemberExpr1 = sExpression; EndIf;
+    If( nDimIndex = 2  ); sDim2 = sDimName; sMemberExpr2 = sExpression; EndIf;
+    If( nDimIndex = 3  ); sDim3 = sDimName; sMemberExpr3 = sExpression; EndIf;
+    If( nDimIndex = 4  ); sDim4 = sDimName; sMemberExpr4 = sExpression; EndIf;
+    If( nDimIndex = 5  ); sDim5 = sDimName; sMemberExpr5 = sExpression; EndIf;
+    If( nDimIndex = 6  ); sDim6 = sDimName; sMemberExpr6 = sExpression; EndIf;
+    If( nDimIndex = 7  ); sDim7 = sDimName; sMemberExpr7 = sExpression; EndIf;
+    If( nDimIndex = 8  ); sDim8 = sDimName; sMemberExpr8 = sExpression; EndIf;
+    If( nDimIndex = 9  ); sDim9 = sDimName; sMemberExpr9 = sExpression; EndIf;
+    If( nDimIndex = 10 ); sDim10 = sDimName; sMemberExpr10 = sExpression; EndIf;
+    If( nDimIndex = 11 ); sDim11 = sDimName; sMemberExpr11 = sExpression; EndIf;
+    If( nDimIndex = 12 ); sDim12 = sDimName; sMemberExpr12 = sExpression; EndIf;
+    If( nDimIndex = 13 ); sDim13 = sDimName; sMemberExpr13 = sExpression; EndIf;
+    If( nDimIndex = 14 ); sDim14 = sDimName; sMemberExpr14 = sExpression; EndIf;
+    If( nDimIndex = 15 ); sDim15 = sDimName; sMemberExpr15 = sExpression; EndIf;
+    If( nDimIndex = 16 ); sDim16 = sDimName; sMemberExpr16 = sExpression; EndIf;
+    If( nDimIndex = 17 ); sDim17 = sDimName; sMemberExpr17 = sExpression; EndIf;
+    If( nDimIndex = 18 ); sDim18 = sDimName; sMemberExpr18 = sExpression; EndIf;
+    If( nDimIndex = 19 ); sDim19 = sDimName; sMemberExpr19 = sExpression; EndIf;
+    If( nDimIndex = 20 ); sDim20 = sDimName; sMemberExpr20 = sExpression; EndIf;
+
+End;
+
+#------------------------------------------------------------------------------
+#                       Report validation errors
+#------------------------------------------------------------------------------
+If( nErrorCount > 0 );
+    sMessage = Expand( NumberToString(nErrorCount) | ' validation error(s) occured.  Check logs for detail.');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    ProcessError;
+EndIf;
+
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+# --- If the view already exists, remove it so that it can be created
+If( bUseTemporaryObjects = 0 & ViewExists( sCubeName, sViewName ) = 1 );
+    ExecuteProcess( 'sys_View - Delete ', 'pCubeName', sCubeName, 'pViewName', sViewName );
+EndIf;
+
+# --- Create the view (if needed) and set the options
+If( ViewExists( sCubeName, sViewName ) = 0 );
+    ViewCreate( sCubeName, sViewName, bUseTemporaryObjects );
+EndIf;
+ViewExtractSkipCalcsSet( sCubeName, sViewName, bSuppressRollups );
+ViewExtractSkipZeroesSet( sCubeName, sViewName, bSuppressZeros );
+ViewExtractSkipRuleValuesSet( sCubeName, sViewName, bSuppressCalculations );
+
+# --- This view setting is new, so for older TM1 systems, use -1 to not make
+# --- the function call
+If( pSuppressRollupStrings <> -1 );
+    ViewExtractSkipConsolidatedStringsSet( sCubeName, sViewName, bSuppressRollupStrings );
+EndIf;
+
+# --- Subset names all follow the view name
+sSubsetName = sViewName;
+bUseExistingSubset = 0;
+
+# --- Now setup all the subsets, one for each dimension in the cube
+nSubsetIndex = 0;
+While( nSubsetIndex < nDimCount );
+
+    nSubsetIndex = nSubsetIndex + 1;
+
+    # --- Get the saved values
+    sDimName = Expand( '%sDim' | NumberToStringEx( nSubsetIndex, '##', '', '' ) | '%' );
+    sExpression = Expand( '%sMemberExpr' | NumberToStringEx( nSubsetIndex, '##', '', '' ) | '%' );
+
+    # --- Start with a clean MDX
+    sMDX = '';
+    sFirstChar = SUBST( sExpression, 1, 1 );
+    sPrefix = '';
+    If( SCAN( ':', sExpression ) > 0 );
+        sPrefix = SUBST( sExpression, 1, SCAN( ':', sExpression ) );
+    EndIf;
+
+    #--------------------------------------------------------------------------
+    #                       SUBSET EXPRESSION
+    #--------------------------------------------------------------------------
+
+    # --- If the element is a subset, then add the subset to the view rather
+    # --- than making a copy of the subset when used in an MDX expression
+    If( sFirstChar @= '{' );
+
+        # --- Get the subset name
+        sExistingSubsetName = SUBST( sExpression, 2,  LONG(sExpression) );
+
+        # --- If the incoming subset name is already in the format of the
+        # --- temporary object name, then just use it and don't try to create it.
+        If( sViewName @= sExistingSubsetName );
+            sSubsetName = sExistingSubsetName;
+            bUseExistingSubset = 1;
+        Else;
+            sMDX = 'TM1SubsetToSet( [' | sDimName | '], "' | sExistingSubsetName | '" )';
+        EndIf;
+
+    # --- If the element is a subset, then add the subset to the view
+    ElseIf( sPrefix @= 'Subset:' );
+        
+        # --- Get the subset name
+        sExistingSubsetName = SUBST( sExpression, LONG(sPrefix) + 1,  LONG(sExpression) );
+
+        # --- If the incoming subset name is already in the format of the
+        # --- temporary object name, then just use it and don't try to create it.
+        If( sViewName @= sExistingSubsetName );
+            sSubsetName = sExistingSubsetName;
+            bUseExistingSubset = 1;
+        Else;
+            sMDX = 'TM1SubsetToSet( [' | sDimName | '], "' | sExistingSubsetName | '" )';
+        EndIf;
+
+
+    #--------------------------------------------------------------------------
+    #                       DRILL EXPRESSION
+    #--------------------------------------------------------------------------
+
+    # --- If the element to be drilled on, set up the drill MDX
+    ElseIf( sFirstChar @= '!' );
+        sDrill = SUBST( sExpression, 2,  LONG(sExpression) );
+        sMDX = 'TM1FilterByLevel( TM1DrillDownMember( { [' | sDimName | '].[' | sDrill | '] }, ALL, RECURSIVE ), 0 )';
+
+    # --- If the element to be drilled on, set up the drill MDX
+    ElseIf( sPrefix @= 'Drill:' );
+        sDrill = SUBST( sExpression, LONG(sPrefix) + 1,  LONG(sExpression) );
+        sMDX = 'TM1FilterByLevel( TM1DrillDownMember( { [' | sDimName | '].[' | sDrill | '] }, ALL, RECURSIVE ), 0 )';
+
+
+    #--------------------------------------------------------------------------
+    #                       WILDCARD EXPRESSION
+    #--------------------------------------------------------------------------
+
+    ElseIf( sFirstChar @= '*' );
+        sMDX = 'TM1SubsetAll( [' | sDimName | '] )';
+
+
+    #--------------------------------------------------------------------------
+    #                       LEVEL EXPRESSION
+    #--------------------------------------------------------------------------
+
+    ElseIf( sFirstChar @= '#' );
+        sLevel = SUBST( sExpression, 2,  LONG(sExpression) );
+        sMDX = 'TM1FilterByLevel( { TM1SubsetAll ( [' | sDimName | '] ) }, ' | sLevel | ' )';
+
+    ElseIf( sPrefix @= 'Level:' );
+        sLevel = SUBST( sExpression, LONG(sPrefix) + 1,  LONG(sExpression) );
+        sMDX = 'TM1FilterByLevel( { TM1SubsetAll ( [' | sDimName | '] ) }, ' | sLevel | ' )';
+
+
+
+    #--------------------------------------------------------------------------
+    #                       MDX EXPRESSION
+    #--------------------------------------------------------------------------
+
+    ElseIf( sFirstChar @= '&' );
+        sMDX = SUBST( sExpression, 2,  LONG(sExpression) );
+
+    ElseIf( sPrefix @= 'MDX:' );
+        sMDX = SUBST( sExpression, LONG(sPrefix) + 1, LONG(sExpression) );
+
+
+    #--------------------------------------------------------------------------
+    #                       MEMBER / MEMBER LIST
+    #--------------------------------------------------------------------------
+    ElseIf( LONG( sExpression ) <> 0 );
+
+            # --- Prepare to build the MDX expression
+            sMDX = '';
+            sList = TRIM( sExpression );
+
+            # --- Put a separator at the end if there isn't one already
+			If( SUBST( sList, LONG( sList ), 1 ) @<> ';' ); sList = sList | ';'; EndIf;
+
+            # --- Loop through all the items in the list
+            nSepPos = SCAN( ';', sList );
+			While( nSepPos > 0 );
+
+                # --- Extract the member name
+                sMember = SUBST( sList, 1, nSepPos - 1 );
+                sList = SUBST( sList, nSepPos + 1,  LONG(sExpression) );
+
+                # --- Build the MDX
+                sMDX = sMDX | '[' | sDimName | '].[' | sMember | '],';
+
+                # --- See if there are more members in the list
+                nSepPos = SCAN( ';', sList );
+                
+			End;
+
+            # --- Remove trailing comma and enclose in braces
+            sMDX = '{' | SUBST( sMDX, 1, LONG( sMDX ) - 1 ) | '}';
+
+    EndIf;
+
+    #--------------------------------------------------------------------------
+    #                       ASSIGN SUBSET TO VIEW
+    #--------------------------------------------------------------------------
+
+    # --- Create the MDX subset if an existing was not used
+    If( bUseExistingSubset = 1 );
+
+        If( bDebug = 1);
+            TextOutput( sLogFile, Expand( 'Existing subset [%sSubsetName%] used for dimension [%sDimName%]') );
+        EndIf;
+        
+    Else;
+    
+        If( bDebug = 1);
+            TextOutput( sLogFile, Expand( 'Expression generated for dimension [%sDimName%].   MDX:%sMDX%' ) );
+        EndIf;
+
+        # --- Create the subset using MDX allow empty results by setting the 
+        # --- MDX separately.  Empty subset will be checked later (optional).
+        SubsetCreate( sDimName, sSubsetName, bUseTemporaryObjects  );
+        SubsetMDXSet( sDimName, sSubsetName, sMDX );
+        
+    EndIf;
+    
+    # --- Assign it to the view
+    ViewSubsetAssign( sCubeName, sViewName, sDimName, sSubsetName );
+    
+    
+    # --- If Error on Empty Subset is requested, check to see how many
+    # --- elements are in each.  If any are zero, then stop processing.
+    If( bErrorOnEmptySubset = 1 );
+        nMemberCount = SubsetGetSize( sDimName, sSubsetName );
+        If( nMemberCount = 0 );
+          sMessage = Expand( 'Empty subset encountered for dimension [%sDimName%].   MDX:%sMDX%');
+          LogOutput( 'ERROR', sMessage );
+          If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+          ProcessError();
+        EndIf;
+    EndIf;
+
+End;
+
+#endregion
+#region Metadata
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+# --- If multi-threading control is needed, then create the semaphore file
+# --- that must be tracked by the parent process.
+If( sSemaphoreFilename @<> '' );
+    TextOutput( sSemaphoreFilename, TIMST( NOW, '\Y-\m-\d \h:\i:\s' ) );
+EndIf;
+#endregion

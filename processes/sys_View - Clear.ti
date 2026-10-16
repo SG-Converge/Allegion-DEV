@@ -1,0 +1,152 @@
+#region Prolog
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#==============================================================================
+#                             sys_View - Clear
+#
+#  This process will use the sys_View - Create process to build a view.
+#  If the view is created successfully, it will then clear the data defined
+#  by the view and delete the view.   See sys_View - Create for details on
+#  parameter syntax.
+#
+#  If a view name is supplied, it will use that instead of creating a view
+#
+#  CALLS:
+#       sys_View - Delete
+#
+#
+#    Date      WHO  Description
+#  ----------  ---  -----------------------------------------------------------
+#  2006-04-27  SWG  Created.
+#  2008-06-10  MSL  Added functionality to select elements at
+#                   the level entered in the prefix (ie '#0 DimName' 
+#                   will return only members of 'DimName' at level 0).
+#  2016-04-11  WCC  Revamped to make it easier to use and not call any
+#                   sub processes.  Also allows MDX for each dim.
+#  2016-10-14  NDD  Master Copy
+#  2019-04-21  WCC  Updated to use Temp Objects and Logging
+#  2023-07-26  SWG  Script library refresh        
+#
+#==============================================================================
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = TM1User();
+sProcessName = GetProcessName();
+sTimeStamp = TIMST( NOW, '\Y-\m-\d(\h\i\s)' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+TRUE = 1;
+FALSE = 0;
+sLogPath = './model_upload/Logs/';
+sLogFile = sLogPath | sUniqueName | '.log';
+
+# --- Values
+bDebug = 0;
+nErrorCount = 0;
+
+
+#==============================================================================
+#                        PARAMETER VALIDATION SECTION
+#==============================================================================
+
+# --- Copy the parameters to internal values
+sCubeName = pCubeName;
+sViewName = pViewName;
+sSemaphoreFilename = pSemaphoreFilename;
+
+#------------------------------------------------------------------------------
+#                       Validate Cube Name
+#------------------------------------------------------------------------------
+
+# --- Validate the cube exists
+If( CubeExists( sCubeName ) = 0 );
+    sMessage = Expand( 'Specified cube [%sCubeName%] does not exist.');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    ProcessError;
+EndIf;
+
+#------------------------------------------------------------------------------
+#                       Validate View Name
+#------------------------------------------------------------------------------
+
+# --- Validate the view exists, if specified, otherwise use a temporary
+# --- name and create it based on pMemberExpr parameters.
+If( sViewName @<> '' );
+  If( ViewExists( sCubeName, sViewName ) = 0 );
+      sMessage = Expand( 'Specified view [%sViewName%] in cube [%sCubeName%] does not exist.');
+      LogOutput( 'ERROR', sMessage );
+      If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    ProcessError;
+  EndIf;
+EndIf;
+
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+# --- Create the view
+If( sViewName @= '' );
+  sViewName = sTempName;
+  
+  ExecuteProcess( 'sys_View - Create',
+      'pCubeName', sCubeName,
+      'pViewName', sViewName,
+      'pMemberExpr1', pMemberExpr1,
+      'pMemberExpr2', pMemberExpr2,
+      'pMemberExpr3', pMemberExpr3,
+      'pMemberExpr4', pMemberExpr4,
+      'pMemberExpr5', pMemberExpr5,
+      'pMemberExpr6', pMemberExpr6,
+      'pMemberExpr7', pMemberExpr7,
+      'pMemberExpr8', pMemberExpr8,
+      'pMemberExpr9', pMemberExpr9,
+      'pMemberExpr10', pMemberExpr10,
+      'pMemberExpr11', pMemberExpr11,
+      'pMemberExpr12', pMemberExpr12,
+      'pMemberExpr13', pMemberExpr13,
+      'pMemberExpr14', pMemberExpr14,
+      'pMemberExpr15', pMemberExpr15,
+      'pMemberExpr16', pMemberExpr16,
+      'pMemberExpr17', pMemberExpr17,
+      'pMemberExpr18', pMemberExpr18,
+      'pMemberExpr19', pMemberExpr19,
+      'pMemberExpr20', pMemberExpr20,
+      'pUseTemporaryObjects', TRUE,
+      'pErrorOnEmptySubset', TRUE,
+      'pSuppressZeros', TRUE,
+      'pSuppressRollups', TRUE,
+      'pSuppressCalculations', TRUE,
+      'pSuppressRollupStrings', FALSE
+  );
+EndIf;
+# --- Clear the data
+ViewZeroOut( sCubeName, sViewName );
+#endregion
+#region Metadata
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+
+# --- If multi-threading control is needed, then create the semaphore file
+# --- that must be tracked by the parent process.
+If( sSemaphoreFilename @<> '' );
+    TextOutput( sSemaphoreFilename, TIMST( NOW, '\Y-\m-\d \h:\i:\s' ) );
+EndIf;
+#endregion

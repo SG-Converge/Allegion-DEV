@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"Balance Accounts",
+	"Alias":"Caption",
+	"Expression":"{FILTER(TM1SUBSETALL([PL Account]) , [PL Account].[Time Balance] = \"balance\")}"
+}

@@ -1,0 +1,32 @@
+{
+	"@type":"Hierarchy",
+	"Name":"util.map.Section",
+	"Elements":
+	[
+		{
+			"Name":"Datafiles",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Currency",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Product",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Function",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Entity",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Account",
+			"Type":"Numeric"
+		}
+	],
+	"Subsets@Code.links":[]
+}

@@ -1,0 +1,38 @@
+{
+	"@type":"Subset",
+	"Name":"Bridge Function - REVENUES",
+	"Alias":"MEMBER_NAME",
+	"Elements":
+	[
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_PRICE')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_Volume')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_Mix')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_FX')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_FX_Transactional')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_FX_Total')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_Acquisition')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_Divestiture')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_BasePeriodAdj')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('All Functions')"
+		}
+	]
+}

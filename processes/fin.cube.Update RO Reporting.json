@@ -1,0 +1,80 @@
+{
+	"@type":"Process",
+	"Name":"fin.cube.Update RO Reporting",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"fin.cube.Update RO Reporting.ti",
+	"VariablesUIData":
+	[
+		"VarType=32\fColType=827\f",
+		"VarType=32\fColType=827\f",
+		"VarType=32\fColType=827\f",
+		"VarType=32\fColType=827\f",
+		"VarType=32\fColType=827\f"
+	],
+	"DataSource":
+	{
+		"Type":"TM1CubeView",
+		"dataSourceNameForClient":"RO Input",
+		"dataSourceNameForServer":"RO Input",
+		"view":"sys_All Data"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pSourceScenario",
+			"Prompt":"Source Scenario",
+			"Value":"Working RO",
+			"Type":"String"
+		},
+		{
+			"Name":"pDestYear",
+			"Prompt":"Destination Year",
+			"Value":"2025",
+			"Type":"String"
+		},
+		{
+			"Name":"pDestScenario",
+			"Prompt":"Destination Scenario",
+			"Value":"Working RO",
+			"Type":"String"
+		}
+	],
+	"Variables":
+	[
+		{
+			"Name":"inMeasure",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"inScenario",
+			"Type":"String",
+			"Position":2,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"inEntity",
+			"Type":"String",
+			"Position":3,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"inItem",
+			"Type":"String",
+			"Position":4,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"inValue",
+			"Type":"String",
+			"Position":5,
+			"StartByte":0,
+			"EndByte":0
+		}
+	]
+}

@@ -1,0 +1,11 @@
+{
+	"@type":"Subset",
+	"Name":"Bridge AOP Versions",
+	"Alias":"MEMBER_NAME",
+	"Elements":
+	[
+		{
+			"@id":"Dimensions('Bridge Version')/Hierarchies('Bridge Version')/Elements('BRIDGE_AOPCY_VPY')"
+		}
+	]
+}

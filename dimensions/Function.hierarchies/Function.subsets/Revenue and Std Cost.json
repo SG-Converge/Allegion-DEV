@@ -1,0 +1,26 @@
+{
+	"@type":"Subset",
+	"Name":"Revenue and Std Cost",
+	"Alias":"Caption",
+	"Elements":
+	[
+		{
+			"@id":"Dimensions('Function')/Hierarchies('Function')/Elements('Completes')"
+		},
+		{
+			"@id":"Dimensions('Function')/Hierarchies('Function')/Elements('InstallContract')"
+		},
+		{
+			"@id":"Dimensions('Function')/Hierarchies('Function')/Elements('Parts')"
+		},
+		{
+			"@id":"Dimensions('Function')/Hierarchies('Function')/Elements('Service')"
+		},
+		{
+			"@id":"Dimensions('Function')/Hierarchies('Function')/Elements('Rental')"
+		},
+		{
+			"@id":"Dimensions('Function')/Hierarchies('Function')/Elements('UsedEquipment')"
+		}
+	]
+}

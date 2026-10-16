@@ -1,0 +1,64 @@
+{
+	"@type":"Hierarchy",
+	"Name":"RO Function",
+	"Elements":
+	[
+		{
+			"Name":"All Functions",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"82999",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"No Function",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"22999",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"COMPLETES",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Unmapped Function",
+			"Type":"Numeric"
+		}
+	],
+	"Edges":
+	[
+		{
+			"ParentName":"All Functions",
+			"ComponentName":"22999",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Functions",
+			"ComponentName":"82999",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Functions",
+			"ComponentName":"COMPLETES",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Functions",
+			"ComponentName":"No Function",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Functions",
+			"ComponentName":"Unmapped Function",
+			"Weight":1
+		}
+	],
+	"Subsets@Code.links":
+	[
+		"RO Function.subsets/Functions.json",
+		"RO Function.subsets/Leaves.json"
+	]
+}

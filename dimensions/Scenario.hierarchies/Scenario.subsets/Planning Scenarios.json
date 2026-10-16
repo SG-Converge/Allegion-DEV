@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"Planning Scenarios",
+	"Alias":"MEMBER_NAME",
+	"Expression":"{[Scenario].[Scenario].[Scenarios].CHILDREN}"
+}

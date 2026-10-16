@@ -1,0 +1,50 @@
+{
+	"@type":"Subset",
+	"Name":"PL Income Statement",
+	"Alias":"ID - Name",
+	"Elements":
+	[
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('410000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('MGT_COSWOREST')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('SGAEXCLRESTMA')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('699901')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('803000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('850000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('800200')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('804880')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('S_BASIC_SHARES_MTD')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('S_DILUTED_SHARES_MTD')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('S_BASIC_SHARES_MTD')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('S_DILUTED_SHARES_MTD')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('803000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('800100')"
+		}
+	]
+}

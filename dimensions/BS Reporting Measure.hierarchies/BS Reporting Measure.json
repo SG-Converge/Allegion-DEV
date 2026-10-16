@@ -1,0 +1,51 @@
+{
+	"@type":"Hierarchy",
+	"Name":"BS Reporting Measure",
+	"Elements":
+	[
+		{
+			"Name":"Amount",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Ending Balance",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Reorg Amount",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Historical Reorg Amount",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Historical Reorg Delta",
+			"Type":"Consolidated"
+		}
+	],
+	"Edges":
+	[
+		{
+			"ParentName":"Amount",
+			"ComponentName":"Ending Balance",
+			"Weight":1
+		},
+		{
+			"ParentName":"Amount",
+			"ComponentName":"Reorg Amount",
+			"Weight":1
+		},
+		{
+			"ParentName":"Historical Reorg Delta",
+			"ComponentName":"Ending Balance",
+			"Weight":-1
+		},
+		{
+			"ParentName":"Historical Reorg Delta",
+			"ComponentName":"Historical Reorg Amount",
+			"Weight":1
+		}
+	],
+	"Subsets@Code.links":[]
+}

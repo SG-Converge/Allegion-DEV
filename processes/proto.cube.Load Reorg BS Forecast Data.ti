@@ -1,0 +1,100 @@
+#region Prolog
+
+FALSE = 0;
+TRUE = 1;
+LF     = CHAR(10);
+
+sLogFile = '.\model_upload\logs\' | GetProcessName() | '-' | pPeriod | '.log';
+
+# --- Cubes
+sPLInputCube     = 'PL Input';
+sPLReportingCube = 'PL Reporting';
+sBSInputCube     = 'BS Input';
+sBSReportingCube = 'BS Reporting';
+sFXCube        = 'FX Rates';
+
+# --- Dimensions
+sScenarioDim   = 'Scenario';
+sPeriodDim     = 'Period';
+sCurrencyDim   = 'Currency';
+sEntityDim     = 'Entity';
+sProductDim    = 'Product';
+sFunctionDim   = 'Function';
+sAccountDim    = 'BS Account';
+
+# --- Members
+sLoadMeasure   = 'Historical Reorg Amount';
+
+sPeriod = pPeriod;
+sYear = SUBST( pPeriod, 1, 4 );
+sFY = SUBST( pPeriod, 3, 2 );
+sMonth = ATTRS( 'Period XRef', pPeriod, 'Calendar Month Short' );
+sFilename = Expand( '.\model_upload\Uploads\Historical\Planning\%sYear%\PLAN_BSCap_FY%sFY%_%sMonth%_toIBM.txt' );
+
+sActualEndPeriod = CellGetS( 'Global Assumptions', 'Actual End Period', 'String' );
+DatasourceNameForServer = sFilename;
+
+#endregion
+#region Data
+
+sVersion  = inVersion;
+sScenario = inScenario;
+sCurrency = inCurrency;
+sEntity   = inEntity;
+sProduct  = inProduct;
+sAccount  = inAccount;
+nValue    = inValue;
+sFunction = 'No Function';
+
+
+# --- Old H_SAT entity is no longer valid and is skipped.
+If( SUBST( sEntity, 1, 5 ) @= 'H_SAT' );
+    ItemSkip;
+EndIf;
+
+# --- We don't want Rates at this point
+If( sAccount @= 'EOPRATE' ); ItemSkip; EndIf;
+If( sAccount @= 'AVGRATE' ); ItemSkip; EndIf;
+
+# --- We only want to deal with Actual SeconSubmit for reorgs
+If( sVersion @<> 'SecondSubmit' ); ItemSkip; EndIf;
+If( sScenario @<> 'ACTUAL' ); ItemSkip; EndIf;
+
+# --- Clean up the currency
+sCurrency = If( sCurrency @= 'Entity_Currency', 'Local', sCurrency );
+
+# --- Now, check to see if we have the elements in the dimensions
+bIsUnmapped = FALSE;
+If( DIMIX( sScenarioDim, sScenario ) = 0 );
+    bIsUnmapped = TRUE;
+    sScenario = 'Unmapped Scenario';
+EndIf;
+
+If( DIMIX( sEntityDim, sEntity ) = 0 );
+    If( DIMIX( sEntityDim, sEntity | '_INPUT') > 0 );
+        sEntity = sEntity | '_INPUT';
+    Else;
+        bIsUnmapped = TRUE;
+        sEntity = 'Unmapped Entity';
+    EndIf;
+EndIf;
+
+If( DIMIX( sProductDim, sProduct ) = 0 );
+    bIsUnmapped = TRUE;
+    sProduct = 'Unmapped Product';
+EndIf;
+
+If( DIMIX( 'BS Account', sAccount ) > 0 );
+    If( sCurrency @= 'Local' );
+        CellIncrementN( nValue, sBSinputCube, sScenario, sPeriod, sEntity, sProduct, sAccount, sLoadMeasure );
+    EndIf;
+    
+    CellIncrementN( nValue, sBSReportingCube, sScenario, sPeriod, sCurrency, sEntity, sProduct, sAccount, sLoadMeasure );
+Else;
+    If( sCurrency @= 'Local' );
+        CellIncrementN( nValue, sPLinputCube, 'Actual', sPeriod, sEntity, sProduct, sFunction, sAccount, sLoadMeasure );
+    EndIf;
+    
+    CellIncrementN( nValue, sPLReportingCube, 'Actual', sPeriod, sCurrency, sEntity, sProduct, sFunction, sAccount, sLoadMeasure );
+EndIf;
+#endregion

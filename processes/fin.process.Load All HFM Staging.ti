@@ -1,0 +1,215 @@
+#region Prolog
+
+#==============================================================================
+#                               Load All HFM Staging
+#
+#  This script perform all of the processing for each of the files being 
+#  imported from HFM.   It will first process all of the mapping (defined by
+#  fin.map.Load Rules cube) and then load the data into the HFM Staging cube.
+#
+#      Date    WHO  Description
+#  ----------  ---  -----------------------------------------------------------
+#  2026/04/03  SWG  Created.
+#
+#==============================================================================
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = ATTRS( '}Clients', TM1User(), '}TM1_DefaultDisplayValue' );
+sProcessName = GetProcessName();
+sDateStamp = TIMST( NOW, '\Y-\m-\d' );
+sTimeStamp = TIMST( NOW, '\Y-\m-\d \h.\i.\s' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+# --- Static Values
+ERROR  = 1; WARN   = 2; STATS  = 3;
+INFO   = 4; DEBUG  = 5; TRACE  = 6;
+TRUE   = 1; FALSE  = 0;
+LF     = CHAR(10);
+EXCEL_ADJUSTMENT = 21916;
+
+# --- Setup processing information
+bUseTemporaryObjects = TRUE;
+
+# --- Cubes
+sAssumptionCube = 'Global Assumptions';
+sConfigCube     = 'sys.Config';
+sStatsCube      = 'sys.Process Stats';
+sRulesetCube    = 'util.map.Load Rules';
+sStagingCube    = 'HFM Staging';
+
+# --- Dimensions
+sRulesetDim    = 'util.map.Ruleset';
+
+# --- Values
+sLoadGroup     = 'HFM Staging';
+sSection       = 'Datafiles';
+sHFMDir        = CellGetS( sConfigCube, 'HFM Upload Directory', 'String' );
+
+#==============================================================================
+#                               LOGGING SECTION
+#==============================================================================
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Started At' );
+CellPutS( sUser, sStatsCube, sProcessName, 'Executed By' );
+
+# --- Setup Logging
+nLogLevel = CellGetN( sStatsCube, sProcessName, 'Logging Level' );
+sLogDir = CellGetS( sConfigCube, 'Log Directory', 'String' );
+sLogFile = sLogDir | sProcessName | '.log';
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log startup
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Started');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+# --- Report how the script was executed 
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand( '
+        %LF% ==============================================================
+        %LF%         %sProcessName%
+        %LF% ==============================================================
+        %LF% Executed by [%sUser%]
+        %LF% ==============================================================
+        %LF%
+    ');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+# --- Get the scripts that is to be executed
+sLoadScript = ATTRS( sRulesetDim, sLoadGroup, 'Load Script' );
+sMappingScript = ATTRS( sRulesetDim, sLoadGroup, 'Mapping Script' );
+sPeriod = CellGetS( sAssumptionCube, 'HFM Load Period', 'String' );
+
+
+# --- Setup destination view to clear
+sCubeName = sStagingCube;
+
+# --- If the period to clear parameter was specified, then clear out that
+# --- period from the cube, if not just load the data.   This is to allow for
+# --- partial and incremental loads.
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { TM1FilterByLevel( TM1SubsetAll( [HFM Scenario] ), 0 ) } %LF%
+        SET PeriodSet     as { DISTINCT(DESCENDANTS([Period].[Period].[%sPeriod%] , 99 , LEAVES)) } %LF%
+        SET FileSet       as { TM1FilterByLevel( TM1SubsetAll( [HFM Load File] ), 0 ) } %LF%
+        SET CurrencySet   as { TM1FilterByLevel( TM1SubsetAll( [HFM Currency] ), 0 ) } %LF%
+        SET EntitySet     as { TM1FilterByLevel( TM1SubsetAll( [HFM Entity] ), 0 ) } %LF%
+        SET ProductSet    as { TM1FilterByLevel( TM1SubsetAll( [HFM Product] ), 0 ) } %LF%
+        SET FunctionSet   as { TM1FilterByLevel( TM1SubsetAll( [HFM Function] ), 0 ) } %LF%
+        SET AccountSet    as { TM1FilterByLevel( TM1SubsetAll( [HFM Account] ), 0 ) } %LF%
+        SET MeasureSet    as { TM1FilterByLevel( TM1SubsetAll( [HFM Staging Measure] ), 0 ) } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * PeriodSet * FileSet * CurrencySet * EntitySet * ProductSet * FunctionSet * AccountSet ON 1 %LF%
+
+    FROM [%sCubeName%] %LF%
+' );
+
+sViewName = sTempName | ' - Clear ';
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand('Destination view: %sViewMDX%');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+ViewCreateByMDX( sCubeName, sViewName, sViewMDX, bUseTemporaryObjects );
+ViewZeroOut( sCubeName, sViewName );
+
+
+# --- Loop through all the Datafile rules and process all the files within
+# --- the load group.
+
+nRulesetIdx = 0;
+nNumRulesets = ELCOMPN( sRulesetDim, sLoadGroup );
+While( nRulesetIdx < nNumRulesets );
+    nRulesetIdx = nRulesetIdx + 1;
+    sRuleset = ELCOMP( sRulesetDim, sLoadGroup, nRulesetIdx );
+
+    # --- Report the ruleset being processed
+    If( nLogLevel >= DEBUG );
+        sMsgLevel = 'DEBUG';
+        sMessage = Expand( 'Processing ruleset: [%sRuleset%] - Mapping Script: [%sMappingScript%] - Load Script: [%sLoadScript%]');
+        ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+    EndIf;
+
+    # --- Loop through the rules until the first blank is encountered
+    nRuleIdx = 0;
+    bLoop = TRUE;
+    While( bLoop = TRUE );
+        nRuleIdx = nRuleIdx + 1;
+        sRuleID = 'Rule ' | NumberToStringEx( nRuleIdx, '000', '','' );
+        sSource = CellGetS( sRulesetCube, sRuleset, sSection, sRuleID, 'Source' );
+        sDest   = CellGetS( sRulesetCube, sRuleset, sSection, sRuleID, 'Destination' );
+
+       
+        If( sSource @= '' );
+            bLoop = FALSE;
+        ElseIf( FileExists( sHFMDir | sSource ) = FALSE );
+            # --- Report a file was skipped because it was not found
+            If( nLogLevel >= WARN );
+                sMsgLevel = 'WARN';
+                sMessage = Expand( 'HFM file [%sSource%] was not found and was skipped');
+                ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+            EndIf;
+        Else;
+            
+            # --- If mapping script was provided, do mapping first
+            If( sMappingScript @<> '' );
+                nRetval = ExecuteProcess( sMappingScript,
+                	'pRuleset', sRuleset,
+                	'pInputFile', sSource,
+                	'pOutputFile', sDest 
+                );
+                If( nRetval <> ProcessExitNormal() );
+                    ProcessError();
+                EndIf;
+
+                # --- Now the mapped file is the source
+                sSource = sDest;
+            EndIf;
+
+            nRetval = ExecuteProcess( sLoadScript,
+                'pFilename', sSource,
+                'pPeriod', '' 
+            );
+            If( nRetval <> ProcessExitNormal() );
+                ProcessError();
+            EndIf;
+            
+        EndIf;
+    End;
+End;
+#endregion
+#region Epilog
+
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Completed At' );
+
+# --- Append to the log (will overwrite if not done before AsciiOutput)
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log completion
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Completed');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+#endregion

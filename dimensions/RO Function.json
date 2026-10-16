@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"RO Function",
+	"Hierarchies@Code.links":
+	[
+		"RO Function.hierarchies/RO Function.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('RO Function')/Hierarchies('RO Function')"
+	}
+}

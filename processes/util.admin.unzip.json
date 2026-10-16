@@ -1,0 +1,32 @@
+{
+	"@type":"Process",
+	"Name":"util.admin.unzip",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"util.admin.unzip.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pZipFile",
+			"Prompt":"Zip file location",
+			"Value":"S:\\prod\\APAS\\APAS Prod Deployment 2026-08-07.zip",
+			"Type":"String"
+		},
+		{
+			"Name":"pDestination",
+			"Prompt":"Destincation directory",
+			"Value":"\\prod\\Snapshot\\",
+			"Type":"String"
+		},
+		{
+			"Name":"pOverwrite",
+			"Prompt":"Overwrite (Yes/No)",
+			"Value":"no",
+			"Type":"String"
+		}
+	],
+	"Variables":[]
+}

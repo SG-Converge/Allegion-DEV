@@ -1,0 +1,189 @@
+{
+	"@type":"Process",
+	"Name":"sys_View - Create MDX",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"sys_View - Create MDX.ti",
+	"UIData":"_ParameterConstraints=e30=\f",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pCubeName",
+			"Prompt":"Name of cube to create view in",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pViewName",
+			"Prompt":"Name of view to create",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pMemberExpr1",
+			"Prompt":"Member list expression for dimension #1 (default=All Members)",
+			"Value":"*",
+			"Type":"String"
+		},
+		{
+			"Name":"pMemberExpr2",
+			"Prompt":"Member list expression for dimension #2 (default=All Members)",
+			"Value":"*",
+			"Type":"String"
+		},
+		{
+			"Name":"pMemberExpr3",
+			"Prompt":"Member list expression for dimension #3 (default=All Members)",
+			"Value":"*",
+			"Type":"String"
+		},
+		{
+			"Name":"pMemberExpr4",
+			"Prompt":"Member list expression for dimension #4 (default=All Members)",
+			"Value":"*",
+			"Type":"String"
+		},
+		{
+			"Name":"pMemberExpr5",
+			"Prompt":"Member list expression for dimension #5 (default=All Members)",
+			"Value":"*",
+			"Type":"String"
+		},
+		{
+			"Name":"pMemberExpr6",
+			"Prompt":"Member list expression for dimension #6 (default=All Members)",
+			"Value":"*",
+			"Type":"String"
+		},
+		{
+			"Name":"pMemberExpr7",
+			"Prompt":"Member list expression for dimension #7 (default=All Members)",
+			"Value":"*",
+			"Type":"String"
+		},
+		{
+			"Name":"pMemberExpr8",
+			"Prompt":"Member list expression for dimension #8 (default=All Members)",
+			"Value":"*",
+			"Type":"String"
+		},
+		{
+			"Name":"pMemberExpr9",
+			"Prompt":"Member list expression for dimension #9 (default=All Members)",
+			"Value":"*",
+			"Type":"String"
+		},
+		{
+			"Name":"pMemberExpr10",
+			"Prompt":"Member list expression for dimension #10 (default=All Members)",
+			"Value":"*",
+			"Type":"String"
+		},
+		{
+			"Name":"pMemberExpr11",
+			"Prompt":"Member list expression for dimension #11 (default=All Members)",
+			"Value":"*",
+			"Type":"String"
+		},
+		{
+			"Name":"pMemberExpr12",
+			"Prompt":"Member list expression for dimension #12 (default=All Members)",
+			"Value":"*",
+			"Type":"String"
+		},
+		{
+			"Name":"pMemberExpr13",
+			"Prompt":"Member list expression for dimension #13 (default=All Members)",
+			"Value":"*",
+			"Type":"String"
+		},
+		{
+			"Name":"pMemberExpr14",
+			"Prompt":"Member list expression for dimension #14 (default=All Members)",
+			"Value":"*",
+			"Type":"String"
+		},
+		{
+			"Name":"pMemberExpr15",
+			"Prompt":"Member list expression for dimension #15 (default=All Members)",
+			"Value":"*",
+			"Type":"String"
+		},
+		{
+			"Name":"pMemberExpr16",
+			"Prompt":"Member list expression for dimension #16 (default=All Members)",
+			"Value":"*",
+			"Type":"String"
+		},
+		{
+			"Name":"pMemberExpr17",
+			"Prompt":"Member list expression for dimension #17 (default=All Members)",
+			"Value":"*",
+			"Type":"String"
+		},
+		{
+			"Name":"pMemberExpr18",
+			"Prompt":"Member list expression for dimension #18 (default=All Members)",
+			"Value":"*",
+			"Type":"String"
+		},
+		{
+			"Name":"pMemberExpr19",
+			"Prompt":"Member list expression for dimension #19 (default=All Members)",
+			"Value":"*",
+			"Type":"String"
+		},
+		{
+			"Name":"pMemberExpr20",
+			"Prompt":"Member list expression for dimension #20 (default=All Members)",
+			"Value":"*",
+			"Type":"String"
+		},
+		{
+			"Name":"pUseTemporaryObjects",
+			"Prompt":"Use temporary objects (Temporary=1)",
+			"Value":1,
+			"Type":"Numeric"
+		},
+		{
+			"Name":"pErrorOnEmptySubset",
+			"Prompt":"Generate an error if any subset is empty",
+			"Value":1,
+			"Type":"Numeric"
+		},
+		{
+			"Name":"pSuppressZeros",
+			"Prompt":"Supress zero cells in view (Suppress=1)",
+			"Value":1,
+			"Type":"Numeric"
+		},
+		{
+			"Name":"pSuppressRollups",
+			"Prompt":"Supress rollups (consolidatoins) in view (Suppress=1)",
+			"Value":1,
+			"Type":"Numeric"
+		},
+		{
+			"Name":"pSuppressCalculations",
+			"Prompt":"Supress rule calculated values (Suppress=1)",
+			"Value":1,
+			"Type":"Numeric"
+		},
+		{
+			"Name":"pSuppressRollupStrings",
+			"Prompt":"Supress string values at a rollup level (Suppress=1)",
+			"Value":1,
+			"Type":"Numeric"
+		},
+		{
+			"Name":"pSemaphoreFilename",
+			"Prompt":"Filename for multi threading control",
+			"Value":"",
+			"Type":"String"
+		}
+	],
+	"Variables":[]
+}

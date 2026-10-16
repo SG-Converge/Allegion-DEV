@@ -1,0 +1,719 @@
+#region Prolog
+
+#==============================================================================
+#                         sys_Dimension - Period - Create
+#
+#  This process will copy all of the data from the specified version 
+#  into a new snapshot version (non-ruled based) for comparative analysis.
+#
+#  CALLS:
+#       sys_Cube - Version Copy
+#
+#    Date      WHO  Description
+#  ----------  ---  -----------------------------------------------------------
+#  2023-08-09  SWG  Created.
+#
+#==============================================================================
+
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = TM1User();
+sProcessName = GetProcessName();
+sTimeStamp = TIMST( NOW, '\Y-\m-\d(\h\i\s)' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+sDataPath = './model_upload/';
+sLogPath = './model_upload/';
+sLogFile = sLogPath | sUniqueName | '.log';
+
+# --- Constants
+TRUE                = 1;
+FALSE               = 0;
+
+GRANULARITY_DAY     = 1;
+GRANULARITY_WEEK    = 2;
+GRANULARITY_MONTH   = 3;
+GRANULARITY_QUARTER = 4;
+GRANULARITY_HALF    = 5;
+GRANULARITY_YEAR    = 6;
+
+# --- Elements
+sRootElemID = 'All Periods';
+
+#==============================================================================
+#                        PARAMETER VALIDATION SECTION
+#==============================================================================
+
+# --- Copy the parameters to internal values
+sXRefDim      = pPeriodXrefDim;
+sDimension    = pDimension;
+sHierarchy    = If( pHierarchy @= '', pDimension, pHierarchy );
+sYearStart    = pYearStart;
+sYearEnd      = pYearEnd;
+bRecreateDim  = If( pRecreateDimension @= 'Yes', TRUE, FALSE );
+bRebuildHier  = If( pRebuildHierarchy @= 'Yes', TRUE, FALSE );
+sRootElemID   = If( pRootElement @= '', sRootElemID, pRootElement );
+
+# --- Period type can be Calendar, Fiscal, or MFG
+sPeriodType = '';
+sPeriodType = If( LOWER( pPeriodType ) @= 'calendar', 'Calendar', sPeriodType );
+sPeriodType = If( LOWER( pPeriodType ) @= 'fiscal', 'Fiscal', sPeriodType );
+sPeriodType = If( LOWER( pPeriodType ) @= 'manufacturing', 'Manufacturing', sPeriodType );
+If( sPeriodType @= '' );
+    LogOutput( 'ERROR', EXPAND('Invalid period type [%pPeriodType%] specified.   Must be Calendar, Fiscal or Manufacturing') );
+    ProcessQuit;
+EndIf;
+
+# --- Granularity for each type.   Can be Day, Week, Month, Quarter, Half, Year
+sGranularity = LOWER(pGranularity);
+nGranularity = 0;
+If( sGranularity @= 'day' ); nGranularity = GRANULARITY_DAY; EndIf;
+If( sGranularity @= 'week' ); nGranularity = GRANULARITY_WEEK; EndIf;
+If( sGranularity @= 'month' ); nGranularity = GRANULARITY_MONTH; EndIf;
+If( sGranularity @= 'quarter' ); nGranularity = GRANULARITY_QUARTER; EndIf;
+If( sGranularity @= 'half' ); nGranularity = GRANULARITY_HALF; EndIf;
+If( sGranularity @= 'year' ); nGranularity = GRANULARITY_YEAR; EndIf;
+If( nGranularity = 0 );
+    LogOutput( 'ERROR', EXPAND('Invalid granularity [%pGranularity%] specified.   Must be Day, Week, Month, Quarter, Half or Year') );
+    ProcessQuit;
+EndIf;
+
+# --- Format is an EXPANDable string to generate the elements
+sDayFormat       = pDayFormat;
+sWeekFormat      = pWeekFormat;
+sMonthFormat     = pMonthFormat;
+sQuarterFormat   = pQuarterFormat;
+sHalfFormat      = pHalfFormat;
+sYearFormat      = pYearFormat;
+
+# --- Include half year rollups
+bIncludeWeek      = If( pIncludeWeek @= 'Yes', TRUE, FALSE );
+bIncludeMonth     = If( pIncludeMonth @= 'Yes', TRUE, FALSE );
+bIncludeQuarter   = If( pIncludeQuarter @= 'Yes', TRUE, FALSE );
+bIncludeHalfYear  = If( pIncludeHalfYear @= 'Yes', TRUE, FALSE );
+
+# --- Setup the default formats
+sDayFormat      = If( pDayFormat @<> '', pDayFormat, '%period_beginning_day%' );
+sWeekFormat     = If( pWeekFormat @<> '', pWeekFormat, '%period_beginning_week%' );
+sMonthFormat    = If( pMonthFormat @<> '', pMonthFormat, '%period_beginning_month%' );
+sQuarterFormat  = If( pQuarterFormat @<> '', pQuarterFormat, '%period_beginning_quarter%' );
+sHalfFormat     = If( pHalfFormat @<> '', pHalfFormat, '%period_beginning_half%' );
+sYearFormat     = If( pYearFormat @<> '', pYearFormat, '%period_beginning_year%' );
+
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+# --- Create the dimension if it doesn't exist
+If( DimensionExists( sDimension ) = FALSE );
+    DimensionCreate( sDimension );
+EndIf;
+
+# --- Delete all hierarchies, attributes and remove all members.
+If( bRecreateDim = TRUE );
+    DimensionDeleteAllElements( sDimension );
+
+#    DimensionDestroy( sDimension );
+
+    # sHierDimName = Expand('}Hierarchies_%sDimension%');
+    # nNumHiers = ElementCount( sHierDimName, sHierDimName );
+    # While( nNumHiers > 0 );
+    #     sHierName = ElementName( sHierDimName, sHierDimName, nNumHiers );
+    #     HierarchyDestroy( sDimension, sHierName );
+    #     nNumHiers = nNumHiers - 1;
+    # End;
+
+    # sAttrDimName = Expand('}ElementAttributes_%sDimension%');
+    # nNumAttrs = ElementCount( sAttrDimName, sAttrDimName );
+    # While( nNumAttrs > 0 );
+    #     sAttrName = ElementName( sAttrDimName, sAttrDimName, nNumAttrs );
+    #     ElementAttrDelete( pDimension, sHierarchy, sAttrName );
+    #     nNumAttrs = nNumAttrs - 1;
+    # End;
+    # DimensionDeleteAllElements( sDimension );
+EndIf;
+
+If( HierarchyExists( sDimension, sHierarchy ) = FALSE );
+    HierarchyCreate( sDimension, sHierarchy );
+EndIf;
+
+If( bRebuildHier = TRUE );
+    HierarchyDeleteAllElements( sDimension, sHierarchy );
+EndIf;
+    
+
+ElementAttrInsert( sDimension, sHierarchy, '', 'XRef', 'S' );
+ElementAttrInsert( sDimension, sHierarchy, '', 'Caption', 'A' );
+
+DatasourceNameForServer = pPeriodXrefDim;
+
+
+#endregion
+#region Metadata
+
+#Region Metadata & Data Common Code
+
+# --- Period is the unique period and PeriodElemID removes the prefix when
+# --- at the leaf level because the leaf level is shared across all period types
+sPeriod       = inElemID;
+period_type   = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Type');
+
+
+#==============================================================================
+#                            Gather the attributes
+#==============================================================================
+
+#Region Attribute Value
+short_name                  = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Short Name');
+long_name                   = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Long Name');
+period_days                 = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'Period Days');
+period_weeks                = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'Period Weeks');
+period_months               = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'Period Months');
+period_quarters             = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'Period Quarters');
+period_beginning_day        = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Beginning Day');
+period_ending_day           = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Ending Day');
+period_beginning_week       = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Beginning Week');
+period_ending_week          = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Ending Week');
+period_beginning_month      = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Beginning Month');
+period_ending_month         = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Ending Month');
+period_beginning_quarter    = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Beginning Quarter');
+period_ending_quarter       = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Ending Quarter');
+period_beginning_half       = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Beginning Half');
+period_ending_half          = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Ending Half');
+period_beginning_year       = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Beginning Year');
+period_ending_year          = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Ending Year');
+period_prior                = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Prior');
+period_next                 = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Next');
+period_prior_day            = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Prior Day');
+period_next_day             = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Next Day');
+period_prior_week           = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Prior Week');
+period_next_week            = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Next Week');
+period_prior_month          = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Prior Month');
+period_next_month           = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Next Month');
+period_prior_quarter        = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Prior Quarter');
+period_next_quarter         = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Next Quarter');
+period_prior_half           = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Prior Half');
+period_next_half            = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Next Half');
+period_prior_year           = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Prior Year');
+period_next_year            = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Next Year');
+calendar_start_date         = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Start Date');
+calendar_end_date           = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar End Date');
+calendar_day_of_week        = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Day Of Week');
+calendar_day_of_month       = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Day Of Month');
+calendar_day_of_quarter     = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Day Of Quarter');
+calendar_day_of_year        = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Day Of Year');
+calendar_week_of_month      = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Week Of Month');
+calendar_week_of_quarter    = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Week Of Quarter');
+calendar_week_of_year       = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Week Of Year');
+calendar_month_short        = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Month Short');
+calendar_month_long         = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Month Long');
+calendar_month_of_quarter   = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Month Of Quarter');
+calendar_month_of_year      = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Month Of Year');
+calendar_quarter_of_year    = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Quarter Of Year');
+calendar_half_of_year       = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Half Of Year');
+calendar_year               = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Year');
+fiscal_week                 = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Fiscal Week');
+fiscal_month                = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Fiscal Month');
+fiscal_quarter              = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Fiscal Quarter');
+fiscal_half                 = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Fiscal Half');
+fiscal_year                 = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Fiscal Year');
+mfg_week                    = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'MFG Week');
+mfg_month                   = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'MFG Month');
+mfg_quarter                 = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'MFG Quarter');
+mfg_half                    = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'MFG Half');
+mfg_year                    = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'MFG Year');
+tm1_serial                  = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'TM1 Serial');
+first_day_tm1_serial        = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'First Day TM1 Serial');
+last_day_tm1_serial         = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'Last Day TM1 Serial');
+excel_serial                = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'Excel Serial');
+first_day_excel_serial      = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'First Day Excel Serial');
+last_day_excel_serial       = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'Last Day Excel Serial');
+#EndRegion
+
+# --- Don't process records that are lower than the selected granularity
+If( SCAN( 'Day', period_type ) > 0 & nGranularity > GRANULARITY_DAY ); ItemSkip; EndIf;
+If( SCAN( 'Week', period_type ) > 0 & nGranularity > GRANULARITY_WEEK ); ItemSkip; EndIf;
+If( SCAN( 'Month', period_type ) > 0 & nGranularity > GRANULARITY_MONTH ); ItemSkip; EndIf;
+If( SCAN( 'Quarter', period_type ) > 0 & nGranularity > GRANULARITY_QUARTER ); ItemSkip; EndIf;
+If( SCAN( 'Half', period_type ) > 0 & nGranularity > GRANULARITY_HALF ); ItemSkip; EndIf;
+
+# --- Don't process the periods that do not correspond with the period type requested
+If( SCAN( sPeriodType, period_type ) = 0 );
+    ItemSkip;
+EndIf;    
+
+# --- Filter out any years outside of the date range provided.
+sYear = '';
+sYear = If( sPeriodType @= 'Calendar', calendar_year, sYear );
+sYear = If( sPeriodType @= 'Fiscal', fiscal_year, sYear );
+sYear = If( sPeriodType @= 'Manufacturing', mfg_year, sYear );
+If( sYear @< sYearStart % sYear @> sYearEnd );
+    ItemSkip;
+EndIf;
+
+ParentElemID = '';
+ParentCaption = '';
+
+# --- Establish the parent-child relationships
+If( SCAN( 'Day', period_type ) > 0 );  
+
+    # --- At the day level use YYYY-MM-DD for all period types
+    sPeriodElemID = calendar_year | '-' | calendar_month_of_year | '-' | calendar_day_of_month;
+    
+    # --- If a format was provided use it, otherwise use the element ID
+    If( pDayFormat @= '' );
+        sPeriodCaption = sPeriodElemID;
+    Else;
+        sPeriodCaption = EXPAND( sDayFormat );
+    EndIf;
+    
+    If( bIncludeWeek = TRUE );
+        sParentElemID = period_beginning_week;
+        sParentCaption = EXPAND( sWeekFormat );
+    ElseIf( bIncludeMonth = TRUE );
+        sParentElemID = period_beginning_month;
+        sParentCaption = EXPAND( sMonthFormat );
+    ElseIf( bIncludeQuarter = TRUE );
+        sParentElemID = period_beginning_quarter;
+        sParentCaption = EXPAND( sQuarterFormat );
+    ElseIf( bIncludeHalfYear = TRUE );
+        sParentElemID = period_beginning_half;
+        sParentCaption = EXPAND( sHalfFormat );
+    Else;
+        sParentElemID = period_beginning_year;
+        sParentCaption = EXPAND( sYearFormat );
+    EndIf;
+
+ElseIf( SCAN( 'Week', period_type ) > 0 );
+    If( bIncludeWeek = FALSE);  
+        ItemSkip;
+    EndIf;
+
+    # --- If we are at the leaf level then we need to format without
+    # --- the period type and it needs to use calendar date
+    If( SCAN( sGranularity, Lower(period_type) ) > 0 );
+        sPeriodElemID = calendar_year | ' WK' | calendar_week_of_year;
+
+        # --- If a format was provided use it, otherwise use the element ID
+        If( pWeekFormat @= '' );
+            sPeriodCaption = sPeriodElemID;
+        Else;
+            sPeriodCaption = EXPAND( sWeekFormat );
+        EndIf;
+    
+    Else;
+        sPeriodElemID = sPeriod;
+        sPeriodCaption = EXPAND( sWeekFormat );
+    EndIf;
+    
+    If( bIncludeMonth = TRUE );
+        sParentElemID = period_beginning_month;
+        sParentCaption = EXPAND( sMonthFormat );
+    ElseIf( bIncludeQuarter = TRUE );
+        sParentElemID = period_beginning_quarter;
+        sParentCaption = EXPAND( sQuarterFormat );
+    ElseIf( bIncludeHalfYear = TRUE );
+        sParentElemID = period_beginning_half;
+        sParentCaption = EXPAND( sHalfFormat );
+    Else;
+        sParentElemID = period_beginning_year;
+        sParentCaption = EXPAND( sYearFormat );
+    EndIf;
+
+ElseIf( SCAN( 'Month', period_type ) > 0 );
+    If( bIncludeMonth = FALSE );  
+        ItemSkip;
+    EndIf;
+
+    # --- If we are at the leaf level then we need to format without
+    # --- the period type and it needs to use calendar date
+    If( SCAN( sGranularity, Lower(period_type) ) > 0 );
+        sPeriodElemID = calendar_year | '-' | calendar_month_of_year;
+
+        # --- If a format was provided use it, otherwise use the element ID
+        If( pMonthFormat @= '' );
+            sPeriodCaption = sPeriodElemID;
+        Else;
+            sPeriodCaption = EXPAND( sMonthFormat );
+        EndIf;
+    
+    Else;
+        sPeriodElemID = sPeriod;
+        sPeriodCaption = EXPAND( sMonthFormat );
+    EndIf;
+
+    If( bIncludeQuarter = TRUE );
+        sParentElemID = period_beginning_quarter;
+        sParentCaption = EXPAND( sQuarterFormat );
+    ElseIf( bIncludeHalfYear = TRUE );
+        sParentElemID = period_beginning_half;
+        sParentCaption = EXPAND( sHalfFormat );
+    Else;
+        sParentElemID = period_beginning_year;
+        sParentCaption = EXPAND( sYearFormat );
+    EndIf;
+    
+ElseIf( SCAN( 'Quarter', period_type ) > 0 );
+    If( bIncludeQuarter = FALSE );  
+        ItemSkip;
+    EndIf;
+
+    # --- If we are at the leaf level then we need to format without
+    # --- the period type and it needs to use calendar date
+    If( SCAN( sGranularity, Lower(period_type) ) > 0 );
+        sPeriodElemID = calendar_year | ' Q' | calendar_quarter_of_year;
+
+        # --- If a format was provided use it, otherwise use the element ID
+        If( pQuarterFormat @= '' );
+            sPeriodCaption = sPeriodElemID;
+        Else;
+            sPeriodCaption = EXPAND( sQuarterFormat );
+        EndIf;
+    
+    Else;
+        sPeriodElemID = sPeriod;
+        sPeriodCaption = EXPAND( sQuarterFormat );
+    EndIf;
+
+    If( bIncludeHalfYear = TRUE );
+        sParentElemID = period_beginning_half;
+        sParentCaption = EXPAND( sHalfFormat );
+    Else;
+        sParentElemID = period_beginning_year;
+        sParentCaption = EXPAND( sYearFormat );
+    EndIf;
+    
+ElseIf( SCAN( 'Half', period_type ) > 0 );
+    If( bIncludeHalfYear = FALSE );  
+        ItemSkip;
+    EndIf;
+    
+    # --- If we are at the leaf level then we need to format without
+    # --- the period type and it needs to use calendar date
+    If( SCAN( sGranularity, Lower(period_type) ) > 0 );
+        sPeriodElemID = calendar_year | ' H' | calendar_half_of_year;
+
+        # --- If a format was provided use it, otherwise use the element ID
+        If( pHalfFormat @= '' );
+            sPeriodCaption = sPeriodElemID;
+        Else;
+            sPeriodCaption = EXPAND( sHalfFormat );
+        EndIf;
+    
+    Else;
+        sPeriodElemID = sPeriod;
+        sPeriodCaption = EXPAND( sHalfFormat );
+    EndIf;
+
+    sParentElemID = period_beginning_year;
+    sParentCaption = EXPAND( sYearFormat );
+
+ElseIf( SCAN( 'Year', period_type ) > 0 );  
+    sPeriodElemID = sPeriod;
+    sPeriodCaption = EXPAND( sYearFormat );
+
+    sParentElemID = sRootElemID;
+    sParentCaption = sRootElemID;
+
+EndIf;
+
+#EndRegion
+
+
+
+# --- Now build the elements
+If( HierarchyElementExists(sDimension, sHierarchy, sPeriodElemID) = 0 );
+    HierarchyElementInsert( sDimension, sHierarchy, '', sPeriodElemID, 'N' );
+EndIf;
+
+If( HierarchyElementExists(sDimension, sHierarchy, sParentElemID) = 0 );
+    HierarchyElementInsert( sDimension, sHierarchy, '', sParentElemID, 'N' );
+EndIf;
+HierarchyElementComponentAdd( sDimension, sHierarchy, sParentElemID, sPeriodElemID, 1 );
+
+
+
+
+#endregion
+#region Data
+
+
+#Region Metadata & Data Common Code
+
+# --- Period is the unique period and PeriodElemID removes the prefix when
+# --- at the leaf level because the leaf level is shared across all period types
+sPeriod       = inElemID;
+period_type   = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Type');
+
+
+#==============================================================================
+#                            Gather the attributes
+#==============================================================================
+
+#Region Attribute Value
+short_name                  = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Short Name');
+long_name                   = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Long Name');
+period_days                 = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'Period Days');
+period_weeks                = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'Period Weeks');
+period_months               = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'Period Months');
+period_quarters             = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'Period Quarters');
+period_beginning_day        = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Beginning Day');
+period_ending_day           = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Ending Day');
+period_beginning_week       = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Beginning Week');
+period_ending_week          = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Ending Week');
+period_beginning_month      = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Beginning Month');
+period_ending_month         = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Ending Month');
+period_beginning_quarter    = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Beginning Quarter');
+period_ending_quarter       = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Ending Quarter');
+period_beginning_half       = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Beginning Half');
+period_ending_half          = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Ending Half');
+period_beginning_year       = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Beginning Year');
+period_ending_year          = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Ending Year');
+period_prior                = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Prior');
+period_next                 = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Next');
+period_prior_day            = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Prior Day');
+period_next_day             = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Next Day');
+period_prior_week           = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Prior Week');
+period_next_week            = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Next Week');
+period_prior_month          = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Prior Month');
+period_next_month           = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Next Month');
+period_prior_quarter        = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Prior Quarter');
+period_next_quarter         = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Next Quarter');
+period_prior_half           = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Prior Half');
+period_next_half            = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Next Half');
+period_prior_year           = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Prior Year');
+period_next_year            = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Next Year');
+calendar_start_date         = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Start Date');
+calendar_end_date           = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar End Date');
+calendar_day_of_week        = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Day Of Week');
+calendar_day_of_month       = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Day Of Month');
+calendar_day_of_quarter     = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Day Of Quarter');
+calendar_day_of_year        = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Day Of Year');
+calendar_week_of_month      = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Week Of Month');
+calendar_week_of_quarter    = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Week Of Quarter');
+calendar_week_of_year       = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Week Of Year');
+calendar_month_short        = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Month Short');
+calendar_month_long         = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Month Long');
+calendar_month_of_quarter   = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Month Of Quarter');
+calendar_month_of_year      = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Month Of Year');
+calendar_quarter_of_year    = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Quarter Of Year');
+calendar_half_of_year       = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Half Of Year');
+calendar_year               = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Year');
+fiscal_week                 = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Fiscal Week');
+fiscal_month                = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Fiscal Month');
+fiscal_quarter              = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Fiscal Quarter');
+fiscal_half                 = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Fiscal Half');
+fiscal_year                 = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Fiscal Year');
+mfg_week                    = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'MFG Week');
+mfg_month                   = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'MFG Month');
+mfg_quarter                 = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'MFG Quarter');
+mfg_half                    = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'MFG Half');
+mfg_year                    = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'MFG Year');
+tm1_serial                  = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'TM1 Serial');
+first_day_tm1_serial        = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'First Day TM1 Serial');
+last_day_tm1_serial         = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'Last Day TM1 Serial');
+excel_serial                = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'Excel Serial');
+first_day_excel_serial      = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'First Day Excel Serial');
+last_day_excel_serial       = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'Last Day Excel Serial');
+#EndRegion
+
+# --- Don't process records that are lower than the selected granularity
+If( SCAN( 'Day', period_type ) > 0 & nGranularity > GRANULARITY_DAY ); ItemSkip; EndIf;
+If( SCAN( 'Week', period_type ) > 0 & nGranularity > GRANULARITY_WEEK ); ItemSkip; EndIf;
+If( SCAN( 'Month', period_type ) > 0 & nGranularity > GRANULARITY_MONTH ); ItemSkip; EndIf;
+If( SCAN( 'Quarter', period_type ) > 0 & nGranularity > GRANULARITY_QUARTER ); ItemSkip; EndIf;
+If( SCAN( 'Half', period_type ) > 0 & nGranularity > GRANULARITY_HALF ); ItemSkip; EndIf;
+
+# --- Don't process the periods that do not correspond with the period type requested
+If( SCAN( sPeriodType, period_type ) = 0 );
+    ItemSkip;
+EndIf;    
+
+# --- Filter out any years outside of the date range provided.
+sYear = '';
+sYear = If( sPeriodType @= 'Calendar', calendar_year, sYear );
+sYear = If( sPeriodType @= 'Fiscal', fiscal_year, sYear );
+sYear = If( sPeriodType @= 'Manufacturing', mfg_year, sYear );
+If( sYear @< sYearStart % sYear @> sYearEnd );
+    ItemSkip;
+EndIf;
+
+ParentElemID = '';
+ParentCaption = '';
+
+# --- Establish the parent-child relationships
+If( SCAN( 'Day', period_type ) > 0 );  
+
+    # --- At the day level use YYYY-MM-DD for all period types
+    sPeriodElemID = calendar_year | '-' | calendar_month_of_year | '-' | calendar_day_of_month;
+    
+    # --- If a format was provided use it, otherwise use the element ID
+    If( pDayFormat @= '' );
+        sPeriodCaption = sPeriodElemID;
+    Else;
+        sPeriodCaption = EXPAND( sDayFormat );
+    EndIf;
+    
+    If( bIncludeWeek = TRUE );
+        sParentElemID = period_beginning_week;
+        sParentCaption = EXPAND( sWeekFormat );
+    ElseIf( bIncludeMonth = TRUE );
+        sParentElemID = period_beginning_month;
+        sParentCaption = EXPAND( sMonthFormat );
+    ElseIf( bIncludeQuarter = TRUE );
+        sParentElemID = period_beginning_quarter;
+        sParentCaption = EXPAND( sQuarterFormat );
+    ElseIf( bIncludeHalfYear = TRUE );
+        sParentElemID = period_beginning_half;
+        sParentCaption = EXPAND( sHalfFormat );
+    Else;
+        sParentElemID = period_beginning_year;
+        sParentCaption = EXPAND( sYearFormat );
+    EndIf;
+
+ElseIf( SCAN( 'Week', period_type ) > 0 );
+    If( bIncludeWeek = FALSE);  
+        ItemSkip;
+    EndIf;
+
+    # --- If we are at the leaf level then we need to format without
+    # --- the period type and it needs to use calendar date
+    If( SCAN( sGranularity, Lower(period_type) ) > 0 );
+        sPeriodElemID = calendar_year | ' WK' | calendar_week_of_year;
+
+        # --- If a format was provided use it, otherwise use the element ID
+        If( pWeekFormat @= '' );
+            sPeriodCaption = sPeriodElemID;
+        Else;
+            sPeriodCaption = EXPAND( sWeekFormat );
+        EndIf;
+    
+    Else;
+        sPeriodElemID = sPeriod;
+        sPeriodCaption = EXPAND( sWeekFormat );
+    EndIf;
+    
+    If( bIncludeMonth = TRUE );
+        sParentElemID = period_beginning_month;
+        sParentCaption = EXPAND( sMonthFormat );
+    ElseIf( bIncludeQuarter = TRUE );
+        sParentElemID = period_beginning_quarter;
+        sParentCaption = EXPAND( sQuarterFormat );
+    ElseIf( bIncludeHalfYear = TRUE );
+        sParentElemID = period_beginning_half;
+        sParentCaption = EXPAND( sHalfFormat );
+    Else;
+        sParentElemID = period_beginning_year;
+        sParentCaption = EXPAND( sYearFormat );
+    EndIf;
+
+ElseIf( SCAN( 'Month', period_type ) > 0 );
+    If( bIncludeMonth = FALSE );  
+        ItemSkip;
+    EndIf;
+
+    # --- If we are at the leaf level then we need to format without
+    # --- the period type and it needs to use calendar date
+    If( SCAN( sGranularity, Lower(period_type) ) > 0 );
+        sPeriodElemID = calendar_year | '-' | calendar_month_of_year;
+
+        # --- If a format was provided use it, otherwise use the element ID
+        If( pMonthFormat @= '' );
+            sPeriodCaption = sPeriodElemID;
+        Else;
+            sPeriodCaption = EXPAND( sMonthFormat );
+        EndIf;
+    
+    Else;
+        sPeriodElemID = sPeriod;
+        sPeriodCaption = EXPAND( sMonthFormat );
+    EndIf;
+
+    If( bIncludeQuarter = TRUE );
+        sParentElemID = period_beginning_quarter;
+        sParentCaption = EXPAND( sQuarterFormat );
+    ElseIf( bIncludeHalfYear = TRUE );
+        sParentElemID = period_beginning_half;
+        sParentCaption = EXPAND( sHalfFormat );
+    Else;
+        sParentElemID = period_beginning_year;
+        sParentCaption = EXPAND( sYearFormat );
+    EndIf;
+    
+ElseIf( SCAN( 'Quarter', period_type ) > 0 );
+    If( bIncludeQuarter = FALSE );  
+        ItemSkip;
+    EndIf;
+
+    # --- If we are at the leaf level then we need to format without
+    # --- the period type and it needs to use calendar date
+    If( SCAN( sGranularity, Lower(period_type) ) > 0 );
+        sPeriodElemID = calendar_year | ' Q' | calendar_quarter_of_year;
+
+        # --- If a format was provided use it, otherwise use the element ID
+        If( pQuarterFormat @= '' );
+            sPeriodCaption = sPeriodElemID;
+        Else;
+            sPeriodCaption = EXPAND( sQuarterFormat );
+        EndIf;
+    
+    Else;
+        sPeriodElemID = sPeriod;
+        sPeriodCaption = EXPAND( sQuarterFormat );
+    EndIf;
+
+    If( bIncludeHalfYear = TRUE );
+        sParentElemID = period_beginning_half;
+        sParentCaption = EXPAND( sHalfFormat );
+    Else;
+        sParentElemID = period_beginning_year;
+        sParentCaption = EXPAND( sYearFormat );
+    EndIf;
+    
+ElseIf( SCAN( 'Half', period_type ) > 0 );
+    If( bIncludeHalfYear = FALSE );  
+        ItemSkip;
+    EndIf;
+    
+    # --- If we are at the leaf level then we need to format without
+    # --- the period type and it needs to use calendar date
+    If( SCAN( sGranularity, Lower(period_type) ) > 0 );
+        sPeriodElemID = calendar_year | ' H' | calendar_half_of_year;
+
+        # --- If a format was provided use it, otherwise use the element ID
+        If( pHalfFormat @= '' );
+            sPeriodCaption = sPeriodElemID;
+        Else;
+            sPeriodCaption = EXPAND( sHalfFormat );
+        EndIf;
+    
+    Else;
+        sPeriodElemID = sPeriod;
+        sPeriodCaption = EXPAND( sHalfFormat );
+    EndIf;
+
+    sParentElemID = period_beginning_year;
+    sParentCaption = EXPAND( sYearFormat );
+
+ElseIf( SCAN( 'Year', period_type ) > 0 );  
+    sPeriodElemID = sPeriod;
+    sPeriodCaption = EXPAND( sYearFormat );
+
+    sParentElemID = sRootElemID;
+    sParentCaption = sRootElemID;
+
+EndIf;
+
+#EndRegion
+
+
+ElementAttrPutS( sPeriodCaption, sDimension, sHierarchy, sPeriodElemID, 'Caption' );
+ElementAttrPutS( sPeriod, sDimension, sHierarchy, sPeriodElemID, 'XRef' );
+
+
+#endregion

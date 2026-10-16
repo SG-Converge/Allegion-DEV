@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"HFM Staging Measure",
+	"Hierarchies@Code.links":
+	[
+		"HFM Staging Measure.hierarchies/HFM Staging Measure.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('HFM Staging Measure')/Hierarchies('HFM Staging Measure')"
+	}
+}

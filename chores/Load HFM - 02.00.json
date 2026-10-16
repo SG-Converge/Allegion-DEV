@@ -1,0 +1,140 @@
+{
+	"@type":"Chore",
+	"Name":"Load HFM - 02.00",
+	"StartTime":"2026-04-06T06:00Z",
+	"DSTSensitive":false,
+	"Active":false,
+	"ExecutionMode":"SingleCommit",
+	"Frequency":"P1DT00H00M00S",
+	"Tasks":
+	[
+		{
+			"Step":0,
+			"Parameters":[],
+			"Process":
+			{
+				"@id":"Processes('fin.process.Load All FX Rates')"
+			}
+		},
+		{
+			"Step":1,
+			"Parameters":[],
+			"Process":
+			{
+				"@id":"Processes('fin.process.Load All HFM Staging')"
+			}
+		},
+		{
+			"Step":2,
+			"Parameters":
+			[
+				{
+					"Name":"pPeriod",
+					"Value":"2026"
+				}
+			],
+			"Process":
+			{
+				"@id":"Processes('fin.cube.Update Actuals from HFM')"
+			}
+		},
+		{
+			"Step":3,
+			"Parameters":
+			[
+				{
+					"Name":"pConstantCurrency",
+					"Value":""
+				}
+			],
+			"Process":
+			{
+				"@id":"Processes('fin.process.Load All Constant Currencies')"
+			}
+		},
+		{
+			"Step":4,
+			"Parameters":
+			[
+				{
+					"Name":"pConstantCurrency",
+					"Value":""
+				}
+			],
+			"Process":
+			{
+				"@id":"Processes('fin.process.Load All Constant Currencies')"
+			}
+		},
+		{
+			"Step":5,
+			"Parameters":
+			[
+				{
+					"Name":"pConstantCurrency",
+					"Value":""
+				}
+			],
+			"Process":
+			{
+				"@id":"Processes('fin.process.Load All Constant Currencies')"
+			}
+		},
+		{
+			"Step":6,
+			"Parameters":
+			[
+				{
+					"Name":"pConstantCurrency",
+					"Value":""
+				}
+			],
+			"Process":
+			{
+				"@id":"Processes('fin.process.Load All Constant Currencies')"
+			}
+		},
+		{
+			"Step":7,
+			"Parameters":
+			[
+				{
+					"Name":"pConstantCurrency",
+					"Value":""
+				}
+			],
+			"Process":
+			{
+				"@id":"Processes('fin.process.Load All Constant Currencies')"
+			}
+		},
+		{
+			"Step":8,
+			"Parameters":
+			[
+				{
+					"Name":"pConstantCurrency",
+					"Value":""
+				}
+			],
+			"Process":
+			{
+				"@id":"Processes('fin.process.Load All Constant Currencies')"
+			}
+		},
+		{
+			"Step":9,
+			"Parameters":
+			[
+				{
+					"Name":"pConstantCurrency",
+					"Value":""
+				}
+			],
+			"Process":
+			{
+				"@id":"Processes('fin.process.Load All Constant Currencies')"
+			}
+		}
+	]
+}

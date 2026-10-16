@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"Current + Prior Months",
+	"Alias":"Caption",
+	"Expression":"{DISTINCT({DESCENDANTS(TM1SubsetToSet([Period] , \"Current Year\") , 99 , LEAVES),DESCENDANTS(TM1SubsetToSet([Period] , \"Prior Year\") , 99 , LEAVES)})}"
+}

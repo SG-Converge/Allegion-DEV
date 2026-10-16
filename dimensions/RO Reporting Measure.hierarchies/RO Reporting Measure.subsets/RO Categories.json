@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"RO Categories",
+	"Alias":"MEMBER_NAME",
+	"Expression":"{ORDER([RO Reporting Measure].[RO Reporting Measure].[Activity Walkthrough].CHILDREN , [RO Reporting Measure].[RO Reporting Measure].CURRENTMEMBER.PROPERTIES(\"MEMBER_NAME\") , BASC)}"
+}

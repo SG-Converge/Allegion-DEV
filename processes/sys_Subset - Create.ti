@@ -1,0 +1,308 @@
+#region Prolog
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#==============================================================================
+#                             sys_Subset - Create
+#
+#  This process will create a subset in a dimension using an expression for
+#  the members to include.   
+#
+#  If the dimension is provided as part of the expression, the dimension name
+#  parameter will be ignored.
+#
+#  The following cube expression formats are supported:
+#
+#       FORMAT                      EXAMPLE
+#       member                      Financials
+#       member;member               Balance Sheet;Cash Flow;Labor
+#       {expr}                      Level:0
+#       [dim]{expr}                 [Custom Cubes Dim]!Version Copy Cubes
+#
+#  The following list of expression types are supported.   
+#
+#   *       = All elements in the dimension
+#   {       = Item is the name of an existing subset
+#   !       = Drill down to the leaves of the specified element
+#   #       = Only elements at level # are included in subset (i.e. #0 for Level 0)
+#   &       = Use the supplied MDX to create the subset
+#   Subset: = Item is the name of an existing subset
+#   Drill:  = Drill down to the leaves of the specified element
+#   Level:  = Only elements at specified level # are included in subset
+#   MDX:    = Use the supplied MDX to create the subset
+#
+#  CALLS:
+#       None
+#
+#    Date      WHO  Description
+#  ----------  ---  -----------------------------------------------------------
+#  2023-08-08  SWG  Created.
+#
+#==============================================================================
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = TM1User();
+sProcessName = GetProcessName();
+sTimeStamp = TIMST( NOW, '\Y-\m-\d(\h\i\s)' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+sDataPath = './';
+sLogPath = '../Logs/';
+sLogFile = sLogPath | sUniqueName | '.log';
+
+# --- Dimensions
+sCubesDimName = '}Cubes';
+
+# --- Values
+FALSE = 0;
+TRUE = 1;
+bDebug = FALSE;
+nErrorCount = 0;
+
+#==============================================================================
+#                        PARAMETER VALIDATION SECTION
+#==============================================================================
+
+# --- Normalize the parameters
+sDimName = pDimName;
+bUseTemporaryObjects = If( pUseTemporaryObjects = 0, FALSE, TRUE );
+bErrorOnEmptySubset  = If( pErrorOnEmptySubset = 0, FALSE, TRUE );
+bParallelMode        = If( pParallelMode = 0, FALSE, TRUE );
+
+#------------------------------------------------------------------------------
+#                       Validate Member Expression
+#------------------------------------------------------------------------------
+
+# --- Check to see if the member expression parameter has a different dimension 
+# --- to use than the one provided as a parameter.   If so, use it and ignore
+# --- the pDimName parameter.
+If( SUBST( pMemberExpr, 1, 1 ) @= '[' );
+    sEndPos = SCAN( ']', pMemberExpr );
+    sDimName = SUBST( pMemberExpr, 2, sEndPos - 2 );
+    sExpression = SUBST( pMemberExpr, sEndPos + 1, 255 );
+Else;
+    sExpression = pMemberExpr;
+EndIf;
+
+
+#------------------------------------------------------------------------------
+#                   Validate Dimension Name
+#------------------------------------------------------------------------------
+
+# --- Validate the dimension exists
+If( DimensionExists( sDimName ) = FALSE & bParallelMode = FALSE );
+    sMessage = Expand( 'Specified dimension [%sDimName%] does not exist');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = TRUE ); TextOutput( sLogFile, sMessage ); EndIf;
+    nErrorCount = nErrorCount + 1;
+EndIf;
+sHierName = If( pHierName @= '', sDimName, pHierName );
+
+#------------------------------------------------------------------------------
+#                   Validate Hierarchy Name
+#------------------------------------------------------------------------------
+
+# --- Blank hierarchy is ok, it will just use the default (dimension) hierarchy
+sHierName = If( pHierName @= '', sDimName, pHierName );
+
+# --- Validate the hierarchy exists
+If( HierarchyExists( sDimName, sHierName ) = FALSE );
+    sMessage = Expand( 'Specified hierarchy [%sHierName%] in dimension [%sDimName%] does not exist');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = TRUE ); TextOutput( sLogFile, sMessage ); EndIf;
+    nErrorCount = nErrorCount + 1;
+EndIf;
+
+#------------------------------------------------------------------------------
+#                   Validate Subset Name
+#------------------------------------------------------------------------------
+
+# --- Validate the subset does not exist
+sSubsetName = pSubsetName;
+If( SubsetExists( sDimName, sSubsetName ) = TRUE );
+    sMessage = Expand( 'Specified subset [%sSubsetName%] in dimension [%sDimName%] already exists');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = TRUE ); TextOutput( sLogFile, sMessage ); EndIf;
+    nErrorCount = nErrorCount + 1;
+EndIf;
+
+
+#------------------------------------------------------------------------------
+#                       Report validation errors
+#------------------------------------------------------------------------------
+If( nErrorCount > 0 );
+    sMessage = Expand( NumberToString(nErrorCount) | ' validation error(s) occured.  Check logs for detail');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = TRUE ); TextOutput( sLogFile, sMessage ); EndIf;
+    ProcessError;
+EndIf;
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+
+#------------------------------------------------------------------------------
+#                       Process the Member Expression
+#------------------------------------------------------------------------------
+
+# --- Start with a clean MDX
+sMDX = '';
+sFirstChar = SUBST( sExpression, 1, 1 );
+sPrefix = '';
+If( SCAN(':', sExpression) > 0 );
+    sPrefix = SUBST( sExpression, 1, SCAN(':', sExpression ) );
+EndIf;
+
+If( bDebug = TRUE);
+    TextOutput( sLogFile, Expand( 'Prefix: [%sPrefix%] Expression:%sExpression%' ) );
+EndIf;
+
+#------------------------------------------------------------------------------
+#                              SUBSET EXPRESSION
+#------------------------------------------------------------------------------
+
+# --- If the element is a subset, then it is to be a copy of an existing
+# --- subset, so just incorporate it.
+If( sFirstChar @= '{' );
+
+    # --- Get the subset name
+    sSubsetName = SUBST( sExpression, 2, LONG(sExpression) );
+    sMDX = 'TM1SubsetToSet( [' | sDimName | '].[' | sHierName | '], "' | sSubsetName | '" )';
+
+# --- If the element is a subset, then add the copy the subset into the
+# --- new subset expression.
+ElseIf( sPrefix @= 'Subset:' );
+    
+    # --- Get the subset name
+    sSubsetName = SUBST( sExpression, LONG(sPrefix) + 1, LONG(sExpression) );
+    sMDX = 'TM1SubsetToSet( [' | sDimName | '].[' | sHierName | '], "' | sSubsetName | '" )';
+
+
+#--------------------------------------------------------------------------
+#                       DRILL EXPRESSION
+#--------------------------------------------------------------------------
+
+# --- If the element to be drilled on, set up the drill MDX
+ElseIf( sFirstChar @= '!' );
+    sDrill = SUBST( sExpression, 2, LONG(sExpression) );
+    sMDX = 'TM1FilterByLevel( TM1DrillDownMember( { [' | sDimName | '].[' | sHierName | '].[' | sDrill | '] }, ALL, RECURSIVE ), 0 )';
+
+# --- If the element to be drilled on, set up the drill MDX
+ElseIf( sPrefix @= 'Drill:' );
+    sDrill = SUBST( sExpression, LONG(sPrefix) + 1, LONG(sExpression) );
+    sMDX = 'TM1FilterByLevel( TM1DrillDownMember( { [' | sDimName | '].[' | sHierName | '].[' | sDrill | '] }, ALL, RECURSIVE ), 0 )';
+
+
+#--------------------------------------------------------------------------
+#                       WILDCARD EXPRESSION
+#--------------------------------------------------------------------------
+
+ElseIf( sFirstChar @= '*' );
+    sMDX = 'TM1SubsetAll( [' | sDimName | '].[' | sHierName | '] )';
+
+
+#--------------------------------------------------------------------------
+#                       LEVEL EXPRESSION
+#--------------------------------------------------------------------------
+
+ElseIf( sFirstChar @= '#' );
+    sLevel = SUBST( sExpression, 2, LONG(sExpression) );
+    sMDX = 'TM1FilterByLevel( { TM1SubsetAll ( [' | sDimName | '].[' | sHierName | '] ) }, ' | sLevel | ' )';
+
+ElseIf( sPrefix @= 'Level:' );
+    sLevel = SUBST( sExpression, LONG(sPrefix) + 1, LONG(sExpression) );
+    sMDX = 'TM1FilterByLevel( { TM1SubsetAll ( [' | sDimName | '].[' | sHierName | '] ) }, ' | sLevel | ' )';
+
+
+
+#--------------------------------------------------------------------------
+#                       MDX EXPRESSION
+#--------------------------------------------------------------------------
+
+ElseIf( sFirstChar @= '&' );
+    sMDX = SUBST( sExpression, 2, LONG(sExpression) );
+
+ElseIf( sPrefix @= 'MDX:' );
+    sMDX = SUBST( sExpression, LONG(sPrefix) + 1, LONG(sExpression) );
+
+
+#--------------------------------------------------------------------------
+#                       MEMBER / MEMBER LIST
+#--------------------------------------------------------------------------
+ElseIf( LONG( sExpression ) <> 0 );
+
+        # --- Prepare to build the MDX expression
+        sMDX = '';
+        sList = TRIM( sExpression );
+
+        # --- Put a separator at the end if there isn't one already
+        If( SUBST( sList, LONG( sList ), 1 ) @<> ';' ); sList = sList | ';'; EndIf;
+
+        # --- Loop through all the items in the list
+        nSepPos = SCAN( ';', sList );
+        While( nSepPos > 0 );
+
+            # --- Extract the member name
+            sMember = SUBST( sList, 1, nSepPos - 1 );
+            sList = SUBST( sList, nSepPos + 1, 255 );
+
+            # --- Build the MDX
+            sMDX = sMDX | '[' | sDimName | '].[' | sHierName | '].[' | sMember | '],';
+
+            # --- See if there are more members in the list
+            nSepPos = SCAN( ';', sList );
+            
+        End;
+
+        # --- Remove trailing comma and enclose in braces
+        sMDX = '{' | SUBST( sMDX, 1, LONG( sMDX ) - 1 ) | '}';
+
+EndIf;
+
+#--------------------------------------------------------------------------
+#                           CREATE THE SUBSET
+#--------------------------------------------------------------------------
+
+If( bDebug = TRUE);
+    TextOutput( sLogFile, Expand( 'Expression generated for dimension [%sDimName%].[%sHierName%].   MDX:%sMDX%' ) );
+EndIf;
+
+# --- Create the subset then assign the MDX to avoid error when MDX 
+# --- evaluates to an empty set.  We can check that (optionally) later.
+SubsetCreate( sDimName, sSubsetName, bUseTemporaryObjects );
+SubsetMDXSet( sDimName, sSubsetName, sMDX );
+
+# --- If Error on Empty Subset is requested, check to see how many
+# --- elements are in each.  If any are zero, then stop processing.
+If( bErrorOnEmptySubset = TRUE );
+    nMemberCount = SubsetGetSize( sDimName, sSubsetName );
+    If( nMemberCount = 0 );
+        sMessage = Expand( 'Empty subset encountered for dimension [%sDimName%].[%sHierName%].   MDX:%sMDX%');
+        LogOutput( 'ERROR', sMessage );
+        If( bDebug = TRUE ); TextOutput( sLogFile, sMessage ); EndIf;
+        nErrorCount = nErrorCount + 1;
+    EndIf;
+EndIf;
+
+# --- If there were errors with the subsets, then issue an error
+If( nErrorCount > 0 );
+    ProcessError;
+EndIf;
+#endregion
+#region Metadata
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion

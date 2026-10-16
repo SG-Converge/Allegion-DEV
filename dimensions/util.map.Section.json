@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"util.map.Section",
+	"Hierarchies@Code.links":
+	[
+		"util.map.Section.hierarchies/util.map.Section.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('util.map.Section')/Hierarchies('util.map.Section')"
+	}
+}

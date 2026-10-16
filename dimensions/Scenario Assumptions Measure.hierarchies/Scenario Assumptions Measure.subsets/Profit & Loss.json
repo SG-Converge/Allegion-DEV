@@ -1,0 +1,23 @@
+{
+	"@type":"Subset",
+	"Name":"Profit & Loss",
+	"Alias":"MEMBER_NAME",
+	"Elements":
+	[
+		{
+			"@id":"Dimensions('Scenario Assumptions Measure')/Hierarchies('Scenario Assumptions Measure')/Elements('CC - Data - PL Year')"
+		},
+		{
+			"@id":"Dimensions('Scenario Assumptions Measure')/Hierarchies('Scenario Assumptions Measure')/Elements('CC - Data - PL Scenario')"
+		},
+		{
+			"@id":"Dimensions('Scenario Assumptions Measure')/Hierarchies('Scenario Assumptions Measure')/Elements('CC - Data - PL Rate')"
+		},
+		{
+			"@id":"Dimensions('Scenario Assumptions Measure')/Hierarchies('Scenario Assumptions Measure')/Elements('CC - FX - PL Year')"
+		},
+		{
+			"@id":"Dimensions('Scenario Assumptions Measure')/Hierarchies('Scenario Assumptions Measure')/Elements('CC - FX - PL Scenario')"
+		}
+	]
+}

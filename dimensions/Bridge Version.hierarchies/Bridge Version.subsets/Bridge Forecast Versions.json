@@ -1,0 +1,17 @@
+{
+	"@type":"Subset",
+	"Name":"Bridge Forecast Versions",
+	"Alias":"MEMBER_NAME",
+	"Elements":
+	[
+		{
+			"@id":"Dimensions('Bridge Version')/Hierarchies('Bridge Version')/Elements('BRIDGE_FCST02_10_VPY')"
+		},
+		{
+			"@id":"Dimensions('Bridge Version')/Hierarchies('Bridge Version')/Elements('BRIDGE_FCST05_07_VPY')"
+		},
+		{
+			"@id":"Dimensions('Bridge Version')/Hierarchies('Bridge Version')/Elements('BRIDGE_FCST08_04_VPY')"
+		}
+	]
+}

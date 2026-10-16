@@ -1,0 +1,119 @@
+#region Prolog
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#==============================================================================
+#                             sys_View - Delete
+#
+#  This process will remove a view.  If there are any subsets attached to the
+#  view which have the same name as the view, they will also be deleted.
+#
+#  CALLS:
+#       None.
+#
+#    Date       WHO   Description
+#  ----------  -----  ----------------------------------------------------------
+#  2006-04-27  SWG    Created
+#  2016-10-01  NDD    Master copy
+#  2023-07-26  SWG    Script library refresh        
+#
+#==============================================================================
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = TM1User();
+sProcessName = GetProcessName();
+sTimeStamp = TIMST( NOW, '\Y-\m-\d(\h\i\s)' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+sLogPath = './Logs/Processes/';
+sLogFile = sLogPath | sUniqueName | '.log';
+
+# --- Values
+bDebug = 0;
+nErrorCount = 0;
+
+#==============================================================================
+#                        PARAMETER VALIDATION SECTION
+#==============================================================================
+
+# --- Copy the parameters to internal values
+sCubeName = pCubeName;
+sViewName = pViewName;
+sSubsetName = sViewName;
+sSemaphoreFilename = pSemaphoreFilename;
+
+#------------------------------------------------------------------------------
+#                       Validate Cube Name
+#------------------------------------------------------------------------------
+
+# --- Validate the cube exists
+If( CubeExists( sCubeName ) = 0 );
+    sMessage = Expand( 'Specified cube [%sCubeName%] does not exist.');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    nErrorCount = nErrorCount + 1;
+EndIf;
+
+#------------------------------------------------------------------------------
+#                       Report validation errors
+#------------------------------------------------------------------------------
+If( nErrorCount > 0 );
+    sMessage = Expand( NumberToString(nErrorCount) | ' validation error(s) occured.  Check logs for detail.');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    ProcessError;
+EndIf;
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+#------------------------------------------------------------------------------
+# First remove the view if it exists.
+#------------------------------------------------------------------------------
+If( ViewExists( sCubeName, sViewName ) = 1 );
+    ViewDestroy( sCubeName, sViewName );
+EndIf;
+
+#------------------------------------------------------------------------------
+# Next, go through all the dimensions in the cube and see if there are any
+# subsets with the same name as the view.  If so, delete them.
+#------------------------------------------------------------------------------
+nDimCount = CubeDimensionCountGet( sCubeName );
+nDimIndex = 0;
+While( nDimIndex < nDimCount );
+    nDimIndex = nDimIndex + 1;
+    sDimName = TABDIM( sCubeName, nDimIndex );
+
+    #--------------------------------------------------------------------------
+    # If a subset is the same name as the view then delete it.
+    #--------------------------------------------------------------------------
+    If( SubsetExists( sDimName, sSubsetName ) = 1 );
+        SubsetDestroy( sDimName, sSubsetName );
+    EndIf;
+
+End;
+#endregion
+#region Metadata
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Epilog
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+# --- If multi-threading control is needed, then create the semaphore file
+# --- that must be tracked by the parent process.
+If( sSemaphoreFilename @<> '' );
+    TextOutput( sSemaphoreFilename, TIMST( NOW, '\Y-\m-\d \h:\i:\s' ) );
+EndIf;
+#endregion

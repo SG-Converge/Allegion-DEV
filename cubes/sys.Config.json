@@ -1,0 +1,14 @@
+{
+	"@type":"Cube",
+	"Name":"sys.Config",
+	"Dimensions":
+	[
+		{
+			"@id":"Dimensions('sys.Config')"
+		},
+		{
+			"@id":"Dimensions('sys.Config Measure')"
+		}
+	],
+	"Views@Code.links":[]
+}

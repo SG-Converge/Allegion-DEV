@@ -1,0 +1,47 @@
+{
+	"@type":"Subset",
+	"Name":"Metric OP CF",
+	"Alias":"MEMBER_NAME",
+	"Elements":
+	[
+		{
+			"@id":"Dimensions('BS Account')/Hierarchies('BS Account')/Elements('METRIC_OP_CASHFLOW')"
+		},
+		{
+			"@id":"Dimensions('BS Account')/Hierarchies('BS Account')/Elements('METRIC_OP_CASHFLOW_ADJ')"
+		},
+		{
+			"@id":"Dimensions('BS Account')/Hierarchies('BS Account')/Elements('STAT_OPINCOME')"
+		},
+		{
+			"@id":"Dimensions('BS Account')/Hierarchies('BS Account')/Elements('STAT_OPINCOME_ADJ')"
+		},
+		{
+			"@id":"Dimensions('BS Account')/Hierarchies('BS Account')/Elements('175000_ADD')"
+		},
+		{
+			"@id":"Dimensions('BS Account')/Hierarchies('BS Account')/Elements('175000_ADJ')"
+		},
+		{
+			"@id":"Dimensions('BS Account')/Hierarchies('BS Account')/Elements('181000_ADD')"
+		},
+		{
+			"@id":"Dimensions('BS Account')/Hierarchies('BS Account')/Elements('CAPEX')"
+		},
+		{
+			"@id":"Dimensions('BS Account')/Hierarchies('BS Account')/Elements('CAPEX_SW')"
+		},
+		{
+			"@id":"Dimensions('BS Account')/Hierarchies('BS Account')/Elements('641120_STAT')"
+		},
+		{
+			"@id":"Dimensions('BS Account')/Hierarchies('BS Account')/Elements('641130_STAT')"
+		},
+		{
+			"@id":"Dimensions('BS Account')/Hierarchies('BS Account')/Elements('WORKING_CAPITAL')"
+		},
+		{
+			"@id":"Dimensions('BS Account')/Hierarchies('BS Account')/Elements('WORKING_CAPITAL')"
+		}
+	]
+}

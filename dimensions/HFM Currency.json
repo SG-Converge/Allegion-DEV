@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"HFM Currency",
+	"Hierarchies@Code.links":
+	[
+		"HFM Currency.hierarchies/HFM Currency.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('HFM Currency')/Hierarchies('HFM Currency')"
+	}
+}

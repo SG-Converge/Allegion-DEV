@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"HFM Scenario",
+	"Hierarchies@Code.links":
+	[
+		"HFM Scenario.hierarchies/HFM Scenario.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('HFM Scenario')/Hierarchies('HFM Scenario')"
+	}
+}

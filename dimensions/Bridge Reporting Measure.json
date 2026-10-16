@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"Bridge Reporting Measure",
+	"Hierarchies@Code.links":
+	[
+		"Bridge Reporting Measure.hierarchies/Bridge Reporting Measure.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('Bridge Reporting Measure')/Hierarchies('Bridge Reporting Measure')"
+	}
+}

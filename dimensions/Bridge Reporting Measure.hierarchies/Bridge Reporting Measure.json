@@ -1,0 +1,49 @@
+{
+	"@type":"Hierarchy",
+	"Name":"Bridge Reporting Measure",
+	"Elements":
+	[
+		{
+			"Name":"S_OPS_Revenues",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"OI",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"S_OPS_COGS",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"S_OPS_SGA",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Comment",
+			"Type":"String"
+		}
+	],
+	"Edges":
+	[
+		{
+			"ParentName":"OI",
+			"ComponentName":"S_OPS_Revenues",
+			"Weight":1
+		},
+		{
+			"ParentName":"OI",
+			"ComponentName":"S_OPS_COGS",
+			"Weight":-1
+		},
+		{
+			"ParentName":"OI",
+			"ComponentName":"S_OPS_SGA",
+			"Weight":-1
+		}
+	],
+	"Subsets@Code.links":
+	[
+		"Bridge Reporting Measure.subsets/Default.json"
+	]
+}

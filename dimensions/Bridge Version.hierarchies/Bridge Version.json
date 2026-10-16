@@ -1,0 +1,66 @@
+{
+	"@type":"Hierarchy",
+	"Name":"Bridge Version",
+	"Elements":
+	[
+		{
+			"Name":"BRIDGE_ACTCY_VPY",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"BRIDGE_WRK_FCST_VPY",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"BRIDGE_WRK_AOP_VPY",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"BRIDGE_AOPCY_VPY",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"BRIDGE_FCST02_10_VPY",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"BRIDGE_FCST05_07_VPY",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"BRIDGE_FCST08_04_VPY",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"BRIDGE_ACTCY_VWFCST",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"BRIDGE_ACTCY_VWAOP",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"BRIDGE_ACTCY_VAOP",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"BRIDGE_ACTCY_VCF",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"BRIDGE_FCSTCY_VAOP",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"BRIDGE_FCSTCY_VPF",
+			"Type":"Numeric"
+		}
+	],
+	"Subsets@Code.links":
+	[
+		"Bridge Version.subsets/Bridge AOP Versions.json",
+		"Bridge Version.subsets/Bridge Forecast Versions.json",
+		"Bridge Version.subsets/Bridge Version.json",
+		"Bridge Version.subsets/Loadable Bridge Version.json"
+	]
+}

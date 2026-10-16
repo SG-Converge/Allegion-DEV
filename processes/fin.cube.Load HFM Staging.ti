@@ -1,0 +1,378 @@
+#region Prolog
+
+#==============================================================================
+#                               Load HFM Staging
+#
+#  This script will load in the actual data from HFM system into a staging 
+#  cube to be mapped and processed for loading into the P&L and BS cubes 
+#  used in planning and reporting. 
+#
+#  This script will create new dimension members whenever necessary in order
+#  to load all of the data in the file.   These new members will need to be
+#  mapped into the planning system versions before accurate reporting can
+#  occur.
+#
+#      Date    WHO  Description
+#  ----------  ---  -----------------------------------------------------------
+#  2026/04/01  SWG  Created.
+#
+#==============================================================================
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = ATTRS( '}Clients', TM1User(), '}TM1_DefaultDisplayValue' );
+sProcessName = GetProcessName();
+sDateStamp = TIMST( NOW, '\Y-\m-\d' );
+sTimeStamp = TIMST( NOW, '\Y-\m-\d \h.\i.\s' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+# --- Static Values
+ERROR  = 1; WARN   = 2; STATS  = 3;
+INFO   = 4; DEBUG  = 5; TRACE  = 6;
+TRUE   = 1; FALSE  = 0;
+LF     = CHAR(10);
+EXCEL_ADJUSTMENT = 21916;
+
+# --- Setup processing information
+bUseTemporaryObjects = TRUE;
+
+# --- Cubes
+sConfigCube    = 'sys.Config';
+sStatsCube     = 'sys.Process Stats';
+sStagingCube   = 'HFM Staging';
+
+# --- Dimensions
+sScenarioDim   = 'HFM Scenario';
+sPeriodDim     = 'Period';
+sFileDim       = 'HFM Load File';
+sCurrencyDim   = 'HFM Currency';
+sEntityDim     = 'HFM Entity';
+sProductDim    = 'HFM Product';
+sFunctionDim   = 'HFM Function';
+sAccountDim    = 'HFM Account';
+sPeriodXRefDim = 'Period XRef';
+
+# --- Members
+sFileRoot    = 'All Files';
+sEntityRoot    = 'All Entities';
+sProductRoot   = 'All Products';
+sFunctionRoot  = 'All Functions';
+sAccountRoot   = 'All Accounts';
+
+# --- Data values
+sHFMDir = CellGetS( sConfigCube, 'HFM Mapped Directory', 'String' );
+
+#==============================================================================
+#                               LOGGING SECTION
+#==============================================================================
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Started At' );
+CellPutS( sUser, sStatsCube, sProcessName, 'Executed By' );
+
+# --- Setup Logging
+nLogLevel = CellGetN( sStatsCube, sProcessName, 'Logging Level' );
+sLogDir = CellGetS( sConfigCube, 'Log Directory', 'String' );
+sLogFile = sLogDir | sProcessName | '.log';
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log startup
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Started');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+# --- Report how the script was executed 
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand( '%LF%
+        ============================================================================ %LF%
+                        %sProcessName%                                               %LF%
+        ============================================================================ %LF%
+        Executed by [%sUser%]                                                        %LF%
+              pFilename   = [%pFilename%]                                            %LF%
+              pPeriod     = [%pPeriod%]                                              %LF%
+        ============================================================================ %LF%
+    ');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+#==============================================================================
+#                        PARAMETER VALIDATION SECTION
+#==============================================================================
+
+# --- Validate input filename
+sFilename = pFilename;
+sInputFile = sHFMDir | sFilename;
+If( FileExists( sInputFile ) = FALSE );
+    sMsgLevel = 'ERROR';
+    sMessage = Expand( 'Specified file [%sFilename%] does not exist or cannot be accessed in [%sHFMDir%]');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+    ProcessError();
+EndIf;
+
+# --- Validate period to clear
+sClearPeriod = pPeriod;
+If( sClearPeriod @<> '' );
+    If( DimensionElementExists( sPeriodDim, sClearPeriod ) = FALSE );
+        sMsgLevel = 'ERROR';
+        sMessage = Expand( 'Specified period to clear [%sClearPeriod%] does not exist in dimension [%sPeriodDim%]');
+        ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+        ProcessError();
+    EndIf;
+EndIf;
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+# --- Setup destination
+sCubeName = sStagingCube;
+
+# --- If the period to clear parameter was specified, then clear out that
+# --- period from the cube, if not just load the data.   This is to allow for
+# --- partial and incremental loads.
+If( sClearPeriod @<> '' );
+    sViewMDX = Expand( '%LF%
+        WITH %LF%
+            SET ScenarioSet   as { TM1FilterByLevel( TM1SubsetAll( [HFM Scenario] ), 0 ) } %LF%
+            SET PeriodSet     as { DISTINCT(DESCENDANTS([Period].[Period].[%sClearPeriod%] , 99 , LEAVES)) } %LF%
+            SET FileSet       as { [HFM Load File].[HFM Load File].[%sFilename%] } %LF%
+            SET CurrencySet   as { TM1FilterByLevel( TM1SubsetAll( [HFM Currency] ), 0 ) } %LF%
+            SET EntitySet     as { TM1FilterByLevel( TM1SubsetAll( [HFM Entity] ), 0 ) } %LF%
+            SET ProductSet    as { TM1FilterByLevel( TM1SubsetAll( [HFM Product] ), 0 ) } %LF%
+            SET FunctionSet   as { TM1FilterByLevel( TM1SubsetAll( [HFM Function] ), 0 ) } %LF%
+            SET AccountSet    as { TM1FilterByLevel( TM1SubsetAll( [HFM Account] ), 0 ) } %LF%
+            SET MeasureSet    as { TM1FilterByLevel( TM1SubsetAll( [HFM Staging Measure] ), 0 ) } %LF%
+    
+        SELECT %LF%
+            MeasureSet ON 0, %LF%
+            NON EMPTY ScenarioSet * PeriodSet * FileSet * CurrencySet * EntitySet * ProductSet * FunctionSet * AccountSet ON 1 %LF%
+    
+        FROM [%sCubeName%] %LF%
+    ' );
+    
+    sViewName = sTempName | ' - Clear ';
+    If( nLogLevel >= DEBUG );
+        sMsgLevel = 'DEBUG';
+        sMessage = Expand('Destination view: %sViewMDX%');
+        ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+    EndIf;
+    ViewCreateByMDX( sCubeName, sViewName, sViewMDX, bUseTemporaryObjects );
+    ViewZeroOut( sCubeName, sViewName );
+EndIf;
+
+
+#==============================================================================
+#                        DATAFILE SECTION
+#==============================================================================
+DatasourceNameForServer = sInputFile;
+#endregion
+#region Metadata
+
+
+# ----------------------------------------------------
+# Handle incoming record
+# ----------------------------------------------------
+sScenario  = inScenario;
+sPeriod    = inPeriod;
+sCurrency  = inCurrency;
+sEntity    = inEntity;
+sProduct   = inProduct;
+sFunction  = inFunction;
+sAccount   = inAccount;
+nValue     = inValue;
+
+
+# ----------------------------------------------------
+# Scenario
+# ----------------------------------------------------
+sDimName = sScenarioDim;
+sElemID = sScenario;
+
+# --- Now, check to see if the element exists, if not, add it.
+If( DimensionElementExists( sDimName, sElemID ) = FALSE );
+    DimensionElementInsert( sDimName, '', sElemID, 'N' );
+EndIf;
+
+
+# ----------------------------------------------------
+# Currency
+# ----------------------------------------------------
+sDimName = sCurrencyDim;
+sElemID = sCurrency;
+
+# --- Now, check to see if the element exists, if not, add it.
+If( DimensionElementExists( sDimName, sElemID ) = FALSE );
+    DimensionElementInsert( sDimName, '', sElemID, 'N' );
+EndIf;
+DimensionSortOrder( sDimName, 'By Name' , 'Ascending', 'By Hierarchy', 'Ascending' );
+
+# ----------------------------------------------------
+# Data File
+# ----------------------------------------------------
+sParentID = sFileRoot;
+sDimName = sFileDim;
+sElemID = sFilename;
+
+# --- Make sure the parent exists in the dimension already
+If( DimensionElementExists( sDimName, sParentID ) = FALSE );
+    DimensionElementInsert( sDimName, '', sParentID, 'C' );
+EndIf;
+
+# --- Now, check to see if the element exists, if not, add it.
+If( DimensionElementExists( sDimName, sElemID ) = FALSE );
+    DimensionElementInsert( sDimName, '', sElemID, 'N' );
+EndIf;
+
+# --- Now make the child and parent relationship
+DimensionElementComponentAdd( sDimName, sParentID, sElemID, 1 );
+DimensionSortOrder( sDimName, 'By Name' , 'Ascending', 'By Hierarchy', 'Ascending' );
+
+
+# ----------------------------------------------------
+# Entity
+# ----------------------------------------------------
+sParentID = sEntityRoot;
+sDimName = sEntityDim;
+sElemID = sEntity;
+
+# --- Make sure the parent exists in the dimension already
+If( DimensionElementExists( sDimName, sParentID ) = FALSE );
+    DimensionElementInsert( sDimName, '', sParentID, 'C' );
+EndIf;
+
+# --- Now, check to see if the element exists, if not, add it.
+If( DimensionElementExists( sDimName, sElemID ) = FALSE );
+    DimensionElementInsert( sDimName, '', sElemID, 'N' );
+    DimensionElementComponentAdd( sDimName, sParentID, sElemID, 1 );
+EndIf;
+
+# --- Now make the child and parent relationship
+DimensionSortOrder( sDimName, 'By Name' , 'Ascending', 'By Hierarchy', 'Ascending' );
+
+
+
+# ----------------------------------------------------
+# Product
+# ----------------------------------------------------
+sParentID = sProductRoot;
+sDimName = sProductDim;
+sElemID = sProduct;
+
+# --- Make sure the parent exists in the dimension already
+If( DimensionElementExists( sDimName, sParentID ) = FALSE );
+    DimensionElementInsert( sDimName, '', sParentID, 'C' );
+EndIf;
+
+# --- Now, check to see if the element exists, if not, add it.
+If( DimensionElementExists( sDimName, sElemID ) = FALSE );
+    DimensionElementInsert( sDimName, '', sElemID, 'N' );
+EndIf;
+
+# --- Now make the child and parent relationship
+DimensionElementComponentAdd( sDimName, sParentID, sElemID, 1 );
+DimensionSortOrder( sDimName, 'By Name' , 'Ascending', 'By Hierarchy', 'Ascending' );
+
+
+# ----------------------------------------------------
+# Function
+# ----------------------------------------------------
+sParentID = sFunctionRoot;
+sDimName = sFunctionDim;
+sElemID = sFunction;
+
+# --- Make sure the parent exists in the dimension already
+If( DimensionElementExists( sDimName, sParentID ) = FALSE );
+    DimensionElementInsert( sDimName, '', sParentID, 'C' );
+EndIf;
+
+# --- Now, check to see if the element exists, if not, add it.
+If( DimensionElementExists( sDimName, sElemID ) = FALSE );
+    DimensionElementInsert( sDimName, '', sElemID, 'N' );
+EndIf;
+
+# --- Now make the child and parent relationship
+DimensionElementComponentAdd( sDimName, sParentID, sElemID, 1 );
+DimensionSortOrder( sDimName, 'By Name' , 'Ascending', 'By Hierarchy', 'Ascending' );
+
+# ----------------------------------------------------
+# Account
+# ----------------------------------------------------
+
+sFirstChar = SUBST( sAccount, 1, 1 );
+
+sParentID = 'xx Total Other';
+sParentID = If( sFirstChar @= '1', '1x Total Assets', sParentID );
+sParentID = If( sFirstChar @= '2', '2x Total Labilities', sParentID );
+sParentID = If( sFirstChar @= '3', '3x Total Equity', sParentID );
+sParentID = If( sFirstChar @= '4', '4x Total Revenue', sParentID );
+sParentID = If( sFirstChar @= '5', '5x Total Expenses', sParentID );
+sParentID = If( sFirstChar @= '6', '6x Total Expenses', sParentID );
+sParentID = If( sFirstChar @= '7', '7x Total Misc', sParentID );
+sParentID = If( sFirstChar @= '8', '8x Total Misc', sParentID );
+sParentID = If( sFirstChar @= '9', '9x Total Misc', sParentID );
+
+sDimName = sAccountDim;
+sElemID = sAccount;
+
+# --- Make sure the parent exists in the dimension already
+If( DimensionElementExists( sDimName, sParentID ) = FALSE );
+    DimensionElementInsert( sDimName, '', sParentID, 'C' );
+    
+    If( sParentID @<> sAccountRoot );
+        DimensionElementComponentAdd( sDimName, sAccountRoot, sParentID, 1 );
+    EndIf;
+EndIf;
+
+# --- Now, check to see if the element exists, if not, add it.
+If( DimensionElementExists( sDimName, sElemID ) = FALSE );
+    DimensionElementInsert( sDimName, '', sElemID, 'N' );
+    
+    # --- Now make the child and parent relationship
+    DimensionElementComponentAdd( sDimName, sParentID, sElemID, 1 );
+EndIf;
+
+DimensionSortOrder( sDimName, 'By Name' , 'Ascending', 'By Hierarchy', 'Ascending' );
+
+#endregion
+#region Data
+
+
+# ----------------------------------------------------
+# Handle incoming record
+sScenario  = inScenario;
+sPeriod    = inPeriod;
+sCurrency  = inCurrency;
+sEntity    = inEntity;
+sProduct   = inProduct;
+sFunction  = inFunction;
+sAccount   = inAccount;
+nValue     = inValue;
+
+sCubeName = sStagingCube;
+CellIncrementN(  nValue, sCubeName, sScenario, sPeriod, sFilename, sCurrency, sEntity, sProduct, sFunction, sAccount, 'Amount' );
+#endregion
+#region Epilog
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Completed At' );
+
+# --- Append to the log (will overwrite if not done before AsciiOutput)
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log completion
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Completed');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+#endregion

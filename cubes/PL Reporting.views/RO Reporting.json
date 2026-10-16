@@ -1,0 +1,118 @@
+{
+	"@type":"NativeView",
+	"Name":"RO Reporting",
+	"Columns":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Period')/Hierarchies('Period')"
+				},
+				"Alias":"Caption",
+				"Expression":"{[Period].[Period].[2025 Q1]}"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Scenario')/Hierarchies('Scenario')"
+				},
+				"Expression":"{[Scenario].[Scenario].[Actual],[Scenario].[Scenario].[Forecast 8+4],[Scenario].[Scenario].[Forecast 9+3]}"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Entity')/Hierarchies('Entity')"
+				},
+				"Alias":"MEMBER_NAME",
+				"Expression":"{[Entity].[Entity].[ALT_AMERICAS_LESS_AT],[Entity].[Entity].[MGT_EMEA],[Entity].[Entity].[MGT_APAC],[Entity].[Entity].[MGT_INTL],[Entity].[Entity].[MGT_CORPORATE],[Entity].[Entity].[ALT_ALLEGION_LESS_AT]}"
+			}
+		}
+	],
+	"Rows":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('PL Account')/Hierarchies('PL Account')"
+				},
+				"Alias":"Caption",
+				"Expression":"{[PL Account].[PL Account].[410000],[PL Account].[PL Account].[MGT_OPINCOME],[PL Account].[PL Account].[803000],[PL Account].[PL Account].[MGT_EARNBEFTAX],[PL Account].[PL Account].[850000],[PL Account].[PL Account].[804880],[PL Account].[PL Account].[S_DILUTED_SHARES_QTD]}"
+			}
+		}
+	],
+	"Titles":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Product')/Hierarchies('Product')"
+				},
+				"Expression":"{[Product].[Product].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Product')/Hierarchies('Product')/Elements('PRODUCTS')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Function')/Hierarchies('Function')"
+				},
+				"Expression":"{[Function].[Function].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Function')/Hierarchies('Function')/Elements('Total Function')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('PL Reporting Measure')/Hierarchies('PL Reporting Measure')"
+				},
+				"Expression":"{[PL Reporting Measure].[PL Reporting Measure].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('PL Reporting Measure')/Hierarchies('PL Reporting Measure')/Elements('Reorg Adjusted')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Currency')/Hierarchies('Currency')"
+				},
+				"Expression":"{[Currency].[Currency].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Currency')/Hierarchies('Currency')/Elements('USD')"
+			}
+		}
+	],
+	"SuppressEmptyColumns":false,
+	"SuppressEmptyRows":false,
+	"FormatString":"0.00",
+	"IsAutocalculate" : true,
+	"IsDeferComputeOnLeafDataEntry" : false,
+	"IsSuppressComputeOnOpen" : false
+}

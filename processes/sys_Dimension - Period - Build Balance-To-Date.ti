@@ -1,0 +1,200 @@
+#region Prolog
+
+#==============================================================================
+#             sys_Dimension - Balance - Build Balance-To-Date
+#
+#  This script will generate the balance to date rollup structure in a given
+#  hierarchy that was created using the Period XRef source dimension.
+#
+#  REQUIREMENTS:
+#       Period XRef dimension must exist and contain all members within the
+#       dimension to be processed.
+#
+#
+#      Date    WHO  Description
+#  ----------  ---  -----------------------------------------------------------
+#  03/14/2023  SWG  Created.
+#
+#==============================================================================
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = TM1User();
+sProcessName = GetProcessName();
+sTimeStamp = TIMST( NOW, '\Y-\m-\d(\h\i\s)' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+# --- Values
+TRUE = 1;
+FALSE = 0;
+bDebug = TRUE;
+nErrorCount = 0;
+
+# --- Setup Logging
+sLogPath = './model_upload/';
+sLogFile = sLogPath | sUniqueName | '.log';
+
+
+#==============================================================================
+#                        PARAMETER VALIDATION SECTION
+#==============================================================================
+
+# --- Capture the name of the cross reference dimension to create
+sDimension = pDimension;
+sHierarchy = If( pHierarchy @= '', pDimension, pHierarchy );
+sHierRootMember = pHierRootMember;
+sBTDGranularity = pBTDGranularity;
+sBTDRootMember = pBTDRootMember;
+sBTDFormat = If( pBTDFormat @= '', '%sMemberID% BTD', pBTDFormat );
+sXRefDim = pPeriodXRefDimension;
+
+#------------------------------------------------------------------------------
+#                   Validate XRef dimension
+#------------------------------------------------------------------------------
+# --- Validate the cross reference dimension
+If( DimensionExists( sXRefDim ) = 0 );
+    sMessage = Expand( 'Specified Balance Cross-Reference dimension [%pPeriodXRefDimension%] does not exist or cannot be accessed');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    nErrorCount = nErrorCount + 1;
+EndIf;
+
+#------------------------------------------------------------------------------
+#                   Validate Target Dimension
+#------------------------------------------------------------------------------
+# --- Validate the dimension to be processed
+If( DimensionExists( pDimension ) = 0 );
+    sMessage = Expand( 'Specified balance dimension to be updated [%pDimension%] does not exist or cannot be accessed');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    nErrorCount = nErrorCount + 1;
+EndIf;
+
+#------------------------------------------------------------------------------
+#                   Validate Target Hierarchy
+#------------------------------------------------------------------------------
+# --- Validate the dimension to be processed
+If( HierarchyExists( pDimension, sHierarchy ) = 0 );
+    sMessage = Expand( 'Specified hierarchy [%pHierarchy%] in dimension [%pDimension%] does not exist or cannot be accessed');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    nErrorCount = nErrorCount + 1;
+EndIf;
+
+#------------------------------------------------------------------------------
+#                   Validate Hierarchy Root Member
+#------------------------------------------------------------------------------
+# --- Validate the starting member to be processed
+If( HierarchyElementExists( pDimension, sHierarchy, sHierRootMember ) = 0 );
+    sMessage = Expand( 'Specified member [%pHierRootMember%] in hierarchy [%pHierarchy%] in dimension [%pDimension%] does not exist or cannot be accessed');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    nErrorCount = nErrorCount + 1;
+EndIf;
+
+#------------------------------------------------------------------------------
+#                   Validate Rollup Type Parameter
+#------------------------------------------------------------------------------
+sBTDHierarchy = pBTDHierarchy;
+
+#------------------------------------------------------------------------------
+#                   Validate BTDGranularity Parameter
+#------------------------------------------------------------------------------
+sBTDGranularity = '';
+sBTDGranularity = If( LOWER(pBTDGranularity) @= 'Week', 'Week', sBTDGranularity );
+sBTDGranularity = If( LOWER(pBTDGranularity) @= 'Month', 'Month', sBTDGranularity );
+sBTDGranularity = If( LOWER(pBTDGranularity) @= 'Quarter', 'Quarter', sBTDGranularity );
+sBTDGranularity = If( LOWER(pBTDGranularity) @= 'Year', 'Year', sBTDGranularity );
+If( sBTDGranularity @= '' );
+    sMessage = Expand( 'Specified BTDgranularity [%pBTDGranularity%] invalid.   Must be Week, Month, Quarter or Year');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    nErrorCount = nErrorCount + 1;
+EndIf;
+
+
+#------------------------------------------------------------------------------
+#                       Report validation errors
+#------------------------------------------------------------------------------
+If( nErrorCount > 0 );
+    sMessage = Expand( NumberToString(nErrorCount) | ' validation error(s) occured.  Check logs for detail');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    ProcessError;
+EndIf;
+
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+# --- Delete the hierarchy if it exists
+If( HierarchyExists( sDimension, sBTDHierarchy ) = TRUE );
+    HierarchyDestroy( sDimension, sBTDHierarchy );
+EndIf;
+
+# --- Create the hierarchy if it does not exist
+If( HierarchyExists( sDimension, sBTDHierarchy ) = FALSE );
+    HierarchyCreate( sDimension, sBTDHierarchy );
+EndIf;
+HierarchyElementInsert( sDimension, sBTDHierarchy, '', sBTDRootMember, 'C' );
+
+
+# --- Create the subset we will use to traverse the dimension elements
+sSubsetName = sTempName;
+sMDX = Expand( 'TM1FilterByLevel( TM1SubsetAll( [%sDimension%].[%sHierarchy%] ), 0 )' );
+HierarchySubsetCreate( sDimension, sHierarchy, sSubsetName, TRUE );
+HierarchySubsetMDXSet( sDimension, sHierarchy, sSubsetName, sMDX);
+
+# --- Loop through the elements in the subset adding them to the BTD rollups
+nNumElems = HierarchySubsetGetSize( sDimension, sHierarchy, sSubsetName );
+nElemIndex = 0;
+While( nElemIndex < nNumElems );
+    nElemIndex = nElemIndex + 1;
+    sElemID = HierarchySubsetGetElementName( sDimension, sHierarchy, sSubsetName, nElemIndex );
+        
+    sMemberID = sElemID;
+    sMemberCaption = ElementATTRS( sDimension, sHierarchy, sElemID, 'Caption' );
+    sParentElemID = Expand( '%sMemberID% BTD'  );
+    sParentElemCaption = Expand( sBTDFormat );
+    
+    HierarchyElementInsert( sDimension, sBTDHierarchy, '', sParentElemID, 'C' );
+    HierarchyElementComponentAdd( sDimension, sBTDHierarchy, sBTDRootMember, sParentElemID, 1 );
+            
+    nBTDIndex = 0;
+    While( nBTDIndex < nNumElems );
+        nBTDIndex = nBTDIndex + 1;
+        sBTDElemID = HierarchySubsetGetElementName( sDimension, sHierarchy, sSubsetName, nBTDIndex );
+
+        If( sBTDElemID @<= sElemID );
+            AsciiOutput( sLogFile, Expand( 'Parent: %sElemID%, Child: %sBTDElemID%, Formatted: %sParentElemID%' ));
+            HierarchyElementComponentAdd( sDimension, sBTDHierarchy, sParentElemID, sBTDElemID, 1 );
+        EndIf;
+    End;
+End;
+
+#endregion
+#region Epilog
+
+
+
+# --- Loop through the elements in the subset adding them to the BTD rollups
+nNumElems = HierarchySubsetGetSize( sDimension, sHierarchy, sSubsetName );
+nElemIndex = 0;
+While( nElemIndex < nNumElems );
+    nElemIndex = nElemIndex + 1;
+    sElemID = HierarchySubsetGetElementName( sDimension, sHierarchy, sSubsetName, nElemIndex );
+        
+    sMemberID = sElemID;
+    sMemberCaption = ElementATTRS( sDimension, sHierarchy, sElemID, 'Caption' );
+    sParentElemID = Expand( '%sMemberID% BTD'  );
+    sParentElemCaption = Expand( sBTDFormat );
+    
+    ElementAttrPutS( sParentElemCaption, sDimension, sBTDHierarchy, sParentElemID, 'Caption' );
+            
+End;
+
+#endregion

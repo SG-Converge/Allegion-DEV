@@ -1,0 +1,389 @@
+#region Prolog
+
+#==============================================================================
+#                               Load HFM Actuals
+#
+#  This script will load in the actual data from HFM system into a staging 
+#  cube to be mapped and processed for loading into the P&L and BS cubes 
+#  used in planning and reporting. 
+#
+#  This script will create new dimension members whenever necessary in order
+#  to load all of the data in the file.   These new members will need to be
+#  mapped into the planning system versions before accurate reporting can
+#  occur.
+#
+#      Date    WHO  Description
+#  ----------  ---  -----------------------------------------------------------
+#  2026/04/01  SWG  Created.
+#
+#==============================================================================
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = ATTRS( '}Clients', TM1User(), '}TM1_DefaultDisplayValue' );
+sProcessName = GetProcessName();
+sDateStamp = TIMST( NOW, '\Y-\m-\d' );
+sTimeStamp = TIMST( NOW, '\Y-\m-\d \h.\i.\s' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+# --- Static Values
+ERROR  = 1; WARN   = 2; STATS  = 3;
+INFO   = 4; DEBUG  = 5; TRACE  = 6;
+TRUE   = 1; FALSE  = 0;
+LF     = CHAR(10);
+EXCEL_ADJUSTMENT = 21916;
+
+# --- Setup processing information
+bDebug = FALSE;
+bUseTemporaryObjects = TRUE;
+
+# --- Cubes
+sConfigCube    = 'sys.Config';
+sStatsCube     = 'sys.Process Stats';
+sRulesetCube   = 'util.map.Load Rules';
+sActualsCube   = 'HFM Actuals';
+
+# --- Dimensions
+sScenarioDim   = 'HFM Scenario';
+sPeriodDim     = 'Period';
+sCurrencyDim   = 'Currency';
+sEntityDim     = 'HFM Entity';
+sProductDim    = 'HFM Product';
+sFunctionDim   = 'HFM Function';
+sAccountDim    = 'HFM Account';
+sPeriodXRefDim = 'Period XRef';
+sRulesetDim    = 'util.map.Ruleset';
+
+# --- Members
+sEntityRoot    = 'All Entities';
+sProductRoot   = 'All Products';
+sFunctionRoot  = 'All Functions';
+sAccountRoot   = 'All Accounts';
+
+# --- Data values
+sHFMDir = CellGetS( sConfigCube, 'HFM Upload Directory', 'String' );
+
+#==============================================================================
+#                               LOGGING SECTION
+#==============================================================================
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Started At' );
+CellPutS( sUser, sStatsCube, sProcessName, 'Executed By' );
+
+# --- Setup Logging
+nLogLevel = DEBUG;
+sLogDir = CellGetS( sConfigCube, 'Log Directory', 'String' );
+sLogFile = sLogDir | sProcessName | '.log';
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log startup
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Started');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+# --- Report how the script was executed 
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand( '%LF%
+        ============================================================================ %LF%
+                        %sProcessName%                                               %LF%
+        ============================================================================ %LF%
+        Executed by [%sUser%]                                                        %LF%
+              pRuleset    = [%pRuleset%]                                             %LF%
+              pFilename   = [%pFilename%]                                            %LF%
+              pPeriod     = [%pPeriod%]                                              %LF%
+        ============================================================================ %LF%
+    ');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+#==============================================================================
+#                        PARAMETER VALIDATION SECTION
+#==============================================================================
+
+# --- Validate input filename
+sFilename = sHFMDir | pFilename;
+If( FileExists( sFilename ) = FALSE );
+    sMsgLevel = 'ERROR';
+    sMessage = Expand( 'Specified file [%sFilename%] does not exist or cannot be accessed.');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+    ProcessError();
+EndIf;
+
+# --- Validate period to clear
+sClearPeriod = pPeriod;
+If( sClearPeriod @<> '' );
+    If( DimensionElementExists( sPeriodDim, sClearPeriod ) = FALSE );
+        sMsgLevel = 'ERROR';
+        sMessage = Expand( 'Specified period to clear [%sClearPeriod%] does not exist in dimension [%sPeriodDim%]');
+        ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+        ProcessError();
+    EndIf;
+EndIf;
+
+sRuleset = pRuleset;
+If( DimensionElementExists( sRulesetDim, sRuleset ) = FALSE );
+    sMsgLevel = 'ERROR';
+    sMessage = Expand( 'Specified [%sRuleset%] does not exist in dimension [%sRulesetDim%]');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+    ProcessError();
+EndIf;
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+# --- Capture ruleset information
+sFileFormat = ATTRS( sRulesetDim, sRuleset, 'File Format' );
+
+# --- Setup destination
+sCubeName = sActualsCube;
+
+# --- If the period to clear parameter was specified, then clear out that
+# --- period from the cube, if not just load the data.   This is to allow for
+# --- partial and incremental loads.
+If( sClearPeriod @<> '' );
+    sViewMDX = Expand( '%LF%
+        WITH %LF%
+            SET ScenarioSet   as { TM1FilterByLevel( TM1SubsetAll( [HFM Scenario] ), 0 ) } %LF%
+            SET PeriodSet     as { [Period].[Period].[%sClearPeriod%] } %LF%
+            SET CurrencySet   as { TM1FilterByLevel( TM1SubsetAll( [Currency] ), 0 ) } %LF%
+            SET EntitySet     as { TM1FilterByLevel( TM1SubsetAll( [HFM Entity] ), 0 ) } %LF%
+            SET ProductSet    as { TM1FilterByLevel( TM1SubsetAll( [HFM Product] ), 0 ) } %LF%
+            SET FunctionSet   as { TM1FilterByLevel( TM1SubsetAll( [HFM Function] ), 0 ) } %LF%
+            SET AccountSet    as { TM1FilterByLevel( TM1SubsetAll( [HFM Account] ), 0 ) } %LF%
+            SET MeasureSet    as { TM1FilterByLevel( TM1SubsetAll( [HFM Actuals Measure] ), 0 ) } %LF%
+    
+        SELECT %LF%
+            MeasureSet ON 0, %LF%
+            NON EMPTY ScenarioSet * PeriodSet * EntitySet * ProductSet * FunctionSet * AccountSet ON 1 %LF%
+    
+        FROM [%sCubeName%] %LF%
+    ' );
+    
+    sViewName = sTempName | ' - Clear ';
+    If( nLogLevel >= DEBUG );
+        sMsgLevel = 'DEBUG';
+        sMessage = Expand('Destination view: %sViewMDX%');
+        ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+    EndIf;
+    ViewCreateByMDX( sCubeName, sViewName, sViewMDX, bUseTemporaryObjects );
+    ViewZeroOut( sCubeName, sViewName );
+EndIf;
+
+#==============================================================================
+#                        DATAFILE SECTION
+#==============================================================================
+DatasourceNameForServer = sFilename;
+
+#endregion
+#region Metadata
+
+
+# ----------------------------------------------------
+# Handle incoming record
+# ----------------------------------------------------
+If( sFileFormat @= 'PL' %  sFileFormat @= 'CF' % sFileFormat @= 'ELIM' );
+    sScenario  = inCol1;
+    sPeriod    = inCol2 | '-' | inCol3;
+    sEntity    = inCol5;
+    sCurrency  = inCol6;
+    sProduct   = inCol7;
+    sFunction  = inCol8;
+    sAccount   = inCol9;
+    nValue     = NUMBR(inCol10);
+ElseIf( sFileFormat @= 'BS' );
+    sScenario  = inCol1;
+    sPeriod    = inCol2 | '-' | inCol3;
+    sEntity    = inCol5;
+    sCurrency  = inCol6;
+    sProduct   = inCol7;
+    sAccount   = inCol8;
+    nValue     = NUMBR(inCol9);
+Else;
+    sMsgLevel = 'ERROR';
+    sMessage = Expand( 'Invalid file format [%sFileFormat%] specified for ruleset [%sRuleset%]');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+    ProcessError();
+EndIf;
+    
+
+# ----------------------------------------------------
+# Handle mapping based on ruleset
+# ----------------------------------------------------
+
+# --- Process currency mappings
+sMapItem = sCurrency;
+sSection = 'Currency';
+
+nRuleIdx = 0;
+bLoop = TRUE;
+While( bLoop = TRUE );
+    nRuleIdx = nRuleIdx + 1;
+    sRuleID = 'Rule ' | NumberToStringEx( nRuleIdx, '000', '','' );
+    sSource = CellGetS( sRulesetCube, sRuleset, sSection, sRuleID, 'Source' );
+    If( sSource @= '' );
+        sMapItem = 'Unmapped ' | sSection;
+        bLoop = FALSE;
+    ElseIf( sSource @= sMapItem );
+        sMapItem = CellGetS( sRulesetCube, sRuleset, sSection, sRuleID, 'Destination' );
+        bLoop = False;
+    EndIf;
+End;
+
+# ----------------------------------------------------
+# Scenario
+# ----------------------------------------------------
+sDimName = sScenarioDim;
+sElemID = sScenario;
+
+# --- Now, check to see if the element exists, if not, add it.
+If( DimensionElementExists( sDimName, sElemID ) = FALSE );
+    DimensionElementInsert( sDimName, '', sElemID, 'N' );
+EndIf;
+
+# ----------------------------------------------------
+# Entity
+# ----------------------------------------------------
+sParentID = sEntityRoot;
+sDimName = sEntityDim;
+sElemID = sEntity;
+
+# --- Make sure the parent exists in the dimension already
+If( DimensionElementExists( sDimName, sParentID ) = FALSE );
+    DimensionElementInsert( sDimName, '', sParentID, 'C' );
+EndIf;
+
+# --- Now, check to see if the element exists, if not, add it.
+If( DimensionElementExists( sDimName, sElemID ) = FALSE );
+    DimensionElementInsert( sDimName, '', sElemID, 'N' );
+EndIf;
+
+# --- Now make the child and parent relationship
+DimensionElementComponentAdd( sDimName, sParentID, sElemID, 1 );
+
+
+
+# ----------------------------------------------------
+# Product
+# ----------------------------------------------------
+sParentID = sProductRoot;
+sDimName = sProductDim;
+sElemID = sProduct;
+
+# --- Make sure the parent exists in the dimension already
+If( DimensionElementExists( sDimName, sParentID ) = FALSE );
+    DimensionElementInsert( sDimName, '', sParentID, 'C' );
+EndIf;
+
+# --- Now, check to see if the element exists, if not, add it.
+If( DimensionElementExists( sDimName, sElemID ) = FALSE );
+    DimensionElementInsert( sDimName, '', sElemID, 'N' );
+EndIf;
+
+# --- Now make the child and parent relationship
+DimensionElementComponentAdd( sDimName, sParentID, sElemID, 1 );
+
+
+# ----------------------------------------------------
+# Function
+# ----------------------------------------------------
+sParentID = sFunctionRoot;
+sDimName = sFunctionDim;
+sElemID = sFunction;
+
+# --- Make sure the parent exists in the dimension already
+If( DimensionElementExists( sDimName, sParentID ) = FALSE );
+    DimensionElementInsert( sDimName, '', sParentID, 'C' );
+EndIf;
+
+# --- Now, check to see if the element exists, if not, add it.
+If( DimensionElementExists( sDimName, sElemID ) = FALSE );
+    DimensionElementInsert( sDimName, '', sElemID, 'N' );
+EndIf;
+
+# --- Now make the child and parent relationship
+DimensionElementComponentAdd( sDimName, sParentID, sElemID, 1 );
+
+# ----------------------------------------------------
+# Account
+# ----------------------------------------------------
+sParentID = sAccountRoot;
+sDimName = sAccountDim;
+sElemID = sAccount;
+
+# --- Make sure the parent exists in the dimension already
+If( DimensionElementExists( sDimName, sParentID ) = FALSE );
+    DimensionElementInsert( sDimName, '', sParentID, 'C' );
+EndIf;
+
+# --- Now, check to see if the element exists, if not, add it.
+If( DimensionElementExists( sDimName, sElemID ) = FALSE );
+    DimensionElementInsert( sDimName, '', sElemID, 'N' );
+EndIf;
+
+# --- Now make the child and parent relationship
+DimensionElementComponentAdd( sDimName, sParentID, sElemID, 1 );
+
+#endregion
+#region Data
+
+
+# ----------------------------------------------------
+# Handle incoming record
+# ----------------------------------------------------
+If( sFileFormat @= 'PL' %  sFileFormat @= 'CF' % sFileFormat @= 'ELIM' );
+    sScenario  = inCol1;
+    sPeriod    = inCol2 | '-' | inCol3;
+    sEntity    = inCol5;
+    sCurrency  = inCol6;
+    sProduct   = inCol7;
+    sFunction  = inCol8;
+    sAccount   = inCol9;
+    nValue     = NUMBR(inCol10);
+ElseIf( sFileFormat @= 'BS' );
+    sScenario  = inCol1;
+    sPeriod    = inCol2 | '-' | inCol3;
+    sEntity    = inCol5;
+    sCurrency  = inCol6;
+    sProduct   = inCol7;
+    sFunction  = '[None]';
+    sAccount   = inCol8;
+    nValue     = NUMBR(inCol9);
+Else;
+    sMsgLevel = 'ERROR';
+    sMessage = Expand( 'Invalid file format [%sFileFormat%] specified for ruleset [%sRuleset%]');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+    ProcessError();
+EndIf;
+
+sCubeName = sActualsCube;
+CellPutN(  nValue, sCubeName, sScenario, sPeriod, sCurrency, sEntity, sProduct, sFunction, sAccount, 'Amount' );
+CellPutN(  nValue, sCubeName, sScenario, sPeriod, sCurrency, sEntity, sProduct, sFunction, sAccount, 'TB Amount' );
+CellIncrementN(  nValue, sCubeName, sScenario, sPeriod, sCurrency, sEntity, sProduct, sFunction, sAccount, 'Validation Amount' );
+#endregion
+#region Epilog
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Completed At' );
+
+# --- Append to the log (will overwrite if not done before AsciiOutput)
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log completion
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Completed');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+#endregion

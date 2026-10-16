@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"Default",
+	"Alias":"MEMBER_NAME",
+	"Expression":"{EXCEPT([sys.Config Measure].[sys.Config Measure].MEMBERS , {[sys.Config Measure].[sys.Config Measure].[Value]} , ALL)}"
+}

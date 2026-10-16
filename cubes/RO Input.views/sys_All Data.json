@@ -1,0 +1,67 @@
+{
+	"@type":"NativeView",
+	"Name":"sys_All Data",
+	"Columns":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('RO Input Measure')/Hierarchies('RO Input Measure')"
+				},
+				"Expression":"{TM1FILTERBYLEVEL(TM1SubsetAll([RO Input Measure].[RO Input Measure]), 0)}"
+			}
+		}
+	],
+	"Rows":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('RO Item')/Hierarchies('RO Item')"
+				},
+				"Expression":"{TM1FILTERBYLEVEL(TM1SubsetAll([RO Item].[RO Item]), 0)}"
+			}
+		}
+	],
+	"Titles":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Scenario')/Hierarchies('Scenario')"
+				},
+				"Expression":"{TM1FILTERBYLEVEL(TM1SUBSETALL([Scenario].[Scenario]) , 0)}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Scenario')/Hierarchies('Scenario')/Elements('Actual')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('RO Entity')/Hierarchies('RO Entity')"
+				},
+				"Expression":"{TM1FILTERBYLEVEL(TM1SUBSETALL([RO Entity].[RO Entity]) , 0)}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('RO Entity')/Hierarchies('RO Entity')/Elements('8143')"
+			}
+		}
+	],
+	"SuppressEmptyColumns":false,
+	"SuppressEmptyRows":false,
+	"FormatString":"0.00",
+	"IsAutocalculate" : true,
+	"IsDeferComputeOnLeafDataEntry" : false,
+	"IsSuppressComputeOnOpen" : false
+}

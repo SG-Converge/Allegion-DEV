@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"HFM Entity",
+	"Hierarchies@Code.links":
+	[
+		"HFM Entity.hierarchies/HFM Entity.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('HFM Entity')/Hierarchies('HFM Entity')"
+	}
+}

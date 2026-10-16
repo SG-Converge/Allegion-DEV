@@ -1,0 +1,12 @@
+{
+	"@type":"Process",
+	"Name":"util.admin.Save Data",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"util.admin.Save Data.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[]
+}

@@ -1,0 +1,29 @@
+{
+	"@type":"Subset",
+	"Name":"Balance Sheet",
+	"Alias":"MEMBER_NAME",
+	"Elements":
+	[
+		{
+			"@id":"Dimensions('util.map.Ruleset')/Hierarchies('util.map.Ruleset')/Elements('ACTBS')"
+		},
+		{
+			"@id":"Dimensions('util.map.Ruleset')/Hierarchies('util.map.Ruleset')/Elements('CFLC1')"
+		},
+		{
+			"@id":"Dimensions('util.map.Ruleset')/Hierarchies('util.map.Ruleset')/Elements('CFLC2')"
+		},
+		{
+			"@id":"Dimensions('util.map.Ruleset')/Hierarchies('util.map.Ruleset')/Elements('CFUSDLC1')"
+		},
+		{
+			"@id":"Dimensions('util.map.Ruleset')/Hierarchies('util.map.Ruleset')/Elements('CFUSDLC2')"
+		},
+		{
+			"@id":"Dimensions('util.map.Ruleset')/Hierarchies('util.map.Ruleset')/Elements('BSUELI')"
+		},
+		{
+			"@id":"Dimensions('util.map.Ruleset')/Hierarchies('util.map.Ruleset')/Elements('BSALTE')"
+		}
+	]
+}

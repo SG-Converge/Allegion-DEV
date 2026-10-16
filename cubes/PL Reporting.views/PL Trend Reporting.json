@@ -1,0 +1,183 @@
+{
+	"@type":"NativeView",
+	"Name":"PL Trend Reporting",
+	"Columns":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Period')/Hierarchies('Period')"
+				},
+				"Expression":"TM1TOGGLEEXPANDMODE(EXCEPT(DRILLDOWNMEMBER({[Period].[Period].[2026]} , {[Period].[Period].[2026],[Period].[Period].[2026 Q1],[Period].[Period].[2026 Q2],[Period].[Period].[2026 Q3],[Period].[Period].[2026 Q4]} , RECURSIVE) , {[Period].[Period].[2026]}) , EXPAND_ABOVE)"
+			}
+		}
+	],
+	"Rows":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('PL Account')/Hierarchies('PL Account')"
+				},
+				"Elements":
+				[
+					{
+						"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('S_NetBookings')"
+					},
+					{
+						"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('410000')"
+					},
+					{
+						"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('GROSSMARGIN')"
+					},
+					{
+						"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('SGA')"
+					},
+					{
+						"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('MGT_OPINCOME')"
+					},
+					{
+						"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('692000')"
+					},
+					{
+						"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('640300')"
+					},
+					{
+						"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('803000')"
+					},
+					{
+						"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('MGT_EARNBEFTAX')"
+					},
+					{
+						"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('850000')"
+					},
+					{
+						"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('804880')"
+					},
+					{
+						"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('MGT_NETEARNPT')"
+					}
+				]
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Scenario')/Hierarchies('Scenario')"
+				},
+				"Elements":
+				[
+					{
+						"@id":"Dimensions('Scenario')/Hierarchies('Scenario')/Elements('AOP')"
+					},
+					{
+						"@id":"Dimensions('Scenario')/Hierarchies('Scenario')/Elements('Forecast 8+4')"
+					}
+				]
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Function')/Hierarchies('Function')"
+				},
+				"Elements":
+				[
+					{
+						"@id":"Dimensions('Function')/Hierarchies('Function')/Elements('Total Function')"
+					}
+				]
+			}
+		}
+	],
+	"Titles":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Entity')/Hierarchies('Entity')"
+				},
+				"Elements":
+				[
+					{
+						"@id":"Dimensions('Entity')/Hierarchies('Entity')/Elements('MANAGEMENT')"
+					}
+				]
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Entity')/Hierarchies('Entity')/Elements('MANAGEMENT')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Product')/Hierarchies('Product')"
+				},
+				"Elements":
+				[
+					{
+						"@id":"Dimensions('Product')/Hierarchies('Product')/Elements('PRODUCTS')"
+					}
+				]
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Product')/Hierarchies('Product')/Elements('PRODUCTS')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Currency')/Hierarchies('Currency')"
+				},
+				"Elements":
+				[
+					{
+						"@id":"Dimensions('Currency')/Hierarchies('Currency')/Elements('USD')"
+					}
+				]
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Currency')/Hierarchies('Currency')/Elements('USD')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('PL Reporting Measure')/Hierarchies('PL Reporting Measure')"
+				},
+				"Elements":
+				[
+					{
+						"@id":"Dimensions('PL Reporting Measure')/Hierarchies('PL Reporting Measure')/Elements('Adjusted Total')"
+					}
+				]
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('PL Reporting Measure')/Hierarchies('PL Reporting Measure')/Elements('Adjusted Total')"
+			}
+		}
+	],
+	"SuppressEmptyColumns":false,
+	"SuppressEmptyRows":false,
+	"FormatString":"0.00"
+}

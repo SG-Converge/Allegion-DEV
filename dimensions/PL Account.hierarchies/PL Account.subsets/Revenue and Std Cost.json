@@ -1,0 +1,158 @@
+{
+	"@type":"Subset",
+	"Name":"Revenue and Std Cost",
+	"Alias":"ID - Name",
+	"Elements":
+	[
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('S_OpenBacklog')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('S_Bookings')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('S_BookCancld')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('S_NetBookings')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('S_BackLogAdj')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('410000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('S_Backlog')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('400000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('411500_INPUT')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('411100')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('410000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('420000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511110')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511120')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511130')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511140')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511150')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511160')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511170')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('514102')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511100')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511210')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511220')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511250')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511200')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511310')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511320')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511300')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511405')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511410')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511415')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511420')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511425')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511400')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511510')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511520')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511550')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511500')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511700')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511900')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511850')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('511800')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('510000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('521200')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('521300')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('521400')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('521500')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('521700')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('521800')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('520000')"
+		}
+	]
+}

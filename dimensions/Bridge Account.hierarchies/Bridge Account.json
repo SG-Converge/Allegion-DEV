@@ -1,0 +1,42 @@
+{
+	"@type":"Hierarchy",
+	"Name":"Bridge Account",
+	"Elements":
+	[
+		{
+			"Name":"S_OPS_OI",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"S_OPS_Revenues",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"S_OPS_COGS",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"S_OPS_SGA",
+			"Type":"Numeric"
+		}
+	],
+	"Edges":
+	[
+		{
+			"ParentName":"S_OPS_OI",
+			"ComponentName":"S_OPS_Revenues",
+			"Weight":1
+		},
+		{
+			"ParentName":"S_OPS_OI",
+			"ComponentName":"S_OPS_COGS",
+			"Weight":-1
+		},
+		{
+			"ParentName":"S_OPS_OI",
+			"ComponentName":"S_OPS_SGA",
+			"Weight":-1
+		}
+	],
+	"Subsets@Code.links":[]
+}

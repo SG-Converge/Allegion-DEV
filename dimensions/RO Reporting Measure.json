@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"RO Reporting Measure",
+	"Hierarchies@Code.links":
+	[
+		"RO Reporting Measure.hierarchies/RO Reporting Measure.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('RO Reporting Measure')/Hierarchies('RO Reporting Measure')"
+	}
+}

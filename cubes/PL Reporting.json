@@ -1,0 +1,38 @@
+{
+	"@type":"Cube",
+	"Name":"PL Reporting",
+	"Dimensions":
+	[
+		{
+			"@id":"Dimensions('Scenario')"
+		},
+		{
+			"@id":"Dimensions('Period')"
+		},
+		{
+			"@id":"Dimensions('Currency')"
+		},
+		{
+			"@id":"Dimensions('Entity')"
+		},
+		{
+			"@id":"Dimensions('Product')"
+		},
+		{
+			"@id":"Dimensions('Function')"
+		},
+		{
+			"@id":"Dimensions('PL Account')"
+		},
+		{
+			"@id":"Dimensions('PL Reporting Measure')"
+		}
+	],
+	"Rules@Code.link":"PL Reporting.rules",
+	"Views@Code.links":
+	[
+		"PL Reporting.views/PL Reporting.json",
+		"PL Reporting.views/PL Trend Reporting.json",
+		"PL Reporting.views/RO Reporting.json"
+	]
+}

@@ -1,0 +1,35 @@
+{
+	"@type":"Subset",
+	"Name":"EPS MTD",
+	"Alias":"Caption",
+	"Elements":
+	[
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('NETEARNPT')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('S_BASIC_SHARES_MTD')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('S_DILUTED_SHARES_MTD')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('BASIC_EPS_CO_MTD')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('BASIC_EPS_DO_MTD')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('BASIC_EPS_TOT_MTD')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('DILUTED_EPS_CO_MTD')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('DILUTED_EPS_DO_MTD')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('DILUTED_EPS_TOT_MTD')"
+		}
+	]
+}

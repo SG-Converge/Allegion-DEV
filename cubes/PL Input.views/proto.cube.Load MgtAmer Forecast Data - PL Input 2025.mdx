@@ -1,0 +1,13 @@
+
+    WITH 
+        SET ScenarioSet   as { [Scenario].[Working Forecast] } 
+        SET PeriodSet     as { {     [Period].[Period].[2025-08]:[Period].[Period].[2025-12]} } 
+        SET EntitySet     as { {     [Entity].[80010010],[Entity].[80010030],[Entity].[80010060],[Entity].[80010200],    [Entity].[80200010],[Entity].[80200020],[Entity].[80200030],[Entity].[80200040],    [Entity].[80200050],[Entity].[80200060],[Entity].[81040010] } } 
+        SET ProductSet    as { TM1FilterByLevel( TM1SubsetAll( [Product] ), 0 ) } 
+        SET FunctionSet   as { TM1FilterByLevel( TM1SubsetAll( [Function] ), 0 ) } 
+        SET AccountSet    as { { DISTINCT(     { DESCENDANTS([PL Account].[PL Account].[600000] , 99 , LEAVES),    DESCENDANTS([PL Account].[PL Account].[695000] , 99 , LEAVES) })} } 
+        SET MeasureSet    as { TM1FilterByLevel( TM1SubsetAll( [PL Input Measure] ), 0 ) } 
+    SELECT 
+        MeasureSet ON 0, 
+        NON EMPTY ScenarioSet * PeriodSet * EntitySet * ProductSet * FunctionSet * AccountSet ON 1 
+    FROM [PL Input] 

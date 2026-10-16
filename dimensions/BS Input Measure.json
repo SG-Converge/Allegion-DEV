@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"BS Input Measure",
+	"Hierarchies@Code.links":
+	[
+		"BS Input Measure.hierarchies/BS Input Measure.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('BS Input Measure')/Hierarchies('BS Input Measure')"
+	}
+}

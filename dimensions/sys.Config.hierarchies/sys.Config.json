@@ -1,0 +1,167 @@
+{
+	"@type":"Hierarchy",
+	"Name":"sys.Config",
+	"Elements":
+	[
+		{
+			"Name":"File Configuration",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Archive Directory",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Temporary Directory",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Log Directory",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Server Configuration",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Server Name",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"HFM Upload Directory",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Environment",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"HFM Mapped Directory",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"MgtAmer Upload Directory",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Cost Leverage Download Directory",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Server Data Directory",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Server Logs Directory",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Server Scripts Directory",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Server Backup Directory",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Email Configuration",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"SMTP Server",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"SMTP Username",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"SMTP Password",
+			"Type":"Numeric"
+		}
+	],
+	"Edges":
+	[
+		{
+			"ParentName":"File Configuration",
+			"ComponentName":"HFM Upload Directory",
+			"Weight":1
+		},
+		{
+			"ParentName":"File Configuration",
+			"ComponentName":"HFM Mapped Directory",
+			"Weight":1
+		},
+		{
+			"ParentName":"File Configuration",
+			"ComponentName":"MgtAmer Upload Directory",
+			"Weight":1
+		},
+		{
+			"ParentName":"File Configuration",
+			"ComponentName":"Cost Leverage Download Directory",
+			"Weight":1
+		},
+		{
+			"ParentName":"File Configuration",
+			"ComponentName":"Archive Directory",
+			"Weight":1
+		},
+		{
+			"ParentName":"File Configuration",
+			"ComponentName":"Log Directory",
+			"Weight":1
+		},
+		{
+			"ParentName":"File Configuration",
+			"ComponentName":"Temporary Directory",
+			"Weight":1
+		},
+		{
+			"ParentName":"Server Configuration",
+			"ComponentName":"Server Name",
+			"Weight":1
+		},
+		{
+			"ParentName":"Server Configuration",
+			"ComponentName":"Environment",
+			"Weight":1
+		},
+		{
+			"ParentName":"Server Configuration",
+			"ComponentName":"Server Data Directory",
+			"Weight":1
+		},
+		{
+			"ParentName":"Server Configuration",
+			"ComponentName":"Server Logs Directory",
+			"Weight":1
+		},
+		{
+			"ParentName":"Server Configuration",
+			"ComponentName":"Server Scripts Directory",
+			"Weight":1
+		},
+		{
+			"ParentName":"Server Configuration",
+			"ComponentName":"Server Backup Directory",
+			"Weight":1
+		},
+		{
+			"ParentName":"Email Configuration",
+			"ComponentName":"SMTP Server",
+			"Weight":1
+		},
+		{
+			"ParentName":"Email Configuration",
+			"ComponentName":"SMTP Username",
+			"Weight":1
+		},
+		{
+			"ParentName":"Email Configuration",
+			"ComponentName":"SMTP Password",
+			"Weight":1
+		}
+	],
+	"Subsets@Code.links":[]
+}

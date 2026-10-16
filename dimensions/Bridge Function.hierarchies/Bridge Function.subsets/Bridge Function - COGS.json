@@ -1,0 +1,89 @@
+{
+	"@type":"Subset",
+	"Name":"Bridge Function - COGS",
+	"Alias":"MEMBER_NAME",
+	"Elements":
+	[
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_Volume')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_Mix')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_FX')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_FX_Transactional')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_FX_Total')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_Acquisition')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_Divestiture')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_Mat_Prod')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_OH_Prod')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_Other_Mfg_Prod')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_Mat_Infl')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_MatOth_Infl')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_OutFreight_Infl')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_HealthWelfare_Infl')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_CorpAlloc_Infl')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_Pension_Infl')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_AIP_Infl')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_SBC_Infl')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_Investment')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_NonOperating')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_NonOperating_Prod')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_NonOperating_Infl')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_BasePeriodAdj')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_BasePeriodAdj_Volume')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_BasePeriodAdj_Prod')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('OPS_BasePeriodAdj_Infl')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')/Elements('All Functions')"
+		}
+	]
+}

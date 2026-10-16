@@ -1,0 +1,124 @@
+#region Prolog
+
+#==============================================================================
+#                          sys.util.Delete all prefixed objects
+#
+#  This script will remove all views and subsets that begin with the prefix entered as a 
+#  parameter.
+#
+#  REQUIREMENTS:
+#       None.
+#
+#  CALLS:
+#       None.
+#
+#    Date    WHO   Ref #   Description
+#  --------  ---  -------  ----------------------------------------------------
+#  01/19/16  SWG           Created.
+#  2016 10 05   NDD       Updated, master copy
+#  2016 12 13   NDD       Renamed from sys_Delete Prefixed Views
+#
+#==============================================================================
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sProcessName = GetProcessName();
+sTimeStamp = TIMST( NOW, '\Y-\m-\d(\h\i\s)' );
+sLogPath = '..\Logs\';
+sLogFile = sLogPath | sProcessName | '.log';
+
+vPrefix = pPrefix;
+vDataDirectory = '.';
+
+#==============================================================================
+#                           VALIDATION SECTION
+#==============================================================================
+
+#------------------------------------------------------------------------------
+#                        Remove all of the native views
+#------------------------------------------------------------------------------
+vNumCubes = DIMSIZ('}Cubes');
+WHILE(vNumCubes > 0);
+
+    # --- Get the dimension to check for subsets
+    vCubeName = DIMNM('}Cubes',vNumCubes);
+
+    vPresFileName = '';
+    sFileName = '*';
+
+    # --- Loop through all the subset files for that dimension
+    WHILE(sFileName @<> '');
+
+        sFileName = WILDCARDFILESEARCH( vDataDirectory |'\'| vCubeName | '}vues\'| '*.vue', vPresFileName );
+        IF( SUBST( sFileName, 1, LONG(vPrefix)) @= vPrefix );
+            vViewName = SUBST( sFileName, 1, LONG(sFileName) - 4 );
+            IF( VIEWEXISTS( vCubeName, vViewName ) > 0 );
+                VIEWDESTROY( vCubeName, vViewName );
+            ENDIF;
+        ENDIF;
+
+        vPresFileName = sFileName;
+    END;
+
+    vNumCubes = vNumCubes - 1;
+END;
+
+#------------------------------------------------------------------------------
+#                        Remove all of the MDX views
+#------------------------------------------------------------------------------
+vNumCubes = DIMSIZ('}Cubes');
+WHILE(vNumCubes > 0);
+
+    # --- Get the dimension to check for subsets
+    vCubeName = DIMNM('}Cubes',vNumCubes);
+
+    vPresFileName = '';
+    sFileName = '*';
+
+    # --- Loop through all the subset files for that dimension
+    WHILE(sFileName @<> '');
+
+        sFileName = WILDCARDFILESEARCH( vDataDirectory |'\'| vCubeName | '}vues\'| '*.xbv', vPresFileName );
+        IF( SUBST( sFileName, 1, LONG(vPrefix)) @= vPrefix );
+            vViewName = SUBST( sFileName, 1, LONG(sFileName) - 4 );
+            IF( VIEWEXISTS( vCubeName, vViewName ) > 0 );
+                VIEWDESTROY( vCubeName, vViewName );
+            ENDIF;
+        ENDIF;
+
+        vPresFileName = sFileName;
+    END;
+
+    vNumCubes = vNumCubes - 1;
+END;
+
+#------------------------------------------------------------------------------
+#                        Remove all of the subsets
+#------------------------------------------------------------------------------
+vNumDims = DIMSIZ('}Dimensions');
+WHILE(vNumDims > 0);
+
+    # --- Get the dimension to check for subsets
+    vDimName = DIMNM('}Dimensions',vNumDims);
+
+    vPresFileName = '';
+    sFileName = '*';
+
+    # --- Loop through all the subset files for that dimension
+    WHILE(sFileName @<> '');
+
+        sFileName = WILDCARDFILESEARCH( vDataDirectory |'\'| vDimName | '}subs\'| '*.sub', vPresFileName );
+        IF( SUBST( sFileName, 1, LONG(vPrefix)) @= vPrefix );
+            vSubsetName = SUBST( sFileName, 1, LONG(sFileName) - 4 );
+            IF( SUBSETEXISTS( vDimName, vSubsetName ) > 0 );
+                SUBSETDESTROY( vDimName, vSubsetName );
+            ENDIF;
+        ENDIF;
+
+        vPresFileName = sFileName;
+    END;
+
+    vNumDims = vNumDims - 1;
+END;
+#endregion

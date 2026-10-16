@@ -1,0 +1,25 @@
+{
+	"@type":"Cube",
+	"Name":"FX Rates",
+	"Dimensions":
+	[
+		{
+			"@id":"Dimensions('Scenario')"
+		},
+		{
+			"@id":"Dimensions('Period')"
+		},
+		{
+			"@id":"Dimensions('Currency')"
+		},
+		{
+			"@id":"Dimensions('FX Rates Measure')"
+		}
+	],
+	"Rules@Code.link":"FX Rates.rules",
+	"Views@Code.links":
+	[
+		"FX Rates.views/Constant Currency.json",
+		"FX Rates.views/default view.json"
+	]
+}

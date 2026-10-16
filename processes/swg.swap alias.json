@@ -1,0 +1,12 @@
+{
+	"@type":"Process",
+	"Name":"swg.swap alias",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"swg.swap alias.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[]
+}

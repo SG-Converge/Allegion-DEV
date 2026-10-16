@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"Scenario Assumptions Measure",
+	"Hierarchies@Code.links":
+	[
+		"Scenario Assumptions Measure.hierarchies/Scenario Assumptions Measure.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('Scenario Assumptions Measure')/Hierarchies('Scenario Assumptions Measure')"
+	}
+}

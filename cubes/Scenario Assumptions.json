@@ -1,0 +1,14 @@
+{
+	"@type":"Cube",
+	"Name":"Scenario Assumptions",
+	"Dimensions":
+	[
+		{
+			"@id":"Dimensions('Scenario')"
+		},
+		{
+			"@id":"Dimensions('Scenario Assumptions Measure')"
+		}
+	],
+	"Views@Code.links":[]
+}

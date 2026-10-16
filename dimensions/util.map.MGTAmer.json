@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"util.map.MGTAmer",
+	"Hierarchies@Code.links":
+	[
+		"util.map.MGTAmer.hierarchies/util.map.MGTAmer.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('util.map.MGTAmer')/Hierarchies('util.map.MGTAmer')"
+	}
+}

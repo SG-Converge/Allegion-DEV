@@ -1,0 +1,371 @@
+#region Prolog
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#==============================================================================
+#                             sys_Cube - Data Export
+#
+#  This process will extract data from a view into a text file.   The text
+#  file can be written with a header row, in which the field names will be
+#  the names of the dimensions.
+#
+#    Date      WHO  Description
+#  ----------  ---  -----------------------------------------------------------
+#  2006-04-28  SWG  Created.
+#  2016-10-27  NDD  Master Copy
+#  2023-07-31  SWG  Script library refresh        
+#
+#==============================================================================
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = TM1User();
+sProcessName = GetProcessName();
+sTimeStamp = TIMST( NOW, '\Y-\m-\d(\h\i\s)' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+sLogPath = './model_upload/Logs/';
+sLogFile = sLogPath | sUniqueName | '.log';
+
+# --- Values
+TRUE = 1; 
+FALSE = 0;
+bDebug = FALSE;
+nErrorCount = 0;
+
+#==============================================================================
+#                        PARAMETER VALIDATION SECTION
+#==============================================================================
+
+# --- Copy the parameters to internal values
+sFilename = pFilename;
+sCubeName = pCubeName;
+sViewName = pViewName;
+sRecordFormat = LOWER(pRecordFormat);
+bOverwrite = If( pOverwriteFile = 0, FALSE, TRUE );
+sSemaphoreFilename = pSemaphoreFilename;
+bParallelMode = If( pSemaphoreFilename @= '', FALSE, TRUE );
+
+#------------------------------------------------------------------------------
+#                       Validate Output File
+#------------------------------------------------------------------------------
+
+# --- Validate the file does not exist
+If( FileExists( sFilename ) = TRUE );
+    If( bOverwrite = 1 );
+        ASCIIDelete( sFilename );
+    Else;
+        sMessage = Expand( 'Specified file [%sFilename%] already exists.');
+        LogOutput( 'ERROR', sMessage );
+        If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+        ProcessError;
+    EndIf;
+EndIf;
+
+#------------------------------------------------------------------------------
+#                       Validate Cube Name
+#------------------------------------------------------------------------------
+
+# --- Validate the cube exists
+If( CubeExists( sCubeName ) = FALSE );
+    sMessage = Expand( 'Specified cube [%sCubeName%] does not exist.');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    ProcessError;
+EndIf;
+
+#------------------------------------------------------------------------------
+#                       Validate View Name
+#------------------------------------------------------------------------------
+
+# --- Validate the view exists
+If( ViewExists( sCubeName, sViewName ) = FALSE );
+    sMessage = Expand( 'Specified view [%sViewName%] in cube [%sCubeName%] does not exist.');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    ProcessError;
+EndIf;
+
+#------------------------------------------------------------------------------
+#                       Validate Format
+#------------------------------------------------------------------------------
+
+# --- Validate the format specified is supported
+bEscapeDoubleQuote = FALSE;
+sQuote = '';
+sDelimeter = '';
+If( sRecordFormat @= 'csv' );
+    sDelimeter = ',';
+    sQuote = '"';
+    bEscapeDoubleQuote = TRUE;
+ElseIf( sRecordFormat @= 'tab' );
+    sDelimeter = CHAR(09);
+ElseIf( sRecordFormat @= 'comma' );
+    sDelimeter = ',';
+ElseIf( sRecordFormat @= 'pipe' );
+    sDelimeter = '|';
+Else;
+    sMessage = Expand( 'Specified record format [%sRecordFormat%] is invalid.   Must be csv, tab, comma or pipe');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = TRUE ); TextOutput( sLogFile, sMessage ); EndIf;
+    ProcessError;
+EndIf;
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+# --- Initialize input
+DatasourceNameForServer =  sCubeName;
+DatasourceCubeView = sViewName;
+
+# --- Initialize output
+DatasourceASCIIDelimiter = sDelimeter;
+DatasourceASCIIQuoteCharacter =  sQuote;
+SetOutputEscapeDoubleQuote( sFileName, bEscapeDoubleQuote);
+
+ViewExtractSkipRuleValuesSet( sCubeName, sViewName, FALSE );
+
+# --- Iniitalize counts
+nRecCount = 0;
+nNumDims = CubeDimensionCountGet( sCubeName );
+
+# --- Initialize variables
+sCol1 = '*';
+sCol2 = '*';
+sCol3 = '*';
+sCol4 = '*';
+sCol5 = '*';
+sCol6 = '*';
+sCol7 = '*';
+sCol8 = '*';
+sCol9 = '*';
+sCol10 = '*';
+sCol11 = '*';
+sCol12 = '*';
+sCol13 = '*';
+sCol14 = '*';
+sCol15 = '*';
+sCol16 = '*';
+sCol17 = '*';
+sCol18 = '*';
+sCol19 = '*';
+sCol20 = '*';
+
+# --- Capture the dimension names
+sDimName1  = If( nNumDims <=  1, If( bParallelMode = TRUE, 'Dim1 ', TABDIM( sCubeName,  1 )), '' );
+sDimName2  = If( nNumDims <=  2, If( bParallelMode = TRUE, 'Dim2 ', TABDIM( sCubeName,  2 )), '' );
+sDimName3  = If( nNumDims <=  3, If( bParallelMode = TRUE, 'Dim3 ', TABDIM( sCubeName,  3 )), '' );
+sDimName4  = If( nNumDims <=  4, If( bParallelMode = TRUE, 'Dim4 ', TABDIM( sCubeName,  4 )), '' );
+sDimName5  = If( nNumDims <=  5, If( bParallelMode = TRUE, 'Dim5 ', TABDIM( sCubeName,  5 )), '' );
+sDimName6  = If( nNumDims <=  6, If( bParallelMode = TRUE, 'Dim6 ', TABDIM( sCubeName,  6 )), '' );
+sDimName7  = If( nNumDims <=  7, If( bParallelMode = TRUE, 'Dim7 ', TABDIM( sCubeName,  7 )), '' );
+sDimName8  = If( nNumDims <=  8, If( bParallelMode = TRUE, 'Dim8 ', TABDIM( sCubeName,  8 )), '' );
+sDimName9  = If( nNumDims <=  9, If( bParallelMode = TRUE, 'Dim9 ', TABDIM( sCubeName,  9 )), '' );
+sDimName10 = If( nNumDims <= 10, If( bParallelMode = TRUE, 'Dim10', TABDIM( sCubeName, 10 )), '' );
+sDimName11 = If( nNumDims <= 11, If( bParallelMode = TRUE, 'Dim11', TABDIM( sCubeName, 11 )), '' );
+sDimName12 = If( nNumDims <= 12, If( bParallelMode = TRUE, 'Dim12', TABDIM( sCubeName, 12 )), '' );
+sDimName13 = If( nNumDims <= 13, If( bParallelMode = TRUE, 'Dim13', TABDIM( sCubeName, 13 )), '' );
+sDimName14 = If( nNumDims <= 14, If( bParallelMode = TRUE, 'Dim14', TABDIM( sCubeName, 14 )), '' );
+sDimName15 = If( nNumDims <= 15, If( bParallelMode = TRUE, 'Dim15', TABDIM( sCubeName, 15 )), '' );
+sDimName16 = If( nNumDims <= 16, If( bParallelMode = TRUE, 'Dim16', TABDIM( sCubeName, 16 )), '' );
+sDimName17 = If( nNumDims <= 17, If( bParallelMode = TRUE, 'Dim17', TABDIM( sCubeName, 17 )), '' );
+sDimName18 = If( nNumDims <= 18, If( bParallelMode = TRUE, 'Dim18', TABDIM( sCubeName, 18 )), '' );
+sDimName19 = If( nNumDims <= 19, If( bParallelMode = TRUE, 'Dim19', TABDIM( sCubeName, 19 )), '' );
+sDimName20 = If( nNumDims <= 20, If( bParallelMode = TRUE, 'Dim20', TABDIM( sCubeName, 20 )), '' );
+#endregion
+#region Metadata
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#------------------------------------------------------------------------------
+# Unfortunately, though functional, this script uses a brute force method
+# for writing out the records where the cube size sets the output record
+# size.   This must be done this way until TM1 can support more than 255
+# characters per variable.  The proper method would be to build a single
+# string with the entire record and then output that record, but this would
+# cause problems with long dimension element names and/or string data values.
+#------------------------------------------------------------------------------
+nRecCount = nRecCount + 1;
+
+#------------------------------------------------------------------------------
+# Write out the header record
+#------------------------------------------------------------------------------
+If( nRecCount = 1);
+    If( nNumDims = 1 );
+        TextOutput( sFileName, 'Cube', sDimName1, 
+            'Value' );
+    ElseIf( nNumDims = 2 );
+        TextOutput( sFileName, 'Cube', sDimName1, sDimName2, 
+            'Value' );
+    ElseIf( nNumDims = 3 );
+        TextOutput( sFileName, 'Cube', sDimName1, sDimName2, sDimName3, 
+            'Value' );
+    ElseIf( nNumDims = 4 );
+        TextOutput( sFileName, 'Cube', sDimName1, sDimName2, sDimName3, sDimName4,
+            'Value' );
+    ElseIf( nNumDims = 5 );
+        TextOutput( sFileName, 'Cube', sDimName1, sDimName2, sDimName3, sDimName4, sDimName5, 
+            'Value' );
+    ElseIf( nNumDims = 6 );
+        TextOutput( sFileName, 'Cube', sDimName1, sDimName2, sDimName3, sDimName4, sDimName5, 
+            sDimName6, 
+            'Value' );
+    ElseIf( nNumDims = 7 );
+        TextOutput( sFileName, 'Cube', sDimName1, sDimName2, sDimName3, sDimName4, sDimName5, 
+            sDimName6, sDimName7, 
+            'Value' );
+    ElseIf( nNumDims = 8 );
+        TextOutput( sFileName, 'Cube', sDimName1, sDimName2, sDimName3, sDimName4, sDimName5, 
+            sDimName6, sDimName7, sDimName8,
+            'Value' );
+    ElseIf( nNumDims = 9 );
+        TextOutput( sFileName, 'Cube', sDimName1, sDimName2, sDimName3, sDimName4, sDimName5, 
+            sDimName6, sDimName7, sDimName8, sDimName9,
+            'Value' );
+    ElseIf( nNumDims = 10 );
+        TextOutput( sFileName, 'Cube', sDimName1, sDimName2, sDimName3, sDimName4, sDimName5, 
+            sDimName6, sDimName7, sDimName8, sDimName8, sDimName9, sDimName10, 
+            'Value' );
+    ElseIf( nNumDims = 11 );
+        TextOutput( sFileName, 'Cube', sDimName1, sDimName2, sDimName3, sDimName4, sDimName5, 
+            sDimName6, sDimName7, sDimName8, sDimName9, sDimName10, sDimName11,
+            'Value' );
+    ElseIf( nNumDims = 12 );
+        TextOutput( sFileName, 'Cube', sDimName1, sDimName2, sDimName3, sDimName4, sDimName5, 
+            sDimName6, sDimName7, sDimName8, sDimName9, sDimName10, sDimName11, sDimName12,
+            'Value' );
+    ElseIf( nNumDims = 13 );
+        TextOutput( sFileName, 'Cube', sDimName1, sDimName2, sDimName3, sDimName4, sDimName5, 
+            sDimName6, sDimName7, sDimName8, sDimName9, sDimName10, sDimName11, sDimName12,
+            sDimName13, 
+            'Value' );
+    ElseIf( nNumDims = 14 );
+        TextOutput( sFileName, 'Cube', sDimName1, sDimName2, sDimName3, sDimName4, sDimName5, 
+            sDimName6, sDimName7, sDimName8, sDimName9, sDimName10, sDimName11, sDimName12,
+            sDimName13, sDimName14, 
+            'Value' );
+    ElseIf( nNumDims = 15 );
+        TextOutput( sFileName, 'Cube', sDimName1, sDimName2, sDimName3, sDimName4, sDimName5, 
+            sDimName6, sDimName7, sDimName8, sDimName9, sDimName10, sDimName11, sDimName12,
+            sDimName13, sDimName14, sDimName15,
+            'Value' );
+    ElseIf( nNumDims = 16 );
+        TextOutput( sFileName, 'Cube', sDimName1, sDimName2, sDimName3, sDimName4, sDimName5, 
+            sDimName6, sDimName7, sDimName8, sDimName9, sDimName10, sDimName11, sDimName12,
+            sDimName13, sDimName14, sDimName15, sDimName16, 
+            'Value' );
+    ElseIf( nNumDims = 17 );
+        TextOutput( sFileName, 'Cube', sDimName1, sDimName2, sDimName3, sDimName4, sDimName5, 
+            sDimName6, sDimName7, sDimName8, sDimName9, sDimName10, sDimName11, sDimName12,
+            sDimName13, sDimName14, sDimName15, sDimName16, sDimName17, 
+            'Value' );
+    ElseIf( nNumDims = 18 );
+        TextOutput( sFileName, 'Cube', sDimName1, sDimName2, sDimName3, sDimName4, sDimName5, 
+            sDimName6, sDimName7, sDimName8, sDimName9, sDimName10, sDimName11, sDimName12,
+            sDimName13, sDimName14, sDimName15, sDimName16, sDimName17, sDimName18, 
+            'Value' );
+    ElseIf( nNumDims = 19 );
+        TextOutput( sFileName, 'Cube', sDimName1, sDimName2, sDimName3, sDimName4, sDimName5, 
+            sDimName6, sDimName7, sDimName8, sDimName9, sDimName10, sDimName11, sDimName12,
+            sDimName13, sDimName14, sDimName15, sDimName16, sDimName17, sDimName18, sDimName19,
+             'Value' );
+    ElseIf( nNumDims = 20 );
+        TextOutput( sFileName, 'Cube', sDimName1, sDimName2, sDimName3, sDimName4, sDimName5, 
+            sDimName6, sDimName7, sDimName8, sDimName9, sDimName10, sDimName11, sDimName12,
+            sDimName13, sDimName14, sDimName15, sDimName16, sDimName17, sDimName18, sDimName19,
+            sDimName20, 
+            'Value' );
+    EndIf;
+EndIf;
+
+#------------------------------------------------------------------------------
+# Write out the data record
+#------------------------------------------------------------------------------
+If( nNumDims = 2 );
+    TextOutput( sFileName, sCubeName, sCol1, sCol2, sCol3 );
+ElseIf( nNumDims = 3 );
+    TextOutput( sFileName, sCubeName, sCol1, sCol2, sCol3, sCol4 );
+ElseIf( nNumDims = 4 );
+    TextOutput( sFileName, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5 );
+ElseIf( nNumDims = 5 );
+    TextOutput( sFileName, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6 );
+ElseIf( nNumDims = 6 );
+    TextOutput( sFileName, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+        sCol7);
+ElseIf( nNumDims = 7 );
+    TextOutput( sFileName, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+        sCol7, sCol8 );
+ElseIf( nNumDims = 8 );
+    TextOutput( sFileName, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+        sCol7, sCol8, sCol9 );
+ElseIf( nNumDims = 9 );
+    TextOutput( sFileName, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+        sCol7, sCol8, sCol9, sCol10 );
+ElseIf( nNumDims = 10 );
+    TextOutput( sFileName, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+        sCol7, sCol8, sCol9, sCol10, sCol11 );
+ElseIf( nNumDims = 11 );
+    TextOutput( sFileName, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+        sCol7, sCol8, sCol9, sCol10, sCol11, sCol12 );
+ElseIf( nNumDims = 12 );
+    TextOutput( sFileName, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+        sCol7, sCol8, sCol9, sCol10, sCol11, sCol12,  sCol13 );
+ElseIf( nNumDims = 13 );
+    TextOutput( sFileName, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+        sCol7, sCol8, sCol9, sCol10, sCol11, sCol12,  sCol13, sCol14 );
+ElseIf( nNumDims = 14 );
+    TextOutput( sFileName, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+        sCol7, sCol8, sCol9, sCol10, sCol11, sCol12,  sCol13, sCol14, sCol15 );
+ElseIf( nNumDims = 15 );
+    TextOutput( sFileName, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+        sCol7, sCol8, sCol9, sCol10, sCol11, sCol12,  sCol13, sCol14, sCol15, sCol16 );
+ElseIf( nNumDims = 16 );
+    TextOutput( sFileName, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+        sCol7, sCol8, sCol9, sCol10, sCol11, sCol12, sCol13, sCol14, sCol15, sCol16, 
+        sCol17 );
+ElseIf( nNumDims = 17 );
+    TextOutput( sFileName, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+        sCol7, sCol8, sCol9, sCol10, sCol11, sCol12, sCol13, sCol14, sCol15, sCol16, 
+        sCol17, sCol18);    
+ElseIf( nNumDims = 18 );
+    TextOutput( sFileName, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+        sCol7, sCol8, sCol9, sCol10, sCol11, sCol12, sCol13, sCol14, sCol15, sCol16, 
+        sCol17, sCol18, sCol19);
+ElseIf( nNumDims = 19 );
+    TextOutput( sFileName, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+        sCol7, sCol8, sCol9, sCol10, sCol11, sCol12, sCol13, sCol14, sCol15, sCol16, 
+        sCol17, sCol18, sCol19, sCol20 );                              
+ElseIf( nNumDims = 20 );
+    TextOutput( sFileName, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+        sCol7, sCol8, sCol9, sCol10, sCol11, sCol12, sCol13, sCol14, sCol15, sCol16, 
+        sCol17, sCol18, sCol19, sCol20, sCol21);        
+EndIf;
+#endregion
+#region Epilog
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+LogOutput( 'INFO', Expand( '%sProcessName%: [%nRecCount%] records exported from cube [%sCubeName%] to file [%sFilename%]' ) );
+
+
+If( bDebug = 1);
+    TextOutput( sLogFile, Expand( 'Exported [%nRecCount%] records from cube [%sCubeName%] view [%sViewName%] to file [%sFilename%]') );
+EndIf;
+
+
+# --- If multi-threading control is needed, then create the semaphore file
+# --- that must be tracked by the parent process.
+If( sSemaphoreFilename @<> '' );
+    TextOutput( sSemaphoreFilename, TIMST( NOW, '\Y-\m-\d \h:\i:\s' ) );
+EndIf;
+#endregion

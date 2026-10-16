@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"Prior Year",
+	"Alias":"Caption",
+	"Expression":"{DISTINCT({{STRTOMEMBER(\"[Period].[Period].[\" + [Global Assumptions].([Global Assumption].[Forecast Prior Year],[Global Assumptions Measure].[String]) + \"]\")},DESCENDANTS(STRTOMEMBER(\"[Period].[Period].[\" + [Global Assumptions].([Global Assumption].[Forecast Prior Year],[Global Assumptions Measure].[String]) + \"]\") , 99 , LEAVES)})}"
+}

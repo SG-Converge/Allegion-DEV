@@ -1,0 +1,68 @@
+{
+	"@type":"NativeView",
+	"Name":"RO Input",
+	"Columns":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('RO Input Measure')/Hierarchies('RO Input Measure')"
+				},
+				"ExpandAbove":true,
+				"Expression":"{[RO Input Measure].[RO Input Measure].MEMBERS}"
+			}
+		}
+	],
+	"Rows":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('RO Item')/Hierarchies('RO Item')"
+				},
+				"Expression":"{[RO Item].[RO Item].MEMBERS}"
+			}
+		}
+	],
+	"Titles":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Scenario')/Hierarchies('Scenario')"
+				},
+				"Expression":"{[Scenario].[Scenario].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Scenario')/Hierarchies('Scenario')/Elements('Working RO')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('RO Entity')/Hierarchies('RO Entity')"
+				},
+				"Expression":"{[RO Entity].[RO Entity].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('RO Entity')/Hierarchies('RO Entity')/Elements('BR_CORPORATE')"
+			}
+		}
+	],
+	"SuppressEmptyColumns":false,
+	"SuppressEmptyRows":false,
+	"FormatString":"0.00",
+	"IsAutocalculate" : true,
+	"IsDeferComputeOnLeafDataEntry" : false,
+	"IsSuppressComputeOnOpen" : false
+}

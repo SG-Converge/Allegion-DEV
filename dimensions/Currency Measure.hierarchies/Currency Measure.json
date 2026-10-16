@@ -1,0 +1,12 @@
+{
+	"@type":"Hierarchy",
+	"Name":"Currency Measure",
+	"Elements":
+	[
+		{
+			"Name":"Average Rate",
+			"Type":"Numeric"
+		}
+	],
+	"Subsets@Code.links":[]
+}

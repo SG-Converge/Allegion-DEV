@@ -1,0 +1,30 @@
+{
+	"@type":"Cube",
+	"Name":"Bridge Input",
+	"Dimensions":
+	[
+		{
+			"@id":"Dimensions('Bridge Version')"
+		},
+		{
+			"@id":"Dimensions('Period')"
+		},
+		{
+			"@id":"Dimensions('Bridge Entity')"
+		},
+		{
+			"@id":"Dimensions('Bridge Product')"
+		},
+		{
+			"@id":"Dimensions('Bridge Function')"
+		},
+		{
+			"@id":"Dimensions('Bridge Account')"
+		},
+		{
+			"@id":"Dimensions('Bridge Input Measure')"
+		}
+	],
+	"Rules@Code.link":"Bridge Input.rules",
+	"Views@Code.links":[]
+}

@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"Months",
+	"Alias":"Caption",
+	"Expression":"{EXCEPT(TM1FILTERBYLEVEL(TM1SUBSETALL([Period].[Period]) , 0) , {[Period].[Period].[No Period]} , ALL)}"
+}

@@ -1,0 +1,16 @@
+{
+	"@type":"Hierarchy",
+	"Name":"FX Rates Measure",
+	"Elements":
+	[
+		{
+			"Name":"Avg Rate",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"EOP Rate",
+			"Type":"Numeric"
+		}
+	],
+	"Subsets@Code.links":[]
+}

@@ -1,0 +1,40 @@
+{
+	"@type":"Cube",
+	"Name":"PL Input",
+	"Dimensions":
+	[
+		{
+			"@id":"Dimensions('Scenario')"
+		},
+		{
+			"@id":"Dimensions('Period')"
+		},
+		{
+			"@id":"Dimensions('Entity')"
+		},
+		{
+			"@id":"Dimensions('Product')"
+		},
+		{
+			"@id":"Dimensions('Function')"
+		},
+		{
+			"@id":"Dimensions('PL Account')"
+		},
+		{
+			"@id":"Dimensions('PL Input Measure')"
+		}
+	],
+	"Rules@Code.link":"PL Input.rules",
+	"Views@Code.links":
+	[
+		"PL Input.views/Fcst-2.0 Revenue and Std Cost.json",
+		"PL Input.views/Fcst-2.3 Capitalized Variances.json",
+		"PL Input.views/Fcst-3.0 Functional Spend.json",
+		"PL Input.views/Fcst-6.0 Headcount Upload.json",
+		"PL Input.views/Forecast Input.json",
+		"PL Input.views/Forecast Input MM.json",
+		"PL Input.views/Revenue Input.json",
+		"PL Input.views/proto.cube.Load MgtAmer Forecast Data - PL Input 2025.json"
+	]
+}

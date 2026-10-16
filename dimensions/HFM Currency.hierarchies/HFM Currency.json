@@ -1,0 +1,39 @@
+{
+	"@type":"Hierarchy",
+	"Name":"HFM Currency",
+	"ElementsSortType":"ByHierarchy",
+	"ComponentsSortType":"ByName",
+	"Elements":
+	[
+		{
+			"Name":"All Currencies",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Local",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"USD",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"<Entity Curr Adjs>",
+			"Type":"Numeric"
+		}
+	],
+	"Edges":
+	[
+		{
+			"ParentName":"All Currencies",
+			"ComponentName":"Local",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Currencies",
+			"ComponentName":"USD",
+			"Weight":1
+		}
+	],
+	"Subsets@Code.links":[]
+}

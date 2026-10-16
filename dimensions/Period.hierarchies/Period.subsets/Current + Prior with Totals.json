@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"Current + Prior with Totals",
+	"Alias":"Caption",
+	"Expression":"{DISTINCT({TM1SubsetToSet([Period] , \"Current Year\"),TM1SubsetToSet([Period] , \"Prior Year\")})}"
+}

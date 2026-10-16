@@ -1,0 +1,57 @@
+['Forecast Start Period', 'String'] = S:
+  ATTRS( 'Period XRef', DB( 'Global Assumptions', 'Actual End Period', 'String'), 'Period Next');
+
+['Forecast Start Month', 'String'] = S:
+  SUBST( DB( 'Global Assumptions', 'Forecast Start Period', 'String' ), 6, 2 );
+
+['Forecast Start Month', 'Number'] = N:
+  NUMBR( DB( 'Global Assumptions', 'Forecast Start Month', 'String' ) );
+
+['Forecast Start Year', 'String'] = S:
+  SUBST( DB( 'Global Assumptions', 'Forecast Start Period', 'String' ), 1, 4 );
+  
+['Forecast Start Year','Number'] = N:
+  NUMBR( DB( 'Global Assumptions', 'Forecast Start Year', 'String' ) );
+
+['Forecast Prior Year', 'Number'] = N:
+  ['Forecast Start Year'] - 1;
+
+['Forecast Prior Year', 'String'] = S:
+  STR( ['Forecast Prior Year', 'Number'], 4, 0 );
+
+['Bridge Current forecast', 'String'] = S:
+    IF( ['Forecast Start Month', 'Number'] >= 2 & ['Forecast Start Month', 'Number'] <= 4,
+        'BRIDGE_FCST02_10_VPY',
+        IF( ['Forecast Start Month', 'Number'] >= 5 & ['Forecast Start Month', 'Number'] <= 7,
+            'BRIDGE_FCST05_07_VPY',
+            'BRIDGE_FCST08_04_VPY'
+        )
+    );
+
+['Bridge Prior forecast', 'String'] = S:
+    IF( ['Forecast Start Month', 'Number'] >= 2 & ['Forecast Start Month', 'Number'] <= 4,
+        'BRIDGE_AOPCY_VPY',
+        IF( ['Forecast Start Month', 'Number'] >= 5 & ['Forecast Start Month', 'Number'] <= 7,
+            'BRIDGE_FCST02_10_VPY ',
+            'BRIDGE_FCST05_07_VPY'
+        )
+    );
+
+['Bridge Interim forecast', 'String'] = S:
+    IF( ['Forecast Start Month', 'Number'] = 2,
+        'BRIDGE_AOPCY_VPY',
+        IF( ['Forecast Start Month', 'Number'] >= 3 & ['Forecast Start Month', 'Number'] <= 4,
+            'BRIDGE_FCST02_10_VPY',
+            IF( ['Forecast Start Month', 'Number'] = 5,
+                'BRIDGE_FCST02_10_VPY ',
+                IF( ['Forecast Start Month', 'Number'] >= 6 & ['Forecast Start Month', 'Number'] <= 7,
+                    'BRIDGE_FCST05_07_VPY',
+                    IF( ['Forecast Start Month', 'Number'] = 8,
+                        'BRIDGE_FCST05_07_VPY',
+                        'BRIDGE_FCST08_04_VPY'
+                    )
+                )
+            )
+        )
+    );
+

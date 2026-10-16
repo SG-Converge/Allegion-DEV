@@ -1,0 +1,26 @@
+{
+	"@type":"Process",
+	"Name":"fin.process.Create WF Snapshot",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"fin.process.Create WF Snapshot.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pDestScenario",
+			"Prompt":"Destination Scenario",
+			"Value":"TestSnapshot2",
+			"Type":"String"
+		},
+		{
+			"Name":"pYear",
+			"Prompt":"Year to copy",
+			"Value":"2026",
+			"Type":"String"
+		}
+	],
+	"Variables":[]
+}

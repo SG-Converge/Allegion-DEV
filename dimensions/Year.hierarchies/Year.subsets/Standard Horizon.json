@@ -1,0 +1,41 @@
+{
+	"@type":"Subset",
+	"Name":"Standard Horizon",
+	"Alias":"Caption",
+	"Elements":
+	[
+		{
+			"@id":"Dimensions('Year')/Hierarchies('Year')/Elements('2025')"
+		},
+		{
+			"@id":"Dimensions('Year')/Hierarchies('Year')/Elements('2026')"
+		},
+		{
+			"@id":"Dimensions('Year')/Hierarchies('Year')/Elements('2027')"
+		},
+		{
+			"@id":"Dimensions('Year')/Hierarchies('Year')/Elements('2028')"
+		},
+		{
+			"@id":"Dimensions('Year')/Hierarchies('Year')/Elements('2029')"
+		},
+		{
+			"@id":"Dimensions('Year')/Hierarchies('Year')/Elements('2030')"
+		},
+		{
+			"@id":"Dimensions('Year')/Hierarchies('Year')/Elements('2031')"
+		},
+		{
+			"@id":"Dimensions('Year')/Hierarchies('Year')/Elements('2032')"
+		},
+		{
+			"@id":"Dimensions('Year')/Hierarchies('Year')/Elements('2033')"
+		},
+		{
+			"@id":"Dimensions('Year')/Hierarchies('Year')/Elements('2034')"
+		},
+		{
+			"@id":"Dimensions('Year')/Hierarchies('Year')/Elements('2035')"
+		}
+	]
+}

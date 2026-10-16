@@ -1,0 +1,151 @@
+{
+	"@type":"Process",
+	"Name":"sys_Dimension - Period - Create",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"sys_Dimension - Period - Create.ti",
+	"UIData":"_ParameterConstraints=e30=\f",
+	"VariablesUIData":
+	[
+		"VarType=32\fColType=827\f"
+	],
+	"DataSource":
+	{
+		"Type":"TM1DimensionSubset",
+		"dataSourceNameForClient":"Period XRef:Period XRef",
+		"dataSourceNameForServer":"Period XRef:Period XRef",
+		"subset":"All"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pPeriodXrefDim",
+			"Prompt":"Source XRef dimension",
+			"Value":"Period XRef",
+			"Type":"String"
+		},
+		{
+			"Name":"pDimension",
+			"Prompt":"Dimension to update/create",
+			"Value":"Period",
+			"Type":"String"
+		},
+		{
+			"Name":"pHierarchy",
+			"Prompt":"Hierarchy to create period elements (blank=Dimension)",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pRootElement",
+			"Prompt":"Top level element of periods created",
+			"Value":"All Periods",
+			"Type":"String"
+		},
+		{
+			"Name":"pYearStart",
+			"Prompt":"Starting year",
+			"Value":"2023",
+			"Type":"String"
+		},
+		{
+			"Name":"pYearEnd",
+			"Prompt":"Ending year",
+			"Value":"2035",
+			"Type":"String"
+		},
+		{
+			"Name":"pRecreateDimension",
+			"Prompt":"Recreate dimension flag (will delete all hierarchies) (Yes/No)",
+			"Value":"No",
+			"Type":"String"
+		},
+		{
+			"Name":"pRebuildHierarchy",
+			"Prompt":"Rebuild hierarchy (will leave others intact)",
+			"Value":"Yes",
+			"Type":"String"
+		},
+		{
+			"Name":"pPeriodType",
+			"Prompt":"Period Type (Calendar,Fiscal, or Manufacturing)",
+			"Value":"Calendar",
+			"Type":"String"
+		},
+		{
+			"Name":"pGranularity",
+			"Prompt":"Granularity (Day, Week, Month, Quarter, Half or Year)",
+			"Value":"Month",
+			"Type":"String"
+		},
+		{
+			"Name":"pIncludeWeek",
+			"Prompt":"Include week rollups (Yes/No)",
+			"Value":"No",
+			"Type":"String"
+		},
+		{
+			"Name":"pIncludeMonth",
+			"Prompt":"Include month rollups (Yes/No)",
+			"Value":"Yes",
+			"Type":"String"
+		},
+		{
+			"Name":"pIncludeQuarter",
+			"Prompt":"Include quarter rollups (Yes/No)",
+			"Value":"Yes",
+			"Type":"String"
+		},
+		{
+			"Name":"pIncludeHalfYear",
+			"Prompt":"Include half year rollups (Yes/No)",
+			"Value":"No",
+			"Type":"String"
+		},
+		{
+			"Name":"pDayFormat",
+			"Prompt":"Specify Caption format for Day level elements",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pWeekFormat",
+			"Prompt":"Specify Caption format for Week level elements",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pMonthFormat",
+			"Prompt":"Specify Caption format for Month level elements",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pQuarterFormat",
+			"Prompt":"Specify Caption format for Quarter level elements",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pHalfFormat",
+			"Prompt":"Specify Caption format for Half level elements",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pYearFormat",
+			"Prompt":"Specify Caption format for Year level elements",
+			"Value":"",
+			"Type":"String"
+		}
+	],
+	"Variables":
+	[
+		{
+			"Name":"inElemID",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		}
+	]
+}

@@ -1,0 +1,236 @@
+#region Prolog
+
+#==============================================================================
+#                               Load FX Rates
+#
+#  This script will load in the average and end of period (EOP) exchange
+#  rates from HFM extract.
+
+#
+#      Date    WHO  Description
+#  ----------  ---  -----------------------------------------------------------
+#  2026/04/06  SWG  Created.
+#
+#==============================================================================
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = ATTRS( '}Clients', TM1User(), '}TM1_DefaultDisplayValue' );
+sProcessName = GetProcessName();
+sDateStamp = TIMST( NOW, '\Y-\m-\d' );
+sTimeStamp = TIMST( NOW, '\Y-\m-\d \h.\i.\s' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+# --- Static Values
+ERROR  = 1; WARN   = 2; STATS  = 3;
+INFO   = 4; DEBUG  = 5; TRACE  = 6;
+TRUE   = 1; FALSE  = 0;
+LF     = CHAR(10);
+EXCEL_ADJUSTMENT = 21916;
+
+# --- Setup processing information
+bUseTemporaryObjects = TRUE;
+
+# --- Cubes
+sConfigCube    = 'sys.Config';
+sStatsCube     = 'sys.Process Stats';
+sFXCube        = 'FX Rates';
+
+# --- Dimensions
+sScenarioDim   = 'Scenario';
+sPeriodDim     = 'Period';
+sCurrencyDim   = 'Currency';
+sMeasureDim    = 'FX Rates Measure';
+sPeriodXRefDim = 'Period XRef';
+
+# --- Data values
+sHFMDir = CellGetS( sConfigCube, 'HFM Upload Directory', 'String' );
+
+#==============================================================================
+#                               LOGGING SECTION
+#==============================================================================
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Started At' );
+CellPutS( sUser, sStatsCube, sProcessName, 'Executed By' );
+
+# --- Setup Logging
+nLogLevel = CellGetN( sStatsCube, sProcessName, 'Logging Level' );
+sLogDir = CellGetS( sConfigCube, 'Log Directory', 'String' );
+sLogFile = sLogDir | sProcessName | '.log';
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log startup
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Started');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+# --- Report how the script was executed 
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand( '%LF%
+        ============================================================================ %LF%
+                        %sProcessName%                                               %LF%
+        ============================================================================ %LF%
+        Executed by [%sUser%]                                                        %LF%
+              pFilename   = [%pFilename%]                                            %LF%
+              pPeriod     = [%pPeriod%]                                              %LF%
+        ============================================================================ %LF%
+    ');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+#==============================================================================
+#                        PARAMETER VALIDATION SECTION
+#==============================================================================
+
+# --- Validate input filename
+sFilename = pFilename;
+sInputFile = sHFMDir | sFilename;
+If( FileExists( sInputFile ) = FALSE );
+    sMsgLevel = 'ERROR';
+    sMessage = Expand( 'Specified file [%sFilename%] does not exist or cannot be accessed in [%sHFMDir%]');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+    ProcessError();
+EndIf;
+
+# --- Validate period to clear
+sClearPeriod = pPeriod;
+If( sClearPeriod @<> '' );
+    If( DimensionElementExists( sPeriodDim, sClearPeriod ) = FALSE );
+        sMsgLevel = 'ERROR';
+        sMessage = Expand( 'Specified period to clear [%sClearPeriod%] does not exist in dimension [%sPeriodDim%]');
+        ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+        ProcessError();
+    EndIf;
+EndIf;
+
+# --- Capture which rate to clear
+sClearMeasure = pMeasure;
+If( sClearMeasure @<> '' );
+    If( DimensionElementExists( sMeasureDim, sClearMeasure ) = FALSE );
+        sMsgLevel = 'ERROR';
+        sMessage = Expand( 'Specified FX rate type to clear [%sClearMeasure%] does not exist in dimension [%sMeasureDim%]');
+        ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+        ProcessError();
+    EndIf;
+EndIf;
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+# --- Setup destination
+sCubeName = sFXCube;
+
+# --- If the period to clear parameter was specified, then clear out that
+# --- period from the cube, if not just load the data.   This is to allow for
+# --- partial and incremental loads.
+If( sClearPeriod @<> '' );
+    sViewMDX = Expand( '%LF%
+        WITH %LF%
+            SET ScenarioSet   as { TM1FilterByLevel( TM1SubsetAll( [Scenario] ), 0 ) } %LF%
+            SET PeriodSet     as { DISTINCT(DESCENDANTS([Period].[Period].[%sClearPeriod%] , 99 , LEAVES)) } %LF%
+            SET CurrencySet   as { TM1FilterByLevel( TM1SubsetAll( [Currency] ), 0 ) } %LF%
+            SET MeasureSet    as { [FX Rates Measure].[FX Rates Measure].[%sClearMeasure%] } %LF%
+    
+        SELECT %LF%
+            MeasureSet ON 0, %LF%
+            NON EMPTY ScenarioSet * PeriodSet * CurrencySet  ON 1 %LF%
+    
+        FROM [%sCubeName%] %LF%
+    ' );
+    
+    sViewName = sTempName | ' - Clear ';
+    If( nLogLevel >= DEBUG );
+        sMsgLevel = 'DEBUG';
+        sMessage = Expand('Destination view: %sViewMDX%');
+        ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+    EndIf;
+    ViewCreateByMDX( sCubeName, sViewName, sViewMDX, bUseTemporaryObjects );
+    ViewZeroOut( sCubeName, sViewName );
+EndIf;
+
+#==============================================================================
+#                        DATAFILE SECTION
+#==============================================================================
+DatasourceNameForServer = sInputFile;
+
+#endregion
+#region Metadata
+
+
+# ----------------------------------------------------
+# Handle incoming record
+# ----------------------------------------------------
+sScenario  = inScenario;
+sPeriod    = inYear | '-' | inMonth;
+sCurrency  = inCurrency;
+sMeasure   = inMeasure;
+nValue     = inValue;
+
+
+# ----------------------------------------------------
+# Scenario
+# ----------------------------------------------------
+sDimName = sScenarioDim;
+sElemID = sScenario;
+
+# --- Now, check to see if the element exists, if not, add it.
+If( DimensionElementExists( sDimName, sElemID ) = FALSE );
+    DimensionElementInsert( sDimName, '', sElemID, 'N' );
+EndIf;
+
+
+# ----------------------------------------------------
+# Currency
+# ----------------------------------------------------
+sDimName = sCurrencyDim;
+sElemID = sCurrency;
+
+# --- Now, check to see if the element exists, if not, add it.
+If( DimensionElementExists( sDimName, sElemID ) = FALSE );
+    DimensionElementInsert( sDimName, '', sElemID, 'N' );
+EndIf;
+
+#endregion
+#region Data
+
+
+
+# ----------------------------------------------------
+# Handle incoming record
+# ----------------------------------------------------
+sScenario  = inScenario;
+sPeriod    = inYear | '-' | inMonth;
+sCurrency  = inCurrency;
+sMeasure   = inMeasure;
+nValue     = inValue;
+
+
+CellPutN(  nValue, sCubeName, sScenario, sPeriod, sCurrency, sMeasure );
+#endregion
+#region Epilog
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Completed At' );
+
+# --- Append to the log (will overwrite if not done before AsciiOutput)
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log completion
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Completed');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+#endregion

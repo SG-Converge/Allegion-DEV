@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"Categories",
+	"Alias":"MEMBER_NAME",
+	"Expression":"{ORDER(TM1FILTERBYLEVEL(TM1SUBSETALL([Bridge Category].[Bridge Category]) , 0) , [Bridge Category].[Bridge Category].CURRENTMEMBER.PROPERTIES(\"MEMBER_NAME\") , BASC)}"
+}

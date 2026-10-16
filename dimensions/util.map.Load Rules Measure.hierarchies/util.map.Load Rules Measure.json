@@ -1,0 +1,20 @@
+{
+	"@type":"Hierarchy",
+	"Name":"util.map.Load Rules Measure",
+	"Elements":
+	[
+		{
+			"Name":"Source",
+			"Type":"String"
+		},
+		{
+			"Name":"Destination",
+			"Type":"String"
+		},
+		{
+			"Name":"Count",
+			"Type":"Numeric"
+		}
+	],
+	"Subsets@Code.links":[]
+}

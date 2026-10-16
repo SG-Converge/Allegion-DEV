@@ -1,0 +1,25 @@
+{
+	"@type":"Cube",
+	"Name":"RO Input",
+	"Dimensions":
+	[
+		{
+			"@id":"Dimensions('Scenario')"
+		},
+		{
+			"@id":"Dimensions('RO Entity')"
+		},
+		{
+			"@id":"Dimensions('RO Item')"
+		},
+		{
+			"@id":"Dimensions('RO Input Measure')"
+		}
+	],
+	"Rules@Code.link":"RO Input.rules",
+	"Views@Code.links":
+	[
+		"RO Input.views/RO Input.json",
+		"RO Input.views/sys_All Data.json"
+	]
+}

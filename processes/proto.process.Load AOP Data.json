@@ -1,0 +1,26 @@
+{
+	"@type":"Process",
+	"Name":"proto.process.Load AOP Data",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"proto.process.Load AOP Data.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pStartYear",
+			"Prompt":"Start Year",
+			"Value":"2026",
+			"Type":"String"
+		},
+		{
+			"Name":"pEndYear",
+			"Prompt":"End Year",
+			"Value":"2026",
+			"Type":"String"
+		}
+	],
+	"Variables":[]
+}

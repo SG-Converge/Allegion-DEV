@@ -1,0 +1,20 @@
+{
+	"@type":"Process",
+	"Name":"fin.process.Load All FX Rates  - Historical",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"fin.process.Load All FX Rates  - Historical.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pYear",
+			"Prompt":"Year to load",
+			"Value":"2025",
+			"Type":"String"
+		}
+	],
+	"Variables":[]
+}

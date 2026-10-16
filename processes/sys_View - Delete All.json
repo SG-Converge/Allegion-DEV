@@ -1,0 +1,21 @@
+{
+	"@type":"Process",
+	"Name":"sys_View - Delete All",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"sys_View - Delete All.ti",
+	"UIData":"_ParameterConstraints=e30=\f",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pDeleteViewName",
+			"Prompt":"",
+			"Value":"",
+			"Type":"String"
+		}
+	],
+	"Variables":[]
+}

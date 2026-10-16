@@ -1,0 +1,36 @@
+#region Prolog
+
+sBridgeInput = 'Bridge Input';
+sBridgeReporting = 'Bridge Reporting';
+sWFVersion = 'BRIDGE_WRK_FCST_VPY';
+#sBridgeVersion = 'BRIDGE_FCST02_10_VPY';
+sBridgeVersion = 'BRIDGE_FCST05_07_VPY';
+#sBridgeVersion = 'BRIDGE_FCST08_04_VPY';
+sAOPVersion = '';
+
+
+
+sYear = '2026';
+sYearExpr = '!' | sYear;
+
+ExecuteProcess( 'sys_View - Clear', 'pCubeName', sBridgeInput, 'pMemberExpr1', sWFVersion, 'pMemberExpr2', sYearExpr );
+ExecuteProcess( 'sys_View - Clear', 'pCubeName', sBridgeReporting, 'pMemberExpr1', sWFVersion, 'pMemberExpr2', sYearExpr );
+
+ExecuteProcess( 'proto.cube.Load Bridge Data', 'pPeriod', sYear | '-01', 'pWFScenario', sBridgeVersion, 'pWAScenario', sAOPVersion );
+ExecuteProcess( 'proto.cube.Load Bridge Data', 'pPeriod', sYear |'-02', 'pWFScenario', sBridgeVersion, 'pWAScenario', sAOPVersion );
+ExecuteProcess( 'proto.cube.Load Bridge Data', 'pPeriod', sYear |'-03', 'pWFScenario', sBridgeVersion, 'pWAScenario', sAOPVersion );
+ExecuteProcess( 'proto.cube.Load Bridge Data', 'pPeriod', sYear |'-04', 'pWFScenario', sBridgeVersion, 'pWAScenario', sAOPVersion );
+ExecuteProcess( 'proto.cube.Load Bridge Data', 'pPeriod', sYear |'-05', 'pWFScenario', sBridgeVersion, 'pWAScenario', sAOPVersion );
+ExecuteProcess( 'proto.cube.Load Bridge Data', 'pPeriod', sYear |'-06', 'pWFScenario', sBridgeVersion, 'pWAScenario', sAOPVersion );
+ExecuteProcess( 'proto.cube.Load Bridge Data', 'pPeriod', sYear |'-07', 'pWFScenario', sBridgeVersion, 'pWAScenario', sAOPVersion );
+ExecuteProcess( 'proto.cube.Load Bridge Data', 'pPeriod', sYear |'-08', 'pWFScenario', sBridgeVersion, 'pWAScenario', sAOPVersion );
+ExecuteProcess( 'proto.cube.Load Bridge Data', 'pPeriod', sYear |'-09', 'pWFScenario', sBridgeVersion, 'pWAScenario', sAOPVersion );
+ExecuteProcess( 'proto.cube.Load Bridge Data', 'pPeriod', sYear |'-10', 'pWFScenario', sBridgeVersion, 'pWAScenario', sAOPVersion );
+ExecuteProcess( 'proto.cube.Load Bridge Data', 'pPeriod', sYear |'-11', 'pWFScenario', sBridgeVersion, 'pWAScenario', sAOPVersion );
+ExecuteProcess( 'proto.cube.Load Bridge Data', 'pPeriod', sYear |'-12', 'pWFScenario', sBridgeVersion, 'pWAScenario', sAOPVersion );
+
+# ExecuteProcess( 'fin.process.Create Bridge WF Snapshot',
+# 	'pDestScenario', sBridgeVersion,
+# 	'pYear', sYear );
+
+#endregion

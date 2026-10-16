@@ -1,0 +1,33 @@
+{
+	"@type":"Process",
+	"Name":"sys_View - Delete",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"sys_View - Delete.ti",
+	"UIData":"_ParameterConstraints=e30=\f",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pCubeName",
+			"Prompt":"Name of cube containing view",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pViewName",
+			"Prompt":"Name of view to delete",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pSemaphoreFilename",
+			"Prompt":"Filename for multi threading control",
+			"Value":"",
+			"Type":"String"
+		}
+	],
+	"Variables":[]
+}

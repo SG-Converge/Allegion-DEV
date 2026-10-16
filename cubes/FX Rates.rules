@@ -1,0 +1,31 @@
+SKIPCHECK;
+
+
+['USD'] = 1;
+
+['FX Rates Measure':'FX Rates Measure':'Avg Rate'] = C:
+  ConsolidatedAvg( 2, 'FX Rates', !Scenario, !Period, !Currency, !FX Rates Measure );
+
+# ['FX Rates Measure':'FX Rates Measure':'EOP Rate'] = N:
+#   If( DB( 'FX Rates', !Currency, !Day, 'Avg Rate' ) = 0,
+#     DB( 'FX Rates', !Currency, ATTRS( 'Period XRef', !Day, 'Period Prior' ), 'EOP Rate'  ),
+#     ['FX Rates Measure':'FX Rates Measure':'Avg Rate']
+#   );
+
+['FX Rates Measure':'FX Rates Measure':'EOP Rate'] = C:
+  DB( 'FX Rates', !Scenario, !Currency, ATTRS( 'Period XRef', !Period, 'Period Ending Day' ), 'EOP Rate' );
+
+# -------------------------------------------------------------
+# Actual periods of working forecast should be from Actuals
+# -------------------------------------------------------------
+['Working Forecast'] = N:
+  If( !Period @> DB('Global Assumptions', 'Actual End Period', 'String' ),
+    DB( 'FX Rates', !Scenario, DB('Global Assumptions', 'Actual End Period', 'String'), !Currency, 'EOP Rate' ),
+    ['Actual']
+  );
+
+
+FEEDERS;
+
+['Avg Rate'] => ['EOP Rate'];
+['Actual'] => ['Working Forecast'];

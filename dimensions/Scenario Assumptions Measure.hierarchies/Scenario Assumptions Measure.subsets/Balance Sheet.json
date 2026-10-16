@@ -1,0 +1,23 @@
+{
+	"@type":"Subset",
+	"Name":"Balance Sheet",
+	"Alias":"MEMBER_NAME",
+	"Elements":
+	[
+		{
+			"@id":"Dimensions('Scenario Assumptions Measure')/Hierarchies('Scenario Assumptions Measure')/Elements('CC - Data - BS Year')"
+		},
+		{
+			"@id":"Dimensions('Scenario Assumptions Measure')/Hierarchies('Scenario Assumptions Measure')/Elements('CC - Data - BS Scenario')"
+		},
+		{
+			"@id":"Dimensions('Scenario Assumptions Measure')/Hierarchies('Scenario Assumptions Measure')/Elements('CC - Data - BS Rate')"
+		},
+		{
+			"@id":"Dimensions('Scenario Assumptions Measure')/Hierarchies('Scenario Assumptions Measure')/Elements('CC - FX - BS Year')"
+		},
+		{
+			"@id":"Dimensions('Scenario Assumptions Measure')/Hierarchies('Scenario Assumptions Measure')/Elements('CC - FX - BS Scenario')"
+		}
+	]
+}

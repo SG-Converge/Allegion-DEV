@@ -1,0 +1,17 @@
+{
+	"@type":"Subset",
+	"Name":"Loadable Bridge Version",
+	"Alias":"MEMBER_NAME",
+	"Elements":
+	[
+		{
+			"@id":"Dimensions('Bridge Version')/Hierarchies('Bridge Version')/Elements('BRIDGE_ACTCY_VPY')"
+		},
+		{
+			"@id":"Dimensions('Bridge Version')/Hierarchies('Bridge Version')/Elements('BRIDGE_WRK_FCST_VPY')"
+		},
+		{
+			"@id":"Dimensions('Bridge Version')/Hierarchies('Bridge Version')/Elements('BRIDGE_WRK_AOP_VPY')"
+		}
+	]
+}

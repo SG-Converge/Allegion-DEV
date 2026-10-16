@@ -1,0 +1,12 @@
+{
+	"@type":"Process",
+	"Name":"fin.process.Copy Bridge Actual to WF",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"fin.process.Copy Bridge Actual to WF.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[]
+}

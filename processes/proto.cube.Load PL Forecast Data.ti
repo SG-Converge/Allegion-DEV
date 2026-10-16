@@ -1,0 +1,333 @@
+#region Prolog
+
+FALSE = 0;
+TRUE = 1;
+LF     = CHAR(10);
+
+sLogFile = '.\model_upload\logs\' | GetProcessName() | '-' | pPeriod | '.log';
+
+# --- Cubes
+sPLInputCube     = 'PL Input';
+sPLReportingCube = 'PL Reporting';
+sBSInputCube     = 'BS Input';
+sBSReportingCube = 'BS Reporting';
+sFXCube        = 'FX Rates';
+
+# --- Dimensions
+sScenarioDim   = 'Scenario';
+sPeriodDim     = 'Period';
+sCurrencyDim   = 'Currency';
+sEntityDim     = 'Entity';
+sProductDim    = 'Product';
+sFunctionDim   = 'Function';
+sAccountDim    = 'PL Account';
+
+# --- Members
+sADJMeasure    = 'Load Adjustment';
+sLoadMeasure   = 'Reported Amount';
+
+sPeriod = pPeriod;
+sYear = SUBST( pPeriod, 1, 4 );
+sFY = SUBST( pPeriod, 3, 2 );
+sMonth = ATTRS( 'Period XRef', pPeriod, 'Calendar Month Short' );
+sFilename = Expand( '.\model_upload\Uploads\Historical\Planning\%sYear%\PLAN_Pandl_FY%sFY%_%sMonth%_toIBM.txt' );
+
+# --- Special routing to the working versions, if specified.
+sWFScenario = pWFScenario;
+sWAScenario = pWAScenario;
+bLoadSnapshots = If( pLoadSnapshots @= 'Yes', TRUE, FALSE );
+
+sActualEndPeriod = CellGetS( 'Global Assumptions', 'Actual End Period', 'String' );
+DatasourceNameForServer = sFilename;
+
+sScenarioMDX = '[Scenario].[Constant Currencies].Children';
+If( bLoadSnapshots = TRUE );
+    sScenarioMDX = sScenarioMDX | ', [Scenario].[Snapshots].Children';
+EndIf;
+If( sWFScenario @<> '' );
+    sScenarioMDX = sScenarioMDX | ', [Scenario].[Working Forecast]';
+EndIf;
+If( sWAScenario @<> '' );
+    sScenarioMDX = sScenarioMDX | ', [Scenario].[Working AOP]';
+EndIf;
+
+#------------------------------------------
+# Destination View:  PL Input
+#------------------------------------------
+
+sCubeName = sPLInputCube;
+
+
+# --- Clear out all data EXCEPT Actual
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { %sScenarioMDX% } %LF%
+        SET PeriodSet     as { DISTINCT(DESCENDANTS([Period].[Period].[%sPeriod%] , 99 , LEAVES)) } %LF%
+        SET EntitySet     as { TM1FilterByLevel( TM1SubsetAll( [Entity] ), 0 ) } %LF%
+        SET ProductSet    as { TM1FilterByLevel( TM1SubsetAll( [Product] ), 0 ) } %LF%
+        SET FunctionSet   as { TM1FilterByLevel( TM1SubsetAll( [Function] ), 0 ) } %LF%
+        SET AccountSet    as { TM1FilterByLevel( TM1SubsetAll( [PL Account] ), 0 ) } %LF%
+        SET MeasureSet    as { TM1FilterByLevel( TM1SubsetAll( [PL Input Measure] ), 0 ) } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * PeriodSet * EntitySet * ProductSet * FunctionSet * AccountSet ON 1 %LF%
+
+    FROM [%sCubeName%] %LF%
+' );
+
+#ASCIIOutput( sLogFile, sCubeName, sViewMDX );
+
+sViewName =  GetProcessName() | ' - PL Input ' | pPeriod;
+ViewCreateByMDX( sCubeName, sViewName, sViewMDX, TRUE );
+ViewZeroOut( sCubeName, sViewName );
+
+
+
+#------------------------------------------
+# Destination View:  PL Reporting
+#------------------------------------------
+
+sCubeName = sPLReportingCube;
+
+# --- Clear out all data EXCEPT Actual
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { %sScenarioMDX% } %LF%
+        SET PeriodSet     as { DISTINCT(DESCENDANTS([Period].[Period].[%sPeriod%] , 99 , LEAVES)) } %LF%
+        SET CurrencySet   as { TM1FilterByLevel( TM1SubsetAll( [Currency] ), 0 ) } %LF%
+        SET EntitySet     as { TM1FilterByLevel( TM1SubsetAll( [Entity] ), 0 ) } %LF%
+        SET ProductSet    as { TM1FilterByLevel( TM1SubsetAll( [Product] ), 0 ) } %LF%
+        SET FunctionSet   as { TM1FilterByLevel( TM1SubsetAll( [Function] ), 0 ) } %LF%
+        SET AccountSet    as { TM1FilterByLevel( TM1SubsetAll( [PL Account] ), 0 ) } %LF%
+        SET MeasureSet    as { TM1FilterByLevel( TM1SubsetAll( [PL Reporting Measure] ), 0 ) } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * PeriodSet * CurrencySet * EntitySet * ProductSet * FunctionSet * AccountSet ON 1 %LF%
+
+    FROM [%sCubeName%] %LF%
+' );
+
+#ASCIIOutput( sLogFile, sCubeName, sViewMDX );
+
+sViewName =  GetProcessName()| ' - PL Reporting ' | pPeriod;
+ViewCreateByMDX( sCubeName, sViewName, sViewMDX, TRUE );
+ViewZeroOut( sCubeName, sViewName );
+
+#------------------------------------------
+# Destination View:  BS Input
+#------------------------------------------
+
+sCubeName = sBSInputCube;
+
+# --- Clear out all data EXCEPT Actual
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { %sScenarioMDX% } %LF%
+        SET PeriodSet     as { DISTINCT(DESCENDANTS([Period].[Period].[%sPeriod%] , 99 , LEAVES)) } %LF%
+        SET EntitySet     as { TM1FilterByLevel( TM1SubsetAll( [Entity] ), 0 ) } %LF%
+        SET ProductSet    as { TM1FilterByLevel( TM1SubsetAll( [Product] ), 0 ) } %LF%
+        SET AccountSet    as { TM1FilterByLevel( TM1SubsetAll( [BS Account] ), 0 ) } %LF%
+        SET MeasureSet    as { TM1FilterByLevel( TM1SubsetAll( [BS Input Measure] ), 0 ) } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * PeriodSet * EntitySet * ProductSet * AccountSet ON 1 %LF%
+
+    FROM [%sCubeName%] %LF%
+' );
+
+ASCIIOutput( sLogFile, sCubeName, sViewMDX );
+
+sViewName =  GetProcessName() | ' - BS Input ' | pPeriod;
+ViewCreateByMDX( sCubeName, sViewName, sViewMDX, TRUE );
+ViewZeroOut( sCubeName, sViewName );
+
+#------------------------------------------
+# Destination View:  BS Reporting
+#------------------------------------------
+
+sCubeName = sBSReportingCube;
+
+# --- Clear out all data EXCEPT Actual
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { %sScenarioMDX% } %LF%
+        SET PeriodSet     as { DISTINCT(DESCENDANTS([Period].[Period].[%sPeriod%] , 99 , LEAVES)) } %LF%
+        SET CurrencySet   as { TM1FilterByLevel( TM1SubsetAll( [Currency] ), 0 ) } %LF%
+        SET EntitySet     as { TM1FilterByLevel( TM1SubsetAll( [Entity] ), 0 ) } %LF%
+        SET ProductSet    as { TM1FilterByLevel( TM1SubsetAll( [Product] ), 0 ) } %LF%
+        SET AccountSet    as { TM1FilterByLevel( TM1SubsetAll( [BS Account] ), 0 ) } %LF%
+        SET MeasureSet    as { TM1FilterByLevel( TM1SubsetAll( [BS Reporting Measure] ), 0 ) } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * PeriodSet *  CurrencySet * EntitySet * ProductSet * AccountSet ON 1 %LF%
+
+    FROM [%sCubeName%] %LF%
+' );
+
+ASCIIOutput( sLogFile, sCubeName, sViewMDX );
+
+sViewName =  GetProcessName()| ' - BS Reporting ' | pPeriod;
+ViewCreateByMDX( sCubeName, sViewName, sViewMDX, TRUE );
+ViewZeroOut( sCubeName, sViewName );
+
+#endregion
+#region Data
+
+sVersion = inVersion;
+sScenario = inScenario;
+sCurrency = inCurrency;
+sEntity = inEntity;
+sProduct = inProduct;
+sFunction = infunction;
+sAccount = inAccount;
+nValue = inValue;
+
+# --- We only want to deal with Final for now
+If( sVersion @<> 'Final' ); ItemSkip; EndIf;
+
+# --- Actuals will come from HFM Actuals not this file.
+sScenario = inScenario;
+If( SUBST( sScenario, 1, 6 ) @= 'BRIDGE' ); ItemSkip; EndIf;
+If( SUBST( sScenario, 1, 3 ) @= 'ACT' ); ItemSkip; EndIf;
+If( SCAN( 'RATE', sScenario ) > 0 ); ItemSkip; EndIf;
+
+# --- Map normal values to Reported Amount and adjustments to 
+# --- the special 'One Time Adjustment' measure
+sMeasure = sLoadMeasure;
+If( SUBST( sScenario, 1, 3 ) @= 'ADJ' );
+    sMeasure = sADJMeasure;
+    sScenario = SUBST( sScenario, 4, 20 );
+EndIf;
+
+# --- Clean up the currency
+sCurrency = If( sCurrency @= 'Entity_Currency', 'Local', sCurrency );
+
+# --- Clean up function
+sFunction = IF( sFunction @= '50000', '50000_INPUT', sfunction );
+
+sScenario = If( sScenario @= 'FCST_02_10', 'Forecast 2+10', sScenario );
+sScenario = If( sScenario @= 'FCST_05_07', 'Forecast 5+7', sScenario );
+sScenario = If( sScenario @= 'FCST_08_04', 'Forecast 8+4', sScenario );
+sScenario = If( sScenario @= 'AOP', 'AOP', sScenario );
+
+# --- Forecast 12/0 is not going to be used in this system
+If( sScenario @= 'FCST_12_00' ); ItemSkip; EndIf;
+
+# --- Now, check to see if we have the elements in the dimensions
+bIsUnmapped = FALSE;
+If( DIMIX( sScenarioDim, sScenario ) = 0 );
+    bIsUnmapped = TRUE;
+    sScenario = 'Unmapped Scenario';
+EndIf;
+
+If( DIMIX( sEntityDim, sEntity ) = 0 );
+    If( DIMIX( sEntityDim, sEntity | '_INPUT') > 0 );
+        sEntity = sEntity | '_INPUT';
+    Else;
+        bIsUnmapped = TRUE;
+        sEntity = 'Unmapped Entity';
+    EndIf;
+EndIf;
+
+If( DIMIX( sProductDim, sProduct ) = 0 );
+    bIsUnmapped = TRUE;
+    sProduct = 'Unmapped Product';
+EndIf;
+
+If( DIMIX( sFunctionDim, sFunction ) = 0 );
+    bIsUnmapped = TRUE;
+    sFunction = 'Unmapped Function';
+EndIf;
+
+If( sAccount @= 'AVGRATE' & sCurrency @<> 'USD' );
+    If( bLoadSnapshots = TRUE );
+        CellPutN( nValue, sFXCube, sScenario, sPeriod, sCurrency, 'Avg Rate' );
+    EndIf;
+    If( sScenario @= sWFScenario );
+        #CellPutN( nValue, sFXCube, 'Working Forecast', sPeriod, sCurrency, 'Avg Rate' );
+    EndIf;
+    If( sScenario @= sWAScenario );
+        CellPutN( nValue, sFXCube, 'Working AOP', sPeriod, sCurrency, 'Avg Rate' );
+    EndIf;
+
+ElseIf( sAccount @= 'EOPRATE' & sCurrency @<> 'USD' );
+    If( bLoadSnapshots = TRUE );
+        CellPutN( nValue, sFXCube, sScenario, sPeriod, sCurrency, 'EOP Rate' );
+    EndIf;
+    If( sScenario @= sWFScenario );
+       #CellPutN( nValue, sFXCube, 'Working Forecast', sPeriod, sCurrency, 'EOP Rate' );
+    EndIf;
+    If( sScenario @= sWAScenario );
+        CellPutN( nValue, sFXCube, 'Working AOP', sPeriod, sCurrency, 'EOP Rate' );
+    EndIf;
+    
+Else;
+    If( DIMIX( sAccountDim, sAccount ) = 0 );
+        bIsUnmapped = TRUE;
+        sAccount = 'Unmapped Account';
+    EndIf;
+    
+    If( sScenario @= 'Unmapped Scenario' );
+        ASCIIOutput( sLogFile, 'Unhandled Scenario - Not Loaded.', 
+            sPLinputCube, sScenario, sPeriod, sEntity, sProduct, sFunction, sAccount, sMeasure, '<------',
+            inScenario, sPeriod, inCurrency, inEntity, inProduct, inFunction, inAccount, NumberToString( nValue )
+        );
+    
+    ElseIf( CellIsUpdateable( sPLinputCube,  sScenario, sPeriod, sEntity, sProduct, sFunction, sAccount, sMeasure ) = FALSE );
+        ASCIIOutput( sLogFile, 'Not Updateable - Not Loaded.', 
+            sPLinputCube, sScenario, sPeriod, sEntity, sProduct, sFunction, sAccount, sMeasure, '<------',
+            inScenario, sPeriod, inEntity, inProduct, inFunction, inAccount, NumberToString( nValue )
+        );
+    Else;
+        If( bIsUnmapped = TRUE );
+            ASCIIOutput( sLogFile, 'Unmapped record - Loaded', 
+                sPLinputCube, sScenario, sPeriod, sEntity, sProduct, sFunction, sAccount, sMeasure, '<------',
+                inScenario, sPeriod, inCurrency, inEntity, inProduct, inFunction, inAccount, NumberToString( nValue )
+            );
+        EndIf;
+
+        If( ELISANC( 'BS Account', 'TB', sAccount ) = TRUE );
+            If( inScenario @= 'ADJAOP' ); ItemSkip; EndIf;            
+            If( sCurrency @= 'Local' );
+                If( bLoadSnapshots = TRUE );
+                    CellIncrementN( nValue, sBSinputCube, sScenario, sPeriod, sEntity, sProduct, sAccount, 'Ending Balance' );
+                EndIf;
+                If( sScenario @= sWFScenario & sPeriod @> sActualEndPeriod );
+                    CellIncrementN( nValue, sBSinputCube, 'Working Forecast', sPeriod, sEntity, sProduct, sAccount, 'Ending Balance' );
+                EndIf;
+                If( sScenario @= sWAScenario );
+                    CellIncrementN( nValue, sBSinputCube, 'Working AOP', sPeriod, sEntity, sProduct, sAccount, 'Ending Balance' );
+                EndIf;
+            EndIf;
+
+            If( bLoadSnapshots = TRUE );
+                CellIncrementN( nValue, sBSReportingCube, sScenario, sPeriod, sCurrency, sEntity, sProduct, sAccount, 'Ending Balance' );
+            EndIf;
+        Else;
+            If( sCurrency @= 'Local' );
+                If( bLoadSnapshots = TRUE );
+                    CellIncrementN( nValue, sPLinputCube, sScenario, sPeriod, sEntity, sProduct, sFunction, sAccount, sMeasure );
+                EndIf;
+                If( sScenario @= sWFScenario & sPeriod @> sActualEndPeriod );
+                    If( CellIsUpdateable( sPLinputCube,  'Working Forecast', sPeriod, sEntity, sProduct, sFunction, sAccount, sMeasure ) = TRUE );
+                        CellIncrementN( nValue, sPLinputCube, 'Working Forecast', sPeriod, sEntity, sProduct, sFunction, sAccount, sMeasure );
+                    EndIf;
+                EndIf;
+                If( sScenario @= sWAScenario );
+                    If( CellIsUpdateable( sPLinputCube,  'Working AOP', sPeriod, sEntity, sProduct, sFunction, sAccount, sMeasure ) = TRUE );
+                        CellIncrementN( nValue, sPLinputCube, 'Working AOP', sPeriod, sEntity, sProduct, sFunction, sAccount, sMeasure );
+                    EndIf;
+                EndIf;
+            EndIf;
+            
+            If( bLoadSnapshots = TRUE );
+                CellIncrementN( nValue, sPLReportingCube, sScenario, sPeriod, sCurrency, sEntity, sProduct, sFunction, sAccount, sMeasure );
+            EndIf;
+        EndIf;
+    EndIf;
+EndIf;
+#endregion

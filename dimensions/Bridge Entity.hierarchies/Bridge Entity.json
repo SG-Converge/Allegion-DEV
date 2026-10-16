@@ -1,0 +1,223 @@
+{
+	"@type":"Hierarchy",
+	"Name":"Bridge Entity",
+	"Elements":
+	[
+		{
+			"Name":"All Entities",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"BR_AMER",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"80200010",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"BR_ASIAPAC",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"BR_EMEIA",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"BR_CORPORATE",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Total Allegion",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Total Americas",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Total GSS",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"GSS",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Total Americas less GSS",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"MGT_AMERICAS",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Total International",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Total APAC",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"MGT_EMEA",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"MGT_APAC",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Total Corporate",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"MGT_CORPORATE",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Total EMEA",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Total SAT",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"80150111",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"TOTAL_ACCESS_TECHNOLOGIES",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"MGT_AMERICAS_LESS_GSS",
+			"Type":"Numeric"
+		}
+	],
+	"Edges":
+	[
+		{
+			"ParentName":"All Entities",
+			"ComponentName":"Total Allegion",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Entities",
+			"ComponentName":"Total SAT",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Allegion",
+			"ComponentName":"Total Americas",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Allegion",
+			"ComponentName":"Total International",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Allegion",
+			"ComponentName":"Total Corporate",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Americas",
+			"ComponentName":"Total Americas less GSS",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Americas",
+			"ComponentName":"Total GSS",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total GSS",
+			"ComponentName":"80200010",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total GSS",
+			"ComponentName":"GSS",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Americas less GSS",
+			"ComponentName":"BR_AMER",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Americas less GSS",
+			"ComponentName":"MGT_AMERICAS_LESS_GSS",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Americas less GSS",
+			"ComponentName":"80150111",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Americas less GSS",
+			"ComponentName":"TOTAL_ACCESS_TECHNOLOGIES",
+			"Weight":-1
+		},
+		{
+			"ParentName":"Total International",
+			"ComponentName":"Total EMEA",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total International",
+			"ComponentName":"Total APAC",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total APAC",
+			"ComponentName":"BR_ASIAPAC",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total APAC",
+			"ComponentName":"MGT_APAC",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Corporate",
+			"ComponentName":"BR_CORPORATE",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Corporate",
+			"ComponentName":"MGT_CORPORATE",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total EMEA",
+			"ComponentName":"BR_EMEIA",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total EMEA",
+			"ComponentName":"MGT_EMEA",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total SAT",
+			"ComponentName":"80150111",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total SAT",
+			"ComponentName":"TOTAL_ACCESS_TECHNOLOGIES",
+			"Weight":1
+		}
+	],
+	"Subsets@Code.links":
+	[
+		"Bridge Entity.subsets/Base Bridge Entity.json",
+		"Bridge Entity.subsets/Bridge Entity.json",
+		"Bridge Entity.subsets/Loadable Bridge Entity.json"
+	]
+}

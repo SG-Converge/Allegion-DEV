@@ -1,0 +1,26 @@
+{
+	"@type":"Process",
+	"Name":"fin.process.Create AOP Snapshot",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"fin.process.Create AOP Snapshot.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pDestScenario",
+			"Prompt":"Destination Scenario",
+			"Value":"AOP",
+			"Type":"String"
+		},
+		{
+			"Name":"pYear",
+			"Prompt":"Year to copy",
+			"Value":"2025",
+			"Type":"String"
+		}
+	],
+	"Variables":[]
+}

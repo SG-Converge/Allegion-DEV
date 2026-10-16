@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"HFM Product",
+	"Hierarchies@Code.links":
+	[
+		"HFM Product.hierarchies/HFM Product.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('HFM Product')/Hierarchies('HFM Product')"
+	}
+}

@@ -1,0 +1,323 @@
+#region Prolog
+
+#==============================================================================
+#                               Map HFM Stating
+#
+#  This script will read in a file from HFM and perform mapping prior to
+#  loading into the system.    Mapping definitions are provided by the cube
+#  fin.map.Load Rules
+#
+#  The original files are untouched so as to audit back to the original records
+#  if needed.
+#
+#      Date    WHO  Description
+#  ----------  ---  -----------------------------------------------------------
+#  2026/04/02  SWG  Created.
+#
+#==============================================================================
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = ATTRS( '}Clients', TM1User(), '}TM1_DefaultDisplayValue' );
+sProcessName = GetProcessName();
+sDateStamp = TIMST( NOW, '\Y-\m-\d' );
+sTimeStamp = TIMST( NOW, '\Y-\m-\d \h.\i.\s' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+# --- Static Values
+ERROR  = 1; WARN   = 2; STATS  = 3;
+INFO   = 4; DEBUG  = 5; TRACE  = 6;
+TRUE   = 1; FALSE  = 0;
+LF     = CHAR(10);
+EXCEL_ADJUSTMENT = 21916;
+
+# --- Setup processing information
+bUseTemporaryObjects = TRUE;
+
+# --- Cubes
+sConfigCube    = 'sys.Config';
+sStatsCube     = 'sys.Process Stats';
+sRulesetCube   = 'util.map.Load Rules';
+sStagingCube   = 'HFM Staging';
+
+# --- Dimensions
+sScenarioDim   = 'HFM Scenario';
+sPeriodDim     = 'Period';
+sCurrencyDim   = 'Currency';
+sEntityDim     = 'HFM Entity';
+sProductDim    = 'HFM Product';
+sFunctionDim   = 'HFM Function';
+sAccountDim    = 'HFM Account';
+sPeriodXRefDim = 'Period XRef';
+sRulesetDim    = 'util.map.Ruleset';
+
+# --- Members
+sEntityRoot    = 'All Entities';
+sProductRoot   = 'All Products';
+sFunctionRoot  = 'All Functions';
+sAccountRoot   = 'All Accounts';
+
+# --- Data values
+sHFMUploadDir = CellGetS( sConfigCube, 'HFM Upload Directory', 'String' );
+sHFMMappedDir = CellGetS( sConfigCube, 'HFM Mapped Directory', 'String' );
+
+#==============================================================================
+#                               LOGGING SECTION
+#==============================================================================
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Started At' );
+CellPutS( sUser, sStatsCube, sProcessName, 'Executed By' );
+
+# --- Setup Logging
+nLogLevel = CellGetN( sStatsCube, sProcessName, 'Logging Level' );
+sLogDir = CellGetS( sConfigCube, 'Log Directory', 'String' );
+sLogFile = sLogDir | sProcessName | '.log';
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log startup
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Started');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+# --- Report how the script was executed 
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand( '%LF%
+        ============================================================================ %LF%
+                        %sProcessName%                                               %LF%
+        ============================================================================ %LF%
+        Executed by [%sUser%]                                                        %LF%
+              pRuleset    = [%pRuleset%]                                             %LF%
+              pInputFile  = [%pInputFile%]                                           %LF%
+              pOutputFile = [%pOutputFile%]                                          %LF%
+        ============================================================================ %LF%
+    ');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+#==============================================================================
+#                        PARAMETER VALIDATION SECTION
+#==============================================================================
+
+# --- Validate input filename
+sInFile = sHFMUploadDir | pInputFile;
+If( FileExists( sInFile ) = FALSE );
+    sMsgLevel = 'ERROR';
+    sMessage = Expand( 'Specified file [%sInFile%] does not exist or cannot be accessed.');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+    ProcessError();
+EndIf;
+
+# --- Validate the ruleset
+sRuleset = pRuleset;
+If( DimensionElementExists( sRulesetDim, sRuleset ) = FALSE );
+    sMsgLevel = 'ERROR';
+    sMessage = Expand( 'Specified [%sRuleset%] does not exist in dimension [%sRulesetDim%]');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+    ProcessError();
+EndIf;
+
+# --- Set the output filename
+sOutFile = sHFMMappedDir | pOutputFile;
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+# --- Capture ruleset information
+sFileFormat = ATTRS( sRulesetDim, sRuleset, 'File Format' );
+
+DatasourceNameForServer = sInFile;
+
+#endregion
+#region Metadata
+
+#endregion
+#region Data
+
+# ----------------------------------------------------
+# Handle incoming record
+# ----------------------------------------------------
+If( sFileFormat @= 'PL' % sFileFormat @= 'ELIM' );
+    sScenario  = inCol1;
+    sPeriod    = inCol2 | '-' | inCol3;
+    sEntity    = inCol5;
+    sCurrency  = inCol6;
+    sProduct   = inCol8;
+    sFunction  = inCol9;
+    sAccount   = inCol7;
+    sAmount     = inCol10;
+ElseIf( sFileFormat @= 'CF' );
+    sScenario  = inCol1;
+    sPeriod    = inCol2 | '-' | inCol3;
+    sEntity    = inCol5;
+    sCurrency  = inCol6;
+    sProduct   = inCol8;
+    sFunction  = inCol9;
+    sAccount   = inCol7;
+    sAmount     = inCol10;
+ElseIf( sFileFormat @= 'BS' );
+    sScenario  = inCol1;
+    sPeriod    = inCol2 | '-' | inCol3;
+    sEntity    = inCol5;
+    sCurrency  = inCol6;
+    sProduct   = inCol8;
+    sAccount   = inCol7;
+    sFunction  = 'NoFunction';
+    sAmount    = inCol9;
+Else;
+    sMsgLevel = 'ERROR';
+    sMessage = Expand( 'Invalid file format [%sFileFormat%] specified for ruleset [%sRuleset%]');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+    ProcessError();
+EndIf;
+
+# --- Clean up dimension values if they are blank
+sScenario   = If( sScenario @= '', 'Blank Scenario', sScenario );
+sEntity     = If( sEntity @= '', 'Blank Entity', sEntity );
+sCurrency   = If( sCurrency @= '', 'Blank Currency', sCurrency );
+sProduct    = If( sProduct @= '', 'Blank Product', sProduct );
+sFunction   = If( sFunction @= '', 'Blank Function', sFunction );
+sAccount    = If( sAccount @= '', 'Blank Account', sAccount );
+
+# ----------------------------------------------------
+# Currency Mapping
+# ----------------------------------------------------
+sMapItem = sCurrency;
+sSection = 'Currency';
+
+nRuleIdx = 0;
+bLoop = TRUE;
+While( bLoop = TRUE );
+    nRuleIdx = nRuleIdx + 1;
+    sRuleID = 'Rule ' | NumberToStringEx( nRuleIdx, '000', '','' );
+    sSource = CellGetS( sRulesetCube, sRuleset, sSection, sRuleID, 'Source' );
+    If( sSource @= '' );
+        bLoop = FALSE;
+    ElseIf( sSource @= sMapItem );
+        sMapItem = CellGetS( sRulesetCube, sRuleset, sSection, sRuleID, 'Destination' );
+        bLoop = False;
+    EndIf;
+End;
+sCurrency = sMapItem;
+
+# ----------------------------------------------------
+# Entity Mapping
+# ----------------------------------------------------
+sMapItem = sEntity;
+sSection = 'Entity';
+
+nRuleIdx = 0;
+bLoop = TRUE;
+While( bLoop = TRUE );
+    nRuleIdx = nRuleIdx + 1;
+    sRuleID = 'Rule ' | NumberToStringEx( nRuleIdx, '000', '','' );
+    sSource = CellGetS( sRulesetCube, sRuleset, sSection, sRuleID, 'Source' );
+    If( sSource @= '' );
+        bLoop = FALSE;
+    ElseIf( sSource @= sMapItem );
+        sMapItem = CellGetS( sRulesetCube, sRuleset, sSection, sRuleID, 'Destination' );
+        bLoop = False;
+    EndIf;
+End;
+sEntity = sMapItem;
+
+# ----------------------------------------------------
+# Product Mapping
+# ----------------------------------------------------
+sMapItem = sProduct;
+sSection = 'Product';
+
+nRuleIdx = 0;
+bLoop = TRUE;
+While( bLoop = TRUE );
+    nRuleIdx = nRuleIdx + 1;
+    sRuleID = 'Rule ' | NumberToStringEx( nRuleIdx, '000', '','' );
+    sSource = CellGetS( sRulesetCube, sRuleset, sSection, sRuleID, 'Source' );
+    If( sSource @= '' );
+        bLoop = FALSE;
+    ElseIf( sSource @= sMapItem );
+        sMapItem = CellGetS( sRulesetCube, sRuleset, sSection, sRuleID, 'Destination' );
+        bLoop = False;
+    EndIf;
+End;
+sProduct = sMapItem;
+
+
+# ----------------------------------------------------
+# Account Mapping
+# ----------------------------------------------------
+
+# --- Special mapping for CashFlow
+sMapItem = If( sFileFormat @= 'CF', sAccount | sFunction, sAccount );
+sSection = 'Account';
+
+nRuleIdx = 0;
+bLoop = TRUE;
+While( bLoop = TRUE );
+    nRuleIdx = nRuleIdx + 1;
+    sRuleID = 'Rule ' | NumberToStringEx( nRuleIdx, '000', '','' );
+    sSource = CellGetS( sRulesetCube, sRuleset, sSection, sRuleID, 'Source' );
+    If( sSource @= '' );
+        bLoop = FALSE;
+    ElseIf( sSource @= sMapItem );
+        sMapItem = CellGetS( sRulesetCube, sRuleset, sSection, sRuleID, 'Destination' );
+        bLoop = False;
+    EndIf;
+End;
+sAccount = sMapItem;
+
+# ----------------------------------------------------
+# Function Mapping
+# ----------------------------------------------------
+sMapItem = sFunction;
+sSection = 'Function';
+
+nRuleIdx = 0;
+bLoop = TRUE;
+While( bLoop = TRUE );
+    nRuleIdx = nRuleIdx + 1;
+    sRuleID = 'Rule ' | NumberToStringEx( nRuleIdx, '000', '','' );
+    sSource = CellGetS( sRulesetCube, sRuleset, sSection, sRuleID, 'Source' );
+    If( sSource @= '' );
+        bLoop = FALSE;
+    ElseIf( sSource @= sMapItem );
+        sMapItem = CellGetS( sRulesetCube, sRuleset, sSection, sRuleID, 'Destination' );
+        bLoop = False;
+    EndIf;
+End;
+sFunction = sMapItem;
+
+
+# ----------------------------------------------------
+# Output mapped records
+# ----------------------------------------------------
+AsciiOutput(  sOutFile,  sScenario, sPeriod, sCurrency, sEntity, sProduct, sFunction, sAccount, 'Amount', sAmount );
+
+
+#endregion
+#region Epilog
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Completed At' );
+
+# --- Append to the log (will overwrite if not done before AsciiOutput)
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log completion
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Completed');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+#endregion

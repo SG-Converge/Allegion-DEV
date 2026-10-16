@@ -1,0 +1,26 @@
+{
+	"@type":"Process",
+	"Name":"fin.process.Load MgtAmer Forecast Data",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"fin.process.Load MgtAmer Forecast Data.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pStartingPeriod",
+			"Prompt":"Starting period to load (YYYY-MM)",
+			"Value":"2027-09",
+			"Type":"String"
+		},
+		{
+			"Name":"pScenario",
+			"Prompt":"Scenario to load",
+			"Value":"Working AOP",
+			"Type":"String"
+		}
+	],
+	"Variables":[]
+}

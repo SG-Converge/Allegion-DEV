@@ -1,0 +1,70 @@
+{
+	"@type":"MDXView",
+	"Name":"RO Rpt by Acct",
+	"MDX@Code.link":"RO Rpt by Acct.mdx",
+	"IsAutocalculate" : true,
+	"IsDeferComputeOnLeafDataEntry" : false,
+	"IsSuppressComputeOnOpen" : false,
+	"Meta" : 
+	{
+		"Aliases" : 
+		{
+			"[Currency].[Currency]" : "Caption",
+			"[RO Entity].[RO Entity]" : "MEMBER_NAME"
+		},
+		"ContextSets" : 
+		{
+			"[Bridge Category].[Bridge Category]" : 
+			{
+				"Expression" : "{[Bridge Category].[Bridge Category].MEMBERS}"
+			},
+			"[Currency].[Currency]" : 
+			{
+				"Expression" : "{[Currency].[Currency].MEMBERS}"
+			},
+			"[RO Entity].[RO Entity]" : 
+			{
+				"IsPublic" : true,
+				"SubsetName" : "Default"
+			},
+			"[RO Function].[RO Function]" : 
+			{
+				"Expression" : "{[RO Function].[RO Function].MEMBERS}"
+			},
+			"[RO Item].[RO Item]" : 
+			{
+				"Expression" : "{[RO Item].[RO Item].MEMBERS}"
+			},
+			"[RO Product].[RO Product]" : 
+			{
+				"Expression" : "{[RO Product].[RO Product].MEMBERS}"
+			},
+			"[RO Type].[RO Type]" : 
+			{
+				"Expression" : "{[RO Type].[RO Type].MEMBERS}"
+			},
+			"[Scenario].[Scenario]" : 
+			{
+				"Expression" : "{[Scenario].[Scenario].MEMBERS}"
+			},
+			"[Year].[Year]" : 
+			{
+				"Expression" : "{[Year].[Year].MEMBERS}"
+			}
+		},
+		"ExpandAboves" : 
+		{
+			"[Bridge Category].[Bridge Category]" : false,
+			"[Currency].[Currency]" : false,
+			"[RO Account].[RO Account]" : false,
+			"[RO Entity].[RO Entity]" : false,
+			"[RO Function].[RO Function]" : false,
+			"[RO Item].[RO Item]" : false,
+			"[RO Product].[RO Product]" : false,
+			"[RO Reporting Measure].[RO Reporting Measure]" : false,
+			"[RO Type].[RO Type]" : false,
+			"[Scenario].[Scenario]" : false,
+			"[Year].[Year]" : false
+		}
+	}
+}

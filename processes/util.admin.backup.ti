@@ -1,0 +1,217 @@
+#region Prolog
+#==============================================================================
+#                               Admin - Backup
+#
+#  This script will compress files from the system into a zip file for backup
+#  backup purposes.
+#
+#   Date         WHO   Description
+#   ----------   ----  --------------------------------------------------------
+#   2025-03-21   SWG   Created
+#
+#==============================================================================
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = ATTRS( '}Clients', TM1User(), '}TM1_DefaultDisplayValue' );
+sProcessName = GetProcessName();
+sDateStamp = TIMST( NOW, '\Y-\m-\d' );
+sTimeStamp = TIMST( NOW, '\Y-\m-\d \h.\i.\s' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+# --- Static Values
+ERROR  = 1; WARN   = 2; STATS  = 3;
+INFO   = 4; DEBUG  = 5; TRACE  = 6;
+TRUE   = 1; FALSE  = 0;
+LF     = CHAR(10);
+EXCEL_ADJUSTMENT = 21916;
+
+# --- Setup processing information
+bUseTemporaryObjects = TRUE;
+
+# --- Cubes
+sConfigCube  = 'sys.Config';
+sStatsCube    = 'sys.Process Stats';
+
+# --- Values
+# Retention period for backup files (in days)
+nDaysRetention = 30;
+
+# Retention period for log files still on the server after backup (in days).
+# Logs are always backed up in full regardless of age; only files older than
+# this are removed from the source so recent activity stays inspectable
+# without pulling a backup.
+nRemoveFilesRetention = 10;
+sBackupScript = 'tda_backup.ps1';
+sBackupLogFile = 'backup.log';
+
+# Wait for backups to complete
+bExecutionWait = TRUE; 
+
+
+#==============================================================================
+#                               LOGGING SECTION
+#==============================================================================
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Started At' );
+CellPutS( sUser, sStatsCube, sProcessName, 'Executed By' );
+
+# --- Setup Logging
+nLogLevel = CellGetN( sStatsCube, sProcessName, 'Logging Level' );
+sLogDir = CellGetS( sConfigCube, 'Log Directory', 'String' );
+sLogFile = sLogDir | sProcessName | '.log';
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log startup
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Started');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+
+# --- Report how the script was executed 
+If( nLogLevel >= DEBUG );
+    sMessage = Expand( '\n
+        ============================================================================ \n
+                        %sProcessName% \n
+        ============================================================================ \n
+        Executed by [%sUser%] \n
+              pBackupData           = [%pBackupData%] \n
+              pBackupProcessLogs    = [%pBackupProcessLogs%] \n
+              pBackupServerLogs     = [%pBackupServerLogs%] \n
+              pBackupAuditLogs      = [%pBackupAuditLogs%] \n
+              pIncludeModelUpload   = [%pIncludeModelUpload%] \n
+        ============================================================================ \n
+    ');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+#==============================================================================
+#                       PARAMETER VALIDATION SECTION
+#==============================================================================
+
+bBackupDataFiles    = If( pBackupData @= 'Yes', TRUE, FALSE );
+bBackupProcessLogs  = If( pBackupProcessLogs @= 'Yes', TRUE, FALSE );
+bBackupServerLogs   = If( pBackupServerLogs @= 'Yes', TRUE, FALSE );
+bBackupAuditLogs    = If( pBackupAuditLogs @= 'Yes', TRUE, FALSE );
+bIncludeModelUpload = If( pIncludeModelUpload @= 'Yes', TRUE, FALSE );
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+sSvrName       = CellGetS(sConfigCube, 'Server Name',             'String');
+sSvrEnviron    = CellGetS(sConfigCube, 'Environment',             'String');
+sSvrDataDir    = CellGetS(sConfigCube, 'Server Data Directory',   'String');
+sSvrLogsDir    = CellGetS(sConfigCube, 'Server Logs Directory',   'String');
+sSvrScriptsDir = CellGetS(sConfigCube, 'Server Scripts Directory','String');
+sSvrBackupDir  = CellGetS(sConfigCube, 'Server Backup Directory', 'String');
+
+# --- Commit server memory to disk
+SaveDataAll;
+
+sExecCmd = Expand( 'Powershell -ExecutionPolicy Bypass "%sSvrScriptsDir%\%sBackupScript%" -folderTarget """%sSvrBackupDir%""" ' );
+sExecCmd = sExecCmd | '-daysRetention ' | NumberToString( nDaysRetention ) | ' ';
+
+#------------------------------------------------------------------------------
+# Backup the cube data files
+#------------------------------------------------------------------------------
+If( bBackupDataFiles = TRUE );
+
+    # --- Build out the backup filename command
+    sFilename  = Expand('%sTimeStamp% - %sSvrName% %sSvrEnviron% - DataFiles');
+    sPattern   = '*.*';
+    sExcludeArg = If( bIncludeModelUpload = TRUE, '', ' -excludedFolders model_upload' );
+    sCommand   = Expand( '%sExecCmd% -folderSource """%sSvrDataDir%""" -destination """%sFilename%""" -filePattern "%sPattern%"' ) | sExcludeArg;
+
+    # --- Tack on logging so if it fails we can see why
+    sCommand = sCommand | Expand( ' 2>&1 >> "%sSvrBackupDir%\DataFiles_%sBackupLogFile%"');
+    
+    # Run the PowerShell script
+    LogOutput('INFO', sCommand);
+    ExecuteCommand( sCommand, bExecutionWait );
+EndIf;
+
+
+#------------------------------------------------------------------------------
+# Backup the process log files
+#------------------------------------------------------------------------------
+If( bBackupProcessLogs = TRUE );
+
+    # --- Build out the backup filename command
+    sFilename  = Expand('%sTimeStamp% - %sSvrName% %sSvrEnviron% - ProcessLogs');
+    sPattern   = 'TM1ProcessError*.log';
+    sCommand   = Expand( '%sExecCmd% -folderSource """%sSvrLogsDir%""" -destination """%sFilename%""" -filePattern "%sPattern%" -removeFiles -removeFilesOlderThanDays ' ) | NumberToString( nRemoveFilesRetention );
+
+    # --- Tack on logging so if it fails we can see why
+    sCommand = sCommand | Expand( ' 2>&1 >> "%sSvrBackupDir%\ProcessLogs_%sBackupLogFile%"');
+    
+    # Run the PowerShell script
+    LogOutput('INFO', sCommand);
+    ExecuteCommand( sCommand, bExecutionWait );
+EndIf;
+
+#------------------------------------------------------------------------------
+# Backup the server log files
+#------------------------------------------------------------------------------
+If( bBackupServerLogs = TRUE );
+
+    # --- Build out the backup filename command
+    sFilename  = Expand('%sTimeStamp% - %sSvrName% %sSvrEnviron% - ServerLogs');
+    sPattern   = 'tm1s*.log';
+    sCommand   = Expand( '%sExecCmd% -folderSource """%sSvrLogsDir%""" -destination """%sFilename%""" -filePattern "%sPattern%" -removeFiles -removeFilesOlderThanDays ' ) | NumberToString( nRemoveFilesRetention );
+
+    # --- Tack on logging so if it fails we can see why
+    sCommand = sCommand | Expand( ' 2>&1 >> "%sSvrBackupDir%\ServerLogs_%sBackupLogFile%"');
+    
+    # Run the PowerShell script
+    LogOutput('INFO', sCommand);
+    ExecuteCommand( sCommand, bExecutionWait );
+EndIf;
+
+
+#------------------------------------------------------------------------------
+# Backup the audit log files
+#------------------------------------------------------------------------------
+If( bBackupAuditLogs = TRUE );
+
+    # --- Build out the backup filename command
+    sFilename  = Expand('%sTimeStamp% - %sSvrName% %sSvrEnviron% - AuditLogs');
+    sPattern   = 'tm1auditstore*';
+    sCommand   = Expand( '%sExecCmd% -folderSource """%sSvrLogsDir%""" -destination """%sFilename%""" -filePattern "%sPattern%" -removeFiles -removeFilesOlderThanDays ' ) | NumberToString( nRemoveFilesRetention );
+
+    # --- Tack on logging so if it fails we can see why
+    sCommand = sCommand | Expand( ' 2>&1 >> "%sSvrBackupDir%\AuditLogs_%sBackupLogFile%"');
+    
+    # Run the PowerShell script
+    LogOutput('INFO', sCommand);
+    ExecuteCommand( sCommand, bExecutionWait );
+EndIf;
+
+
+#endregion
+#region Epilog
+
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Completed At' );
+
+# --- Append to the log (will overwrite if not done before AsciiOutput)
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log completion
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Completed');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+#endregion

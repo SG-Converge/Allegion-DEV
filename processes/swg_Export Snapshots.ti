@@ -1,0 +1,79 @@
+#region Prolog
+
+sScenarios = 'MDX:{
+    DESCENDANTS([Scenario].[Scenario].[Scenarios] , 99 , LEAVES),
+    DESCENDANTS([Scenario].[Scenario].[Snapshots] , 99 , LEAVES)
+}';
+
+sFileDir = '..\Exports\Scenario Data - ';
+
+# sCubeName = 'Bridge Input';
+# sViewName = 'sys.All Data ' | sCubeName;
+# sFilename = sFileDir | sCubeName | '.txt';
+# ExecuteProcess( 'sys_View - Create', 'pCubeName', sCubeName, 'pViewName', sViewName, 'pUseTemporaryObjects', 1 );
+# ExecuteProcess( 'sys_Cube - Data Export', 'pFilename', sFilename, 'pCubeName', sCubeName, 'pViewName', sViewName, 'pRecordFormat', 'tab', 'pOverwriteFile', 1 );
+# ExecuteProcess( 'sys_View - Delete', 'pCubeName', sCubeName, 'pViewName', sViewName);
+
+# sCubeName = 'Bridge Reporting';
+# sViewName = 'sys.All Data ' | sCubeName;
+# sFilename = sFileDir | sCubeName | '.txt';
+# ExecuteProcess( 'sys_View - Create', 'pCubeName', sCubeName, 'pViewName', sViewName, 'pUseTemporaryObjects', 1 );
+# ExecuteProcess( 'sys_Cube - Data Export', 'pFilename', sFilename, 'pCubeName', sCubeName, 'pViewName', sViewName, 'pRecordFormat', 'tab', 'pOverwriteFile', 1 );
+# ExecuteProcess( 'sys_View - Delete', 'pCubeName', sCubeName, 'pViewName', sViewName);
+
+sCubeName = 'BS Input';
+sViewName = 'sys.All Data ' | sCubeName;
+sFilename = sFileDir | sCubeName | '.txt';
+ExecuteProcess( 'sys_View - Create', 'pCubeName', sCubeName, 'pViewName', sViewName, 'pUseTemporaryObjects', 1, 'pMemberExpr1', sScenarios );
+ExecuteProcess( 'sys_Cube - Data Export', 'pFilename', sFilename, 'pCubeName', sCubeName, 'pViewName', sViewName, 'pRecordFormat', 'tab', 'pOverwriteFile', 1 );
+ExecuteProcess( 'sys_View - Delete', 'pCubeName', sCubeName, 'pViewName', sViewName);
+
+sCubeName = 'BS Reporting';
+sViewName = 'sys.All Data ' | sCubeName;
+sFilename = sFileDir | sCubeName | '.txt';
+ExecuteProcess( 'sys_View - Create', 'pCubeName', sCubeName, 'pViewName', sViewName, 'pUseTemporaryObjects', 1, 'pMemberExpr1', sScenarios );
+ExecuteProcess( 'sys_Cube - Data Export', 'pFilename', sFilename, 'pCubeName', sCubeName, 'pViewName', sViewName, 'pRecordFormat', 'tab', 'pOverwriteFile', 1 );
+ExecuteProcess( 'sys_View - Delete', 'pCubeName', sCubeName, 'pViewName', sViewName);
+
+sCubeName = 'PL Input';
+sViewName = 'sys.All Data ' | sCubeName;
+sFilename = sFileDir | sCubeName | '.txt';
+ExecuteProcess( 'sys_View - Create', 'pCubeName', sCubeName, 'pViewName', sViewName, 'pUseTemporaryObjects', 1 );
+ExecuteProcess( 'sys_Cube - Data Export', 'pFilename', sFilename, 'pCubeName', sCubeName, 'pViewName', sViewName, 'pRecordFormat', 'tab', 'pOverwriteFile', 1 );
+ExecuteProcess( 'sys_View - Delete', 'pCubeName', sCubeName, 'pViewName', sViewName);
+
+sCubeName = 'PL Reporting';
+sViewName = 'sys.All Data ' | sCubeName;
+sFilename = sFileDir | sCubeName | '.txt';
+ExecuteProcess( 'sys_View - Create', 'pCubeName', sCubeName, 'pViewName', sViewName, 'pUseTemporaryObjects', 1, 'pMemberExpr1', sScenarios );
+ExecuteProcess( 'sys_Cube - Data Export', 'pFilename', sFilename, 'pCubeName', sCubeName, 'pViewName', sViewName, 'pRecordFormat', 'tab', 'pOverwriteFile', 1 );
+ExecuteProcess( 'sys_View - Delete', 'pCubeName', sCubeName, 'pViewName', sViewName);
+
+sCubeName = 'RO Input';
+sViewName = 'sys.All Data ' | sCubeName;
+sFilename = sFileDir | sCubeName | '.txt';
+ExecuteProcess( 'sys_View - Create', 'pCubeName', sCubeName, 'pViewName', sViewName, 'pUseTemporaryObjects', 1, 'pMemberExpr1', sScenarios );
+ExecuteProcess( 'sys_Cube - Data Export', 'pFilename', sFilename, 'pCubeName', sCubeName, 'pViewName', sViewName, 'pRecordFormat', 'tab', 'pOverwriteFile', 1 );
+ExecuteProcess( 'sys_View - Delete', 'pCubeName', sCubeName, 'pViewName', sViewName);
+
+sCubeName = 'RO Reporting';
+sViewName = 'sys.All Data ' | sCubeName;
+sFilename = sFileDir | sCubeName | '.txt';
+ExecuteProcess( 'sys_View - Create', 'pCubeName', sCubeName, 'pViewName', sViewName, 'pUseTemporaryObjects', 1, 'pMemberExpr1', sScenarios );
+ExecuteProcess( 'sys_Cube - Data Export', 'pFilename', sFilename, 'pCubeName', sCubeName, 'pViewName', sViewName, 'pRecordFormat', 'tab', 'pOverwriteFile', 1 );
+ExecuteProcess( 'sys_View - Delete', 'pCubeName', sCubeName, 'pViewName', sViewName);
+
+sCubeName = 'FX Rates';
+sViewName = 'sys.All Data ' | sCubeName;
+sFilename = sFileDir | sCubeName | '.txt';
+ExecuteProcess( 'sys_View - Create', 'pCubeName', sCubeName, 'pViewName', sViewName, 'pUseTemporaryObjects', 1, 'pMemberExpr1', sScenarios );
+ExecuteProcess( 'sys_Cube - Data Export', 'pFilename', sFilename, 'pCubeName', sCubeName, 'pViewName', sViewName, 'pRecordFormat', 'tab', 'pOverwriteFile', 1 );
+ExecuteProcess( 'sys_View - Delete', 'pCubeName', sCubeName, 'pViewName', sViewName);
+
+# sCubeName = 'util.map.Load Rules';
+# sViewName = 'sys.All Data ' | sCubeName;
+# sFilename = sFileDir | sCubeName | '.txt';
+# ExecuteProcess( 'sys_View - Create', 'pCubeName', sCubeName, 'pViewName', sViewName, 'pUseTemporaryObjects', 1, 'pMemberExpr1', sScenarios );
+# ExecuteProcess( 'sys_Cube - Data Export', 'pFilename', sFilename, 'pCubeName', sCubeName, 'pViewName', sViewName, 'pRecordFormat', 'tab', 'pOverwriteFile', 1 );
+# ExecuteProcess( 'sys_View - Delete', 'pCubeName', sCubeName, 'pViewName', sViewName);
+#endregion

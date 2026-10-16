@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"Bridge Entity",
+	"Alias":"MEMBER_NAME",
+	"Expression":"{{[Bridge Entity].[Bridge Entity].MEMBERS}}"
+}

@@ -1,0 +1,86 @@
+#region Prolog
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#==============================================================================
+#                        sys_View - Delete - All Cubes
+#
+#  This process deletes any existing views matching the given viewname for any cube and
+#  also deletes any existing subsets matching the given viewname in any dimension.
+#
+#  REQUIREMENTS:
+#       None.
+#
+#  CALLS:
+#       none
+#
+#       Date           WHO     Description
+#       --------          -------       ----------------------------------------------------
+#   2016 10 27    NDD        Cleaned up, master copy
+#   2016 12 13    NDD       Renamed from sys_View - Delete - All Cubes
+
+#   2019 04 21    WCC       Renamed from sys_Delete All Cubes
+#
+#==============================================================================
+
+
+#------------------------------------------------------------------------------
+# Loop thru the cubes and delete the view wherever it exists
+#------------------------------------------------------------------------------
+vCubeIdx = 1;
+
+WHILE( vCubeIdx <= DIMSIZ( '}Cubes' ) );
+
+    # ---- Get the cube name to process ---- #
+    vCubeName = DIMNM( '}Cubes', vCubeIdx );
+
+    # ---- Only process user cubes, skip all control cubes ---- #
+    IF( SUBST( vCubeName, 1, 1 ) @<> '}'  );
+
+        # ---- Check to see if the View Exists in the Cube ---- #
+        IF(VIEWEXISTS(vCubeName, pDeleteViewName) = 1);
+
+            # ---- Delete Source View for the Cube ---- #
+            VIEWDESTROY( vCubeName, pDeleteViewName );
+
+        ENDIF;
+
+    ENDIF;
+
+    vCubeIdx = vCubeIdx + 1;
+
+END;
+
+
+#------------------------------------------------------------------------------
+# Loop through all the dimensions and see if there are any
+# subsets with the same name as the view.  If so, delete them.
+#------------------------------------------------------------------------------
+vDimIdx = 1;
+
+WHILE( vDimIdx <= DIMSIZ( '}Dimensions' ) );
+
+    # ---- Get the Dimension name to process ---- #
+    vDimName = DIMNM( '}Dimensions', vDimIdx );
+
+    # ---- Only process user Dimensions, skip all control Dimensions ---- #
+    IF( SUBST( vDimName, 1, 1 ) @<> '}'  );
+
+        # ---- Check to see if the Subset Exists in the Dimension ---- #
+        IF(SUBSETEXISTS(vDimName, pDeleteViewName) = 1);
+
+            # ---- Delete Source View for the Dimension ---- #
+            SUBSETDESTROY( vDimName, pDeleteViewName );
+
+        ENDIF;
+
+    ENDIF;
+
+    vDimIdx = vDimIdx + 1;
+
+END;
+#endregion
+#region Epilog
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion

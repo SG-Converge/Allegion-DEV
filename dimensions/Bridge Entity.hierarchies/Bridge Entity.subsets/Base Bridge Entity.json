@@ -1,0 +1,26 @@
+{
+	"@type":"Subset",
+	"Name":"Base Bridge Entity",
+	"Alias":"MEMBER_NAME",
+	"Elements":
+	[
+		{
+			"@id":"Dimensions('Bridge Entity')/Hierarchies('Bridge Entity')/Elements('BR_AMER')"
+		},
+		{
+			"@id":"Dimensions('Bridge Entity')/Hierarchies('Bridge Entity')/Elements('80150111')"
+		},
+		{
+			"@id":"Dimensions('Bridge Entity')/Hierarchies('Bridge Entity')/Elements('80200010')"
+		},
+		{
+			"@id":"Dimensions('Bridge Entity')/Hierarchies('Bridge Entity')/Elements('BR_EMEIA')"
+		},
+		{
+			"@id":"Dimensions('Bridge Entity')/Hierarchies('Bridge Entity')/Elements('BR_ASIAPAC')"
+		},
+		{
+			"@id":"Dimensions('Bridge Entity')/Hierarchies('Bridge Entity')/Elements('BR_CORPORATE')"
+		}
+	]
+}

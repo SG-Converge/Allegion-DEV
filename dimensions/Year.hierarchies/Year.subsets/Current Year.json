@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"Current Year",
+	"Alias":"Caption",
+	"Expression":"{STRTOMEMBER(\"[Year].[Year].[\" + [Global Assumptions].([Global Assumption].[Forecast Start Year],[Global Assumptions Measure].[String]) + \"]\")}"
+}

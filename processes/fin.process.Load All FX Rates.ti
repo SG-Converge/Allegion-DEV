@@ -1,0 +1,127 @@
+#region Prolog
+
+#==============================================================================
+#                               Load All FX Rates
+#
+#  This script perform all of the processing for each of the FX files being 
+#  imported from HFM.   The data will be loaded into the FX Rates cube.
+#
+#      Date    WHO  Description
+#  ----------  ---  -----------------------------------------------------------
+#  2026/04/06  SWG  Created.
+#
+#==============================================================================
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = ATTRS( '}Clients', TM1User(), '}TM1_DefaultDisplayValue' );
+sProcessName = GetProcessName();
+sDateStamp = TIMST( NOW, '\Y-\m-\d' );
+sTimeStamp = TIMST( NOW, '\Y-\m-\d \h.\i.\s' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+# --- Static Values
+ERROR  = 1; WARN   = 2; STATS  = 3;
+INFO   = 4; DEBUG  = 5; TRACE  = 6;
+TRUE   = 1; FALSE  = 0;
+LF     = CHAR(10);
+EXCEL_ADJUSTMENT = 21916;
+
+# --- Setup processing information
+bUseTemporaryObjects = TRUE;
+
+# --- Processes
+sLoadProcess    = 'fin.cube.Load FX Rates';
+
+# --- Cubes
+sAssumptionCube = 'Global Assumptions';
+sConfigCube     = 'sys.Config';
+sStatsCube      = 'sys.Process Stats';
+
+# --- Values
+sHFMDir        = CellGetS( sConfigCube, 'HFM Upload Directory', 'String' );
+
+#==============================================================================
+#                               LOGGING SECTION
+#==============================================================================
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Started At' );
+CellPutS( sUser, sStatsCube, sProcessName, 'Executed By' );
+
+# --- Setup Logging
+nLogLevel = CellGetN( sStatsCube, sProcessName, 'Logging Level' );
+sLogDir = CellGetS( sConfigCube, 'Log Directory', 'String' );
+sLogFile = sLogDir | sProcessName | '.log';
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log startup
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Started');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+# --- Report how the script was executed 
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand( '
+        %LF% ==============================================================
+        %LF%         %sProcessName%
+        %LF% ==============================================================
+        %LF% Executed by [%sUser%]
+        %LF% ==============================================================
+        %LF%
+    ');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+# --- Get the current period that is to be loaded
+sPeriod = CellGetS( sAssumptionCube, 'HFM Load Period', 'String' );
+
+# --- First load the Avg Rate data 
+nRetval = ExecuteProcess( sLoadProcess,
+	'pFilename', 'x_hfm_avgfx.txt',
+	'pPeriod', sPeriod,
+	'pMeasure', 'Avg Rate' );
+If( nRetval <> ProcessExitNormal() );
+    ProcessError();
+EndIf;
+
+# --- Next load the EOP Rate data 
+nRetval = ExecuteProcess( sLoadProcess,
+	'pFilename', 'x_hfm_eopfx.txt',
+	'pPeriod', sPeriod,
+	'pMeasure', 'EOP Rate' );
+If( nRetval <> ProcessExitNormal() );
+    ProcessError();
+EndIf;
+
+#endregion
+#region Epilog
+
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Completed At' );
+
+# --- Append to the log (will overwrite if not done before AsciiOutput)
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log completion
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Completed');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+#endregion

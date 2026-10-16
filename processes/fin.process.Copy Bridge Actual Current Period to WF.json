@@ -1,0 +1,12 @@
+{
+	"@type":"Process",
+	"Name":"fin.process.Copy Bridge Actual Current Period to WF",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"fin.process.Copy Bridge Actual Current Period to WF.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[]
+}

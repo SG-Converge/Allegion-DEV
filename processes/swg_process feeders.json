@@ -1,0 +1,12 @@
+{
+	"@type":"Process",
+	"Name":"swg_process feeders",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"swg_process feeders.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[]
+}

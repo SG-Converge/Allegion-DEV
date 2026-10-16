@@ -1,0 +1,119 @@
+{
+	"@type":"Hierarchy",
+	"Name":"PL Input Measure",
+	"Elements":
+	[
+		{
+			"Name":"Reorg Adjusted",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Adjusted Total",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Reported Amount",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Total Adjustments",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Standard Adjustment",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"One-Time Adjustment",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Reorg Amount",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Reorg Reported",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Load Delta",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Load Adjustment",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Historical Reorg Delta",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Historical Reorg Amount",
+			"Type":"Numeric"
+		}
+	],
+	"Edges":
+	[
+		{
+			"ParentName":"Reorg Adjusted",
+			"ComponentName":"Adjusted Total",
+			"Weight":1
+		},
+		{
+			"ParentName":"Reorg Adjusted",
+			"ComponentName":"Reorg Amount",
+			"Weight":1
+		},
+		{
+			"ParentName":"Adjusted Total",
+			"ComponentName":"Reported Amount",
+			"Weight":1
+		},
+		{
+			"ParentName":"Adjusted Total",
+			"ComponentName":"Total Adjustments",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Adjustments",
+			"ComponentName":"Standard Adjustment",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Adjustments",
+			"ComponentName":"One-Time Adjustment",
+			"Weight":1
+		},
+		{
+			"ParentName":"Reorg Reported",
+			"ComponentName":"Reported Amount",
+			"Weight":1
+		},
+		{
+			"ParentName":"Reorg Reported",
+			"ComponentName":"Reorg Amount",
+			"Weight":1
+		},
+		{
+			"ParentName":"Load Delta",
+			"ComponentName":"Reported Amount",
+			"Weight":-1
+		},
+		{
+			"ParentName":"Load Delta",
+			"ComponentName":"Load Adjustment",
+			"Weight":1
+		},
+		{
+			"ParentName":"Historical Reorg Delta",
+			"ComponentName":"Reported Amount",
+			"Weight":-1
+		},
+		{
+			"ParentName":"Historical Reorg Delta",
+			"ComponentName":"Historical Reorg Amount",
+			"Weight":1
+		}
+	],
+	"Subsets@Code.links":[]
+}

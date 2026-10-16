@@ -1,0 +1,206 @@
+#region Prolog
+
+FALSE = 0;
+TRUE = 1;
+LF     = CHAR(10);
+
+sLogFile = '.\model_upload\logs\' | GetProcessName() | '-' | pPeriod | '.log';
+
+# --- Cubes
+sPLInputCube     = 'PL Input';
+sPLReportingCube = 'PL Reporting';
+sBSInputCube     = 'BS Input';
+sBSReportingCube = 'BS Reporting';
+sFXCube        = 'FX Rates';
+
+# --- Dimensions
+sScenarioDim   = 'Scenario';
+sPeriodDim     = 'Period';
+sCurrencyDim   = 'Currency';
+sEntityDim     = 'Entity';
+sProductDim    = 'Product';
+sFunctionDim   = 'Function';
+sAccountDim    = 'BS Account';
+
+# --- Members
+sADJMeasure    = 'Load Adjustment';
+sLoadMeasure   = 'Reported Amount';
+
+sPeriod = pPeriod;
+sYear = SUBST( pPeriod, 1, 4 );
+sFY = SUBST( pPeriod, 3, 2 );
+sMonth = ATTRS( 'Period XRef', pPeriod, 'Calendar Month Short' );
+sFilename = Expand( '.\model_upload\Uploads\Historical\Planning\%sYear%\PLAN_BSCap_FY%sFY%_%sMonth%_toIBM.txt' );
+
+# --- Special routing to the working versions, if specified.
+sWFScenario = pWFScenario;
+sWAScenario = pWAScenario;
+bLoadSnapshots = If( pLoadSnapshots @= 'Yes', TRUE, FALSE );
+
+sActualEndPeriod = CellGetS( 'Global Assumptions', 'Actual End Period', 'String' );
+DatasourceNameForServer = sFilename;
+
+#endregion
+#region Data
+
+sVersion  = inVersion;
+sScenario = inScenario;
+sCurrency = inCurrency;
+sEntity   = inEntity;
+sProduct  = inProduct;
+sAccount  = inAccount;
+nValue    = inValue;
+sFunction = 'No Function';
+
+
+# --- Old H_SAT entity is no longer valid and is skipped.
+If( SUBST( sEntity, 1, 5 ) @= 'H_SAT' );
+    ItemSkip;
+EndIf;
+
+# --- We only want to deal with Final for now
+If( sVersion @<> 'Final' ); ItemSkip; EndIf;
+
+# --- Actuals will come from HFM Actuals not this file.
+sScenario = inScenario;
+If( SUBST( sScenario, 1, 6 ) @= 'BRIDGE' ); ItemSkip; EndIf;
+If( SUBST( sScenario, 1, 3 ) @= 'ACT' ); ItemSkip; EndIf;
+If( SUBST( sScenario, 1, 3 ) @= 'ACQ' ); ItemSkip; EndIf;
+If( SCAN( 'RATE', sScenario ) > 0 ); ItemSkip; EndIf;
+
+# --- Map normal values to Reported Amount and adjustments to 
+# --- the special 'One Time Adjustment' measure
+sMeasure = sLoadMeasure;
+If( SUBST( sScenario, 1, 3 ) @= 'ADJ' );
+    ItemSkip;
+EndIf;
+
+# --- Clean up the currency
+sCurrency = If( sCurrency @= 'Entity_Currency', 'Local', sCurrency );
+
+# --- Map Scenario
+sScenario = If( sScenario @= 'FCST_02_10', 'Forecast 2+10', sScenario );
+sScenario = If( sScenario @= 'FCST_05_07', 'Forecast 5+7', sScenario );
+sScenario = If( sScenario @= 'FCST_08_04', 'Forecast 8+4', sScenario );
+sScenario = If( sScenario @= 'AOP', 'AOP', sScenario );
+
+# --- Forecast 12/0 is not going to be used in this system
+If( sScenario @= 'FCST_12_00' ); ItemSkip; EndIf;
+
+# --- Now, check to see if we have the elements in the dimensions
+bIsUnmapped = FALSE;
+If( DIMIX( sScenarioDim, sScenario ) = 0 );
+    bIsUnmapped = TRUE;
+    sScenario = 'Unmapped Scenario';
+EndIf;
+
+If( DIMIX( sEntityDim, sEntity ) = 0 );
+    If( DIMIX( sEntityDim, sEntity | '_INPUT') > 0 );
+        sEntity = sEntity | '_INPUT';
+    Else;
+        bIsUnmapped = TRUE;
+        sEntity = 'Unmapped Entity';
+    EndIf;
+EndIf;
+
+If( DIMIX( sProductDim, sProduct ) = 0 );
+    bIsUnmapped = TRUE;
+    sProduct = 'Unmapped Product';
+EndIf;
+
+If( sAccount @= 'AVGRATE' & sCurrency @<> 'USD' );
+    If( bLoadSnapshots = TRUE );
+        CellPutN( nValue, sFXCube, sScenario, sPeriod, sCurrency, 'Avg Rate' );
+    EndIf;
+    If( sScenario @= sWFScenario );
+        #CellPutN( nValue, sFXCube, 'Working Forecast', sPeriod, sCurrency, 'Avg Rate' );
+    EndIf;
+    If( sScenario @= sWAScenario );
+        CellPutN( nValue, sFXCube, 'Working AOP', sPeriod, sCurrency, 'Avg Rate' );
+    EndIf;
+
+ElseIf( sAccount @= 'EOPRATE' & sCurrency @<> 'USD' );
+    If( bLoadSnapshots = TRUE );
+        CellPutN( nValue, sFXCube, sScenario, sPeriod, sCurrency, 'EOP Rate' );
+    EndIf;
+    If( sScenario @= sWFScenario );
+        #CellPutN( nValue, sFXCube, 'Working Forecast', sPeriod, sCurrency, 'EOP Rate' );
+    EndIf;
+    If( sScenario @= sWAScenario );
+        CellPutN( nValue, sFXCube, 'Working AOP', sPeriod, sCurrency, 'EOP Rate' );
+    EndIf;
+    
+Else;
+    If( DIMIX( sAccountDim, sAccount ) = 0 );
+        bIsUnmapped = TRUE;
+        sAccount = 'Unmapped Account';
+    EndIf;
+    
+    If( sScenario @= 'Unmapped Scenario' );
+        ASCIIOutput( sLogFile, 'Unhandled Scenario - Not Loaded.', 
+            sPLinputCube, sScenario, sPeriod, sEntity, sProduct, sAccount, sMeasure, '<------',
+            inScenario, sPeriod, inCurrency, inEntity, inProduct, inAccount, NumberToString( nValue )
+        );
+    
+    ElseIf( CellIsUpdateable( sBSinputCube,  sScenario, sPeriod, sEntity, sProduct, sAccount, 'Ending Balance' ) = FALSE );
+        ASCIIOutput( sLogFile, 'Not Updateable - Not Loaded.', 
+            sPLinputCube, sScenario, sPeriod, sEntity, sProduct, sFunction, sAccount, sMeasure, '<------',
+            inScenario, sPeriod, inEntity, inProduct, inAccount, NumberToString( nValue )
+        );
+    Else;
+        If( bIsUnmapped = TRUE );
+            ASCIIOutput( sLogFile, 'Unmapped record - Loaded', 
+                sPLinputCube, sScenario, sPeriod, sEntity, sProduct, sFunction, sAccount, sMeasure, '<------',
+                inScenario, sPeriod, inCurrency, inEntity, inProduct, inAccount, NumberToString( nValue )
+            );
+        EndIf;
+
+        If( DIMIX( 'BS Account', sAccount ) > 0 );
+            If( sCurrency @= 'Local' );
+                If( bLoadSnapshots = TRUE );
+                    CellIncrementN( nValue, sBSinputCube, sScenario, sPeriod, sEntity, sProduct, sAccount, 'Ending Balance' );
+                EndIf;
+                If( sScenario @= sWFScenario & sPeriod @> sActualEndPeriod );
+                    CellIncrementN( nValue, sBSinputCube, 'Working Forecast', sPeriod, sEntity, sProduct, sAccount, 'Ending Balance' );
+                EndIf;
+                If( sScenario @= sWAScenario );
+                    CellIncrementN( nValue, sBSinputCube, 'Working AOP', sPeriod, sEntity, sProduct, sAccount, 'Ending Balance' );
+
+                    ASCIIOutput( sLogFile, 'Working AOP Loaded', 
+                        sPLinputCube, sScenario, sPeriod, sEntity, sProduct, sFunction, sAccount, sMeasure, '<------',
+                        inScenario, sPeriod, inCurrency, inEntity, inProduct, inAccount, NumberToString( nValue )
+                    );
+
+                EndIf;
+            EndIf;
+
+            If( bLoadSnapshots = TRUE );
+                CellIncrementN( nValue, sBSReportingCube, sScenario, sPeriod, sCurrency, sEntity, sProduct, sAccount, 'Ending Balance' );
+            EndIf;
+        Else;
+            If( inScenario @= 'ADJAOP' ); ItemSkip; EndIf;            
+            
+            ASCIIOutput( sLogFile, 'P&L Record Encountered', 
+                sPLinputCube, sScenario, sPeriod, sEntity, sProduct, sFunction, sAccount, sMeasure, '<------',
+                inScenario, inVersion, sPeriod, inCurrency, inEntity, inProduct, inAccount, NumberToString( nValue )
+            );
+
+            If( sCurrency @= 'Local' );
+                If( bLoadSnapshots = TRUE );
+                    CellIncrementN( nValue, sPLinputCube, sScenario, sPeriod, sEntity, sProduct, sFunction, sAccount, sMeasure );
+                EndIf;
+                If( sScenario @= sWFScenario & sPeriod @> sActualEndPeriod );
+                    CellIncrementN( nValue, sPLinputCube, 'Working Forecast', sPeriod, sEntity, sProduct, sFunction, sAccount, sMeasure );
+                EndIf;
+                If( sScenario @= sWAScenario  );
+                    CellIncrementN( nValue, sPLinputCube, 'Working AOP', sPeriod, sEntity, sProduct, sFunction, sAccount, sMeasure );
+                EndIf;
+            EndIf;
+            
+            If( bLoadSnapshots = TRUE );
+                CellIncrementN( nValue, sPLReportingCube, sScenario, sPeriod, sCurrency, sEntity, sProduct, sFunction, sAccount, sMeasure );
+            EndIf;
+        EndIf;
+    EndIf;
+EndIf;
+#endregion

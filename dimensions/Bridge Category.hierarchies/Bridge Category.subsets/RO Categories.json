@@ -1,0 +1,50 @@
+{
+	"@type":"Subset",
+	"Name":"RO Categories",
+	"Alias":"MEMBER_NAME",
+	"Elements":
+	[
+		{
+			"@id":"Dimensions('Bridge Category')/Hierarchies('Bridge Category')/Elements('Price')"
+		},
+		{
+			"@id":"Dimensions('Bridge Category')/Hierarchies('Bridge Category')/Elements('Volume')"
+		},
+		{
+			"@id":"Dimensions('Bridge Category')/Hierarchies('Bridge Category')/Elements('Mix')"
+		},
+		{
+			"@id":"Dimensions('Bridge Category')/Hierarchies('Bridge Category')/Elements('FX')"
+		},
+		{
+			"@id":"Dimensions('Bridge Category')/Hierarchies('Bridge Category')/Elements('Material Productivity')"
+		},
+		{
+			"@id":"Dimensions('Bridge Category')/Hierarchies('Bridge Category')/Elements('Fixed / Var Mfg Productivity')"
+		},
+		{
+			"@id":"Dimensions('Bridge Category')/Hierarchies('Bridge Category')/Elements('SG&A Productivity')"
+		},
+		{
+			"@id":"Dimensions('Bridge Category')/Hierarchies('Bridge Category')/Elements('Material Inflation')"
+		},
+		{
+			"@id":"Dimensions('Bridge Category')/Hierarchies('Bridge Category')/Elements('Material Other')"
+		},
+		{
+			"@id":"Dimensions('Bridge Category')/Hierarchies('Bridge Category')/Elements('Other Inflation')"
+		},
+		{
+			"@id":"Dimensions('Bridge Category')/Hierarchies('Bridge Category')/Elements('Investments')"
+		},
+		{
+			"@id":"Dimensions('Bridge Category')/Hierarchies('Bridge Category')/Elements('Acquisitions')"
+		},
+		{
+			"@id":"Dimensions('Bridge Category')/Hierarchies('Bridge Category')/Elements('Divestitures')"
+		},
+		{
+			"@id":"Dimensions('Bridge Category')/Hierarchies('Bridge Category')/Elements('Balance Sheet')"
+		}
+	]
+}

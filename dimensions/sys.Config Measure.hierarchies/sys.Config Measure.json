@@ -1,0 +1,23 @@
+{
+	"@type":"Hierarchy",
+	"Name":"sys.Config Measure",
+	"Elements":
+	[
+		{
+			"Name":"Value",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"String",
+			"Type":"String"
+		},
+		{
+			"Name":"Description",
+			"Type":"String"
+		}
+	],
+	"Subsets@Code.links":
+	[
+		"sys.Config Measure.subsets/Default.json"
+	]
+}

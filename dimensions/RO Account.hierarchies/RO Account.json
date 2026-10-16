@@ -1,0 +1,307 @@
+{
+	"@type":"Hierarchy",
+	"Name":"RO Account",
+	"Elements":
+	[
+		{
+			"Name":"121100",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"210100",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"284200",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"411100",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"511110",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"511160",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"511170",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"511250",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"511900",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"645000",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"650420",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"693000",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"695900",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"132000_STAT_RAW",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"411500_INPUT",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"CAPEX",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"S_BOOKINGS",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"All Accounts",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"S_BASIC_SHARES_QTD",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"S_BASIC_SHARES_YTD",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"S_BASIC_SHARES_MTD",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"S_DILUTED_SHARES_MTD",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"S_DILUTED_SHARES_QTD",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"S_DILUTED_SHARES_YTD",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"GA",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"851100",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"803800",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"804350",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Unmapped Account",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"TotalRevenue_RO",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"TotalCOGS_RO",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"TotalSGA_RO",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"S_ACF",
+			"Type":"Numeric"
+		}
+	],
+	"Edges":
+	[
+		{
+			"ParentName":"All Accounts",
+			"ComponentName":"121100",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Accounts",
+			"ComponentName":"132000_STAT_RAW",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Accounts",
+			"ComponentName":"210100",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Accounts",
+			"ComponentName":"284200",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Accounts",
+			"ComponentName":"TotalRevenue_RO",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Accounts",
+			"ComponentName":"TotalCOGS_RO",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Accounts",
+			"ComponentName":"TotalSGA_RO",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Accounts",
+			"ComponentName":"CAPEX",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Accounts",
+			"ComponentName":"GA",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Accounts",
+			"ComponentName":"S_BOOKINGS",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Accounts",
+			"ComponentName":"S_BASIC_SHARES_MTD",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Accounts",
+			"ComponentName":"S_BASIC_SHARES_QTD",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Accounts",
+			"ComponentName":"S_BASIC_SHARES_YTD",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Accounts",
+			"ComponentName":"S_DILUTED_SHARES_MTD",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Accounts",
+			"ComponentName":"S_DILUTED_SHARES_QTD",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Accounts",
+			"ComponentName":"S_DILUTED_SHARES_YTD",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Accounts",
+			"ComponentName":"851100",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Accounts",
+			"ComponentName":"803800",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Accounts",
+			"ComponentName":"804350",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Accounts",
+			"ComponentName":"Unmapped Account",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Accounts",
+			"ComponentName":"S_ACF",
+			"Weight":1
+		},
+		{
+			"ParentName":"TotalRevenue_RO",
+			"ComponentName":"411100",
+			"Weight":1
+		},
+		{
+			"ParentName":"TotalRevenue_RO",
+			"ComponentName":"411500_INPUT",
+			"Weight":1
+		},
+		{
+			"ParentName":"TotalCOGS_RO",
+			"ComponentName":"511110",
+			"Weight":1
+		},
+		{
+			"ParentName":"TotalCOGS_RO",
+			"ComponentName":"511160",
+			"Weight":1
+		},
+		{
+			"ParentName":"TotalCOGS_RO",
+			"ComponentName":"511170",
+			"Weight":1
+		},
+		{
+			"ParentName":"TotalCOGS_RO",
+			"ComponentName":"511250",
+			"Weight":1
+		},
+		{
+			"ParentName":"TotalCOGS_RO",
+			"ComponentName":"511900",
+			"Weight":1
+		},
+		{
+			"ParentName":"TotalCOGS_RO",
+			"ComponentName":"650420",
+			"Weight":1
+		},
+		{
+			"ParentName":"TotalSGA_RO",
+			"ComponentName":"645000",
+			"Weight":1
+		},
+		{
+			"ParentName":"TotalSGA_RO",
+			"ComponentName":"693000",
+			"Weight":1
+		},
+		{
+			"ParentName":"TotalSGA_RO",
+			"ComponentName":"695900",
+			"Weight":1
+		}
+	],
+	"Subsets@Code.links":
+	[
+		"RO Account.subsets/Accounts.json",
+		"RO Account.subsets/Leaves.json"
+	]
+}

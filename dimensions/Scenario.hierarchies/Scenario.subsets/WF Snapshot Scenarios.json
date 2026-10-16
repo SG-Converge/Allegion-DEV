@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"WF Snapshot Scenarios",
+	"Alias":"MEMBER_NAME",
+	"Expression":"{EXCEPT(EXCEPT(DISTINCT(DESCENDANTS([Scenario].[Scenario].[Snapshots] , 99 , LEAVES)) , TM1FILTERBYPATTERN([Scenario].[Scenario].ALLMEMBERS , \"RO*\")) , {[Scenario].[Scenario].[AOP]})}"
+}

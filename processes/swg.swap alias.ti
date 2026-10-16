@@ -1,0 +1,6 @@
+#region Prolog
+
+
+SwapAliasWithPrincipalName( 'RO Input Measure', 'Caption', 0 );
+
+#endregion

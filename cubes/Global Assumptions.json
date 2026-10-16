@@ -1,0 +1,15 @@
+{
+	"@type":"Cube",
+	"Name":"Global Assumptions",
+	"Dimensions":
+	[
+		{
+			"@id":"Dimensions('Global Assumption')"
+		},
+		{
+			"@id":"Dimensions('Global Assumptions Measure')"
+		}
+	],
+	"Rules@Code.link":"Global Assumptions.rules",
+	"Views@Code.links":[]
+}

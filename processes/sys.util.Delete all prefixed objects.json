@@ -1,0 +1,20 @@
+{
+	"@type":"Process",
+	"Name":"sys.util.Delete all prefixed objects",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"sys.util.Delete all prefixed objects.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pPrefix",
+			"Prompt":"Prefix to find objects to delete",
+			"Value":"_tmp_",
+			"Type":"String"
+		}
+	],
+	"Variables":[]
+}

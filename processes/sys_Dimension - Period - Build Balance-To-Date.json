@@ -1,0 +1,62 @@
+{
+	"@type":"Process",
+	"Name":"sys_Dimension - Period - Build Balance-To-Date",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"sys_Dimension - Period - Build Balance-To-Date.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pDimension",
+			"Prompt":"Period Dimension",
+			"Value":"Period",
+			"Type":"String"
+		},
+		{
+			"Name":"pHierarchy",
+			"Prompt":"Hierarchy",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pHierRootMember",
+			"Prompt":"Hierarchy root member",
+			"Value":"All Periods",
+			"Type":"String"
+		},
+		{
+			"Name":"pBTDHierarchy",
+			"Prompt":"Balance-to-Date hierarchy",
+			"Value":"BTD Periods",
+			"Type":"String"
+		},
+		{
+			"Name":"pBTDRootMember",
+			"Prompt":"Balance-to-Date root member",
+			"Value":"All Balance To Date Periods",
+			"Type":"String"
+		},
+		{
+			"Name":"pBTDGranularity",
+			"Prompt":"Balance-to-Date granularity (Week, Month, Quarter or Year)",
+			"Value":"Month",
+			"Type":"String"
+		},
+		{
+			"Name":"pBTDFormat",
+			"Prompt":"Balance-to-Date member format",
+			"Value":"%sMemberCaption% BTD",
+			"Type":"String"
+		},
+		{
+			"Name":"pPeriodXRefDimension",
+			"Prompt":"Period Cross-Reference Dimension",
+			"Value":"Period XRef",
+			"Type":"String"
+		}
+	],
+	"Variables":[]
+}

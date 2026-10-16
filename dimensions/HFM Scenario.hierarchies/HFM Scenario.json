@@ -1,0 +1,33 @@
+{
+	"@type":"Hierarchy",
+	"Name":"HFM Scenario",
+	"Elements":
+	[
+		{
+			"Name":"ACTUAL",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"ACTADJ",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Adjustment",
+			"Type":"Consolidated"
+		}
+	],
+	"Edges":
+	[
+		{
+			"ParentName":"Adjustment",
+			"ComponentName":"ACTUAL",
+			"Weight":1
+		},
+		{
+			"ParentName":"Adjustment",
+			"ComponentName":"ACTADJ",
+			"Weight":-1
+		}
+	],
+	"Subsets@Code.links":[]
+}

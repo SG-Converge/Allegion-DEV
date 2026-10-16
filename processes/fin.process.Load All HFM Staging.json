@@ -1,0 +1,12 @@
+{
+	"@type":"Process",
+	"Name":"fin.process.Load All HFM Staging",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"fin.process.Load All HFM Staging.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[]
+}

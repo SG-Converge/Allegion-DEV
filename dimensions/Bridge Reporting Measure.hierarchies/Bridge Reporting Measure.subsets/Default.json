@@ -1,0 +1,23 @@
+{
+	"@type":"Subset",
+	"Name":"Default",
+	"Alias":"Caption",
+	"Elements":
+	[
+		{
+			"@id":"Dimensions('Bridge Reporting Measure')/Hierarchies('Bridge Reporting Measure')/Elements('S_OPS_Revenues')"
+		},
+		{
+			"@id":"Dimensions('Bridge Reporting Measure')/Hierarchies('Bridge Reporting Measure')/Elements('S_OPS_COGS')"
+		},
+		{
+			"@id":"Dimensions('Bridge Reporting Measure')/Hierarchies('Bridge Reporting Measure')/Elements('S_OPS_SGA')"
+		},
+		{
+			"@id":"Dimensions('Bridge Reporting Measure')/Hierarchies('Bridge Reporting Measure')/Elements('OI')"
+		},
+		{
+			"@id":"Dimensions('Bridge Reporting Measure')/Hierarchies('Bridge Reporting Measure')/Elements('Comment')"
+		}
+	]
+}

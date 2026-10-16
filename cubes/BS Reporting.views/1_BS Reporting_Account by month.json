@@ -1,0 +1,112 @@
+{
+	"@type":"NativeView",
+	"Name":"1_BS Reporting_Account by month",
+	"Columns":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Period')/Hierarchies('Period')"
+				},
+				"Alias":"Caption",
+				"Expression":"{EXCEPT(DISTINCT({{[Period].[Period].[2026]},DESCENDANTS([Period].[Period].[2026] , 99 , LEAVES)}) , {[Period].[Period].[2026]} , ALL),[Period].[Period].[2026]}"
+			}
+		}
+	],
+	"Rows":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('BS Account')/Hierarchies('BS Account')"
+				},
+				"Alias":"Caption",
+				"Expression":"{[BS Account].[BS Account].[100000],[BS Account].[BS Account].[200000],[BS Account].[BS Account].[300000]}"
+			}
+		}
+	],
+	"Titles":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Scenario')/Hierarchies('Scenario')"
+				},
+				"Expression":"{[Scenario].[Scenario].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Scenario')/Hierarchies('Scenario')/Elements('Actual')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('BS Reporting Measure')/Hierarchies('BS Reporting Measure')"
+				},
+				"Expression":"{[BS Reporting Measure].[BS Reporting Measure].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('BS Reporting Measure')/Hierarchies('BS Reporting Measure')/Elements('Ending Balance')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Currency')/Hierarchies('Currency')"
+				},
+				"Expression":"{[Currency].[Currency].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Currency')/Hierarchies('Currency')/Elements('USD')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Entity')/Hierarchies('Entity')"
+				},
+				"Expression":"{[Entity].[Entity].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Entity')/Hierarchies('Entity')/Elements('MANAGEMENT')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Product')/Hierarchies('Product')"
+				},
+				"Alias":"Caption",
+				"Expression":"{DRILLDOWNMEMBER({{[Product].[Product].Levels(0).MEMBERS}}, {[Product].[Product].[PRODUCTS], [Product].[Product].[TOT_SECURITY], [Product].[Product].[TOT_SECURITY^RSSECURITY], [Product].[Product].[COMMERCIAL], [Product].[Product].[TOT_SECURITY^RSSECURITY^ALLEHOME], [Product].[Product].[SSECTOR], [Product].[Product].[TOT_SECURITY^RSSECURITY^ALLEHOME^T_RSOTHER], [Product].[Product].[T_SSOTHER]}, RECURSIVE)}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Product')/Hierarchies('Product')/Elements('PRODUCTS')"
+			}
+		}
+	],
+	"SuppressEmptyColumns":false,
+	"SuppressEmptyRows":false,
+	"FormatString":"0.00",
+	"IsAutocalculate" : true,
+	"IsDeferComputeOnLeafDataEntry" : false,
+	"IsSuppressComputeOnOpen" : false
+}

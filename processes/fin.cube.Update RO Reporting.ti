@@ -1,0 +1,290 @@
+#region Prolog
+
+#==============================================================================
+#                            Update RO Reporting
+#
+#  This script will update the RO Reporting cube from RO Input.   Typically
+#  any Product, Account, and Function will be pre-validated, but if the data
+#  was loaded, it could still contain and invalid value.   If this occurs
+#  this script will load values into 'Unmapped xxxxxxx' (to maintain parity) 
+#  if the associated element is not found.
+#
+#      Date    WHO  Description
+#  ----------  ---  -----------------------------------------------------------
+#  2026/05/19  SWG  Created.
+#
+#==============================================================================
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = ATTRS( '}Clients', TM1User(), '}TM1_DefaultDisplayValue' );
+sProcessName = GetProcessName();
+sDateStamp = TIMST( NOW, '\Y-\m-\d' );
+sTimeStamp = TIMST( NOW, '\Y-\m-\d \h.\i.\s' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+# --- Static Values
+ERROR  = 1; WARN   = 2; STATS  = 3;
+INFO   = 4; DEBUG  = 5; TRACE  = 6;
+TRUE   = 1; FALSE  = 0;
+LF     = CHAR(10);
+EXCEL_ADJUSTMENT = 21916;
+
+# --- Setup processing information
+bUseTemporaryObjects = TRUE;
+
+# --- Cubes
+sConfigCube    = 'sys.Config';
+sStatsCube     = 'sys.Process Stats';
+sROInputCube   = 'RO Input';
+sRORptCube     = 'RO Reporting';
+
+# --- Dimensions
+sScenarioDim   = 'Scenario';
+sPeriodDim     = 'Period';
+sCurrencyDim   = 'Currency';
+sYearDim       = 'Year';
+sEntityDim     = 'RO Entity';
+sProductDim    = 'RO Product';
+sFunctionDim   = 'RO Function';
+sAccountDim    = 'RO Account';
+sItemDim       = 'RO Item';
+sCategoryDim   = 'Bridge Category';
+sMeasureDim    = 'RO Reporting Measure';
+
+# --- Members
+sEntityRoot    = 'All Entities';
+sProductRoot   = 'All Products';
+sFunctionRoot  = 'All Functions';
+sAccountRoot   = 'All Accounts';
+sItemRoot      = 'All RO Items';
+sCategoryRoot  = 'All Categories';
+sCurrency      = 'USD';
+
+#==============================================================================
+#                               LOGGING SECTION
+#==============================================================================
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Started At' );
+CellPutS( sUser, sStatsCube, sProcessName, 'Executed By' );
+
+# --- Setup Logging
+nLogLevel = CellGetN( sStatsCube, sProcessName, 'Logging Level' );
+sLogDir = CellGetS( sConfigCube, 'Log Directory', 'String' );
+sLogFile = sLogDir | sProcessName | '.log';
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log startup
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Started');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+# --- Report how the script was executed 
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand( '%LF%
+        ============================================================================ %LF%
+                        %sProcessName%                                               %LF%
+        ============================================================================ %LF%
+        Executed by [%sUser%]                                                        %LF%
+              pSourceScenario  = [%pSourceScenario%]                                 %LF%
+              pDestYear        = [%pDestYear%]                                       %LF%
+              pDestScenario    = [%pDestScenario%]                                   %LF%
+        ============================================================================ %LF%
+    ');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+#==============================================================================
+#                        PARAMETER VALIDATION SECTION
+#==============================================================================
+
+# --- Validate source scenario to process
+sSourceScenario = pSourceScenario;
+If( sSourceScenario @<> '' );
+    If( DimensionElementExists( sScenarioDim, sSourceScenario ) = FALSE );
+        sMsgLevel = 'ERROR';
+        sMessage = Expand( 'Specified source scenario [%sSourceScenario%] does not exist in dimension [%sScenarioDim%]');
+        ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+        ProcessError();
+    EndIf;
+EndIf;
+
+# --- Validate destination year to process
+sDestYear = pDestYear;
+If( sDestYear @<> '' );
+    If( DimensionElementExists( sYearDim, sDestYear ) = FALSE );
+        sMsgLevel = 'ERROR';
+        sMessage = Expand( 'Specified destination year [%sDestYear%] does not exist in dimension [%sYearDim%]');
+        ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+        ProcessError();
+    EndIf;
+EndIf;
+
+# --- Validate destination scenario to process
+sDestScenario = pDestScenario;
+If( sDestScenario @<> '' );
+    If( DimensionElementExists( sScenarioDim, sDestScenario ) = FALSE );
+        sMsgLevel = 'ERROR';
+        sMessage = Expand( 'Specified destination scenario [%sDestScenario%] does not exist in dimension [%sScenarioDim%]');
+        ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+        ProcessError();
+    EndIf;
+EndIf;
+
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+sActualEndPeriod = CellGetS( 'Global Assumptions', 'Actual End Period', 'String' );
+nActualEndMonth = NUMBR( SUBST( sActualEndPeriod, 6, 2 ) );
+
+
+#------------------------------------------
+# Source View:  RO Input
+#------------------------------------------
+
+# --- Build the query that will generate the source data records
+sCubeName = sROInputCube;
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { [Scenario].[%sSourceScenario%] } %LF%
+        SET EntitySet     as { TM1FilterByLevel( TM1SubsetAll( [RO Entity] ), 0 ) } %LF%
+        SET ItemSet       as { TM1FilterByLevel( TM1SubsetAll( [RO Item] ), 0 ) } %LF%
+        SET MeasureSet    as { TM1FilterByLevel( TM1SubsetAll( [RO Input Measure] ), 0 ) } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * EntitySet * ItemSet ON 1 %LF%
+
+    FROM [%sCubeName%] %LF%
+' );
+
+sViewName = sTempName | ' - Source ';
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand('Source view: %sViewMDX%');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+ViewCreateByMDX( sCubeName, sViewName, sViewMDX, bUseTemporaryObjects );
+DatasourceNameForServer = sCubeName;
+DatasourceCubeview = sViewName;
+
+
+#------------------------------------------
+# Destination View:  RO Reporting
+#------------------------------------------
+
+# --- Clear out the data from the reporting cube to reload
+sCubeName = sRORptCube;
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { [Scenario].[%sDestScenario%] } %LF%
+        SET YearSet       as { [Year].[%sDestYear%] } %LF%
+        SET CurrencySet   as { TM1FilterByLevel( TM1SubsetAll( [Currency] ), 0 ) } %LF%
+        SET TypeSet       as { TM1FilterByLevel( TM1SubsetAll( [RO Type] ), 0 ) } %LF%
+        SET EntitySet     as { TM1FilterByLevel( TM1SubsetAll( [RO Entity] ), 0 ) } %LF%
+        SET ProductSet    as { TM1FilterByLevel( TM1SubsetAll( [RO Product] ), 0 ) } %LF%
+        SET FunctionSet   as { TM1FilterByLevel( TM1SubsetAll( [RO Function] ), 0 ) } %LF%
+        SET AccountSet    as { TM1FilterByLevel( TM1SubsetAll( [RO Account] ), 0 ) } %LF%
+        SET ItemSet       as { TM1FilterByLevel( TM1SubsetAll( [RO Item] ), 0 ) } %LF%
+        SET CategorySet   as { TM1FilterByLevel( TM1SubsetAll( [Bridge Category] ), 0 ) } %LF%
+        SET MeasureSet    as { TM1FilterByLevel( TM1SubsetAll( [RO Reporting Measure] ), 0 ) } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * YearSet * CurrencySet * TypeSet * EntitySet * ProductSet * FunctionSet * AccountSet * ItemSet * CategorySet ON 1 %LF%
+
+    FROM [%sCubeName%] %LF%
+' );
+
+sViewName = sTempName | ' - RO Reporting ';
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand('Destination view: %sViewMDX%');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+ViewCreateByMDX( sCubeName, sViewName, sViewMDX, bUseTemporaryObjects );
+ViewZeroOut( sCubeName, sViewName );
+
+#endregion
+#region Data
+
+
+
+# ----------------------------------------------------
+# Handle incoming record
+# ----------------------------------------------------
+sScenario  = sDestScenario;
+sEntity    = inEntity;
+sItem      = inItem;
+sMeasure   = inMeasure;
+
+# --- We only want to populate measures that are common
+# --- between the input and reporting cube, which are 
+# --- primarily the amounts.
+If( DIMIX( sMeasureDim, sMeasure) = 0 );
+    ItemSkip;
+EndIf;
+
+# --- Collect all dimension values
+sType = CellGetS( sROInputCube, sScenario, sEntity, sItem, 'Type' );
+sProduct = CellGetS( sROInputCube, sScenario, sEntity, sItem, 'Product' );
+sAccount = CellGetS( sROInputCube, sScenario, sEntity, sItem, 'Account' );
+sCategory = CellGetS( sROInputCube, sScenario, sEntity, sItem, 'Category' );
+sFunction = CellGetS( sROInputCube, sScenario, sEntity, sItem, 'Function' );
+
+# --- Watch for and clean up blanks
+sProduct  = If( sProduct @= '', 'No Product', sProduct );
+sCategory = If( sCategory @= '', 'No Category', sCategory );
+sFunction = If( sFunction @= '', 'No Function', sFunction );
+sType     = If( sType @= '', 'No RO Type', sType );
+
+# --- See what type the measure is, String or Numeric
+sMeasureType = DTYPE( sMeasureDim, sMeasure );
+bIsMonth = ELISANC( sMeasureDim, 'Total Year', sMeasure );
+
+# --- Only write forecast months
+bSkipWrite = FALSE;
+If( bIsMonth = TRUE );
+    nFileMonth = NUMBR( sMeasure );
+    If( nFileMonth <= nActualEndMonth );
+        bSkipWrite = TRUE;
+    EndIf;
+EndIf;
+
+If( bSkipWrite = FALSE );
+    If( sMeasureType @= 'S' );
+        CellPutS( SValue, sRORptCube, sScenario, sDestYear, sCurrency, sType, sEntity, sProduct, sFunction, sAccount, sItem, sCategory, sMeasure );
+    Else;
+        CellPutN( NValue, sRORptCube, sScenario, sDestYear, sCurrency, sType, sEntity, sProduct, sFunction, sAccount, sItem, sCategory, sMeasure );
+    EndIf;
+EndIf;
+#endregion
+#region Epilog
+
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Completed At' );
+
+# --- Append to the log (will overwrite if not done before AsciiOutput)
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log completion
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Completed');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+#endregion

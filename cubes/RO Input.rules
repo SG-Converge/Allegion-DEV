@@ -1,0 +1,39 @@
+SKIPCHECK;
+
+# --- These scenarios are not allowed to be used
+[{'Working AOP','Working Forecast'}] = 0;
+
+['Working RO', 'RO Item':'RO Item':'All RO Items'] = STET;
+
+['Working RO', 'Function'] = S:
+  If( ['RO Input Measure':'RO Input Measure':'Total Year'] = 0,
+    '',
+    If( DIMIX( 'RO Account', DB( 'RO Input', !Scenario, !RO Entity, !RO Item, 'Account' ) ) = 0,
+      'No Function',
+      ATTRS( 'RO Account', DB( 'RO Input', !Scenario, !RO Entity, !RO Item, 'Account' ), 'Function' )
+    )
+  );
+
+[] = N:
+  If( ELISANC( 'RO Input Measure', 'Total Year', !RO Input Measure ) = 1,
+    If( DB( 'Global Assumptions', 'Forecast Start Month', 'String' ) @> !RO Input Measure,
+      0,
+      CONTINUE
+    ),
+    CONTINUE
+  );
+
+['Working RO', 'Error'] = S:
+  If( ['Total Year'] = 0,
+    CONTINUE,
+    If( DB('RO Input', !Scenario, !RO Entity, !RO Item, 'Account' ) @= '', 
+      'WARN: Account is not specified.',
+    If( DB('RO Input', !Scenario, !RO Entity, !RO Item, 'Product' ) @= '', 
+      'WARN: Product is not specified.',
+    If( DB('RO Input', !Scenario, !RO Entity, !RO Item, 'Function' ) @= '', 
+      'WARN: Function is not specified.',
+    If( DB('RO Input', !Scenario, !RO Entity, !RO Item, 'Category' ) @= '', 
+      'WARN: Category is not specified.',
+      CONTINUE
+    ))))
+  );

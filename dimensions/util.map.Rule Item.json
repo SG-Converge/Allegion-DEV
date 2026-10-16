@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"util.map.Rule Item",
+	"Hierarchies@Code.links":
+	[
+		"util.map.Rule Item.hierarchies/util.map.Rule Item.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('util.map.Rule Item')/Hierarchies('util.map.Rule Item')"
+	}
+}

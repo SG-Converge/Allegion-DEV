@@ -1,0 +1,36 @@
+#region Prolog
+
+
+sScenarios = '!Snapshots';
+sMeasure = 'Reorg Amount';
+sPeriod = '!2026';
+
+sCubeName = 'BS Input';
+ExecuteProcess( 'sys_View - Clear', 'pCubeName', sCubeName, 'pViewName', '', 'pMemberExpr1', sScenarios, 'pMemberExpr2', sPeriod, 'pMemberExpr6', sMeasure );
+
+sCubeName = 'BS Reporting';
+ExecuteProcess( 'sys_View - Clear', 'pCubeName', sCubeName, 'pViewName', '', 'pMemberExpr1', sScenarios, 'pMemberExpr2', sPeriod, 'pMemberExpr7', sMeasure );
+
+sCubeName = 'PL Input';
+ExecuteProcess( 'sys_View - Clear', 'pCubeName', sCubeName, 'pViewName', '', 'pMemberExpr1', sScenarios, 'pMemberExpr2', sPeriod, 'pMemberExpr7', sMeasure );
+
+sCubeName = 'PL Reporting';
+ExecuteProcess( 'sys_View - Clear', 'pCubeName', sCubeName, 'pViewName', '', 'pMemberExpr1', sScenarios, 'pMemberExpr2', sPeriod, 'pMemberExpr8', sMeasure );
+
+sScenarios = '!Constant Currencies';
+sMeasure = 'Reorg Amount';
+
+sCubeName = 'BS Input';
+ExecuteProcess( 'sys_View - Clear', 'pCubeName', sCubeName, 'pViewName', '', 'pMemberExpr1', sScenarios, 'pMemberExpr2', sPeriod, 'pMemberExpr6', sMeasure );
+
+sCubeName = 'BS Reporting';
+ExecuteProcess( 'sys_View - Clear', 'pCubeName', sCubeName, 'pViewName', '', 'pMemberExpr1', sScenarios, 'pMemberExpr2', sPeriod, 'pMemberExpr7', sMeasure );
+
+sCubeName = 'PL Input';
+ExecuteProcess( 'sys_View - Clear', 'pCubeName', sCubeName, 'pViewName', '', 'pMemberExpr1', sScenarios, 'pMemberExpr2', sPeriod, 'pMemberExpr7', sMeasure );
+
+sCubeName = 'PL Reporting';
+ExecuteProcess( 'sys_View - Clear', 'pCubeName', sCubeName, 'pViewName', '', 'pMemberExpr1', sScenarios, 'pMemberExpr2', sPeriod, 'pMemberExpr8', sMeasure );
+
+
+#endregion

@@ -1,0 +1,64 @@
+{
+	"@type":"Hierarchy",
+	"Name":"Global Assumption",
+	"Elements":
+	[
+		{
+			"Name":"HFM Load Period",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Actual End Period",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Forecast Start Period",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Forecast Start Year",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Forecast Start Month",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Forecast Prior Year",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Working Forecast Horizon Start Year",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Constant Currency Base Year",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Working AOP Start Year",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Working AOP Seed Period",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Bridge ACTCY_VPY Entry Period",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Bridge Current Forecast",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Bridge Prior Forecast",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Bridge Interim Forecast",
+			"Type":"Numeric"
+		}
+	],
+	"Subsets@Code.links":[]
+}

@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"CC Scenarios",
+	"Alias":"MEMBER_NAME",
+	"Expression":"{[Scenario].[Scenario].[Forecast 2+10],[Scenario].[Scenario].[Forecast 5+7],[Scenario].[Scenario].[Forecast 8+4],ORDER(DISTINCT(DESCENDANTS([Scenario].[Scenario].[Constant Currencies] , 99 , LEAVES)) , [Scenario].[Scenario].CURRENTMEMBER.PROPERTIES(\"MEMBER_NAME\") , BASC)}"
+}

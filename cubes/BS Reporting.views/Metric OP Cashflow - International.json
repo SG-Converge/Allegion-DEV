@@ -1,0 +1,56 @@
+{
+	"@type":"MDXView",
+	"Name":"Metric OP Cashflow - International",
+	"MDX@Code.link":"Metric OP Cashflow - International.mdx",
+	"IsAutocalculate" : true,
+	"IsDeferComputeOnLeafDataEntry" : false,
+	"IsSuppressComputeOnOpen" : false,
+	"Meta" : 
+	{
+		"Aliases" : 
+		{
+			"[BS Account].[BS Account]" : "Caption",
+			"[Entity].[Entity]" : "Caption",
+			"[Period].[Period]" : "Caption"
+		},
+		"CalculatedMembers" : 
+		{
+			"[Scenario].[Scenario]" : 
+			[
+				
+				{
+					"Anchor" : "[Scenario].[Scenario].[Forecast 3+9 Base]",
+					"Caption" : "Actual - Forecast 3+9 Base",
+					"InsertionPosition" : "AFTER",
+					"MemberID" : "[Scenario].[Scenario].[Actual - Forecast 3+9 Base]",
+					"Parent" : "[Scenario].[Scenario].[Forecast 3+9]"
+				}
+			]
+		},
+		"ContextSets" : 
+		{
+			"[BS Account].[BS Account]" : 
+			{
+				"Expression" : "{TM1FILTERBYPATTERN(TM1SubsetAll([BS Account].[BS Account]),\"*metric*\",\"Caption\")}"
+			},
+			"[BS Reporting Measure].[BS Reporting Measure]" : 
+			{
+				"Expression" : "{[BS Reporting Measure].[BS Reporting Measure].MEMBERS}"
+			},
+			"[Currency].[Currency]" : 
+			{
+				"Expression" : "{[Currency].[Currency].MEMBERS}"
+			}
+		},
+		"ExpandAboves" : 
+		{
+			"[BS Account].[BS Account]" : false,
+			"[BS Reporting Measure].[BS Reporting Measure]" : false,
+			"[Currency].[Currency]" : false,
+			"[Entity].[Entity]" : false,
+			"[Period].[Period]" : false,
+			"[Product].[Product]" : false,
+			"[Scenario].[Scenario]" : false
+		}
+	}
+}

@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"Bridge Input Measure",
+	"Hierarchies@Code.links":
+	[
+		"Bridge Input Measure.hierarchies/Bridge Input Measure.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('Bridge Input Measure')/Hierarchies('Bridge Input Measure')"
+	}
+}

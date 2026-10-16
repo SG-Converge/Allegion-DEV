@@ -1,0 +1,83 @@
+#region Prolog
+
+
+
+#==============================================================================
+#                               Admin - UnZip
+#
+#  This script will uncompress files from the a zip archive into a directory
+#
+#   Date         WHO   Description
+#   ----------   ----  --------------------------------------------------------
+#   2025-03-21   SWG   Created
+#
+#==============================================================================
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = TM1User();
+sProcessName = GetProcessName();
+sTimeStamp = TIMST( NOW, '\Y-\m-\d (\h\i\s)' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+sLogPath = '../Logs/';
+sLogFile = sLogPath | sUniqueName | '.log';
+
+# --- Static Values
+TRUE = 1;
+FALSE = 0;
+bDebug = FALSE;
+nExcelAdjustment = 21916;
+
+# --- Cubes
+sCubeControl  = 'sys_Config';
+
+# --- Values
+# Retention period for backup files (in days)
+sScript = 'tda_unzip.ps1';
+
+# Wait for command to complete
+bExecutionWait = TRUE; 
+
+#==============================================================================
+#                       PARAMETER VALIDATION SECTION
+#==============================================================================
+
+sZipFile = pZipFile;
+sDestination = pDestination;
+bOverwrite = If( pOverwrite @= 'Yes', TRUE, FALSE );
+
+If( FileExists( sZipFile ) = FALSE );
+    LogOutput( 'ERROR', Expand('Specified zip file [%sZipFile%] does not exist.') );
+    ProcessError;
+EndIf;
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+#sScriptsDir = CellGetS(sCubeControl, 'Scripts Directory', 'String');
+sScriptsDir = '..\Scripts';
+
+sExecCmd = Expand( 'Powershell -ExecutionPolicy Bypass "%sScriptsDir%\%sScript%"' );
+
+#------------------------------------------------------------------------------
+# Uncompress files
+#------------------------------------------------------------------------------
+
+sCommand   = Expand( '%sExecCmd%  -zipfile """%sZipFile%""" -destination """%sDestination%"""' );
+If( bOverwrite = TRUE );
+    sCommand = sCommand | ' -overwrite';
+Endif;
+
+# --- Tack on logging so if it fails we can see why
+sCommand = sCommand | Expand( ' 2>&1 >> """%sLogFile%"""');
+
+# Run the PowerShell script
+LogOutput('INFO', sCommand);
+ExecuteCommand( sCommand, bExecutionWait );
+
+#endregion

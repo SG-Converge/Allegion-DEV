@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"Loadable Product",
+	"Alias":"MEMBER_NAME",
+	"Expression":"{{TM1FILTERBYLEVEL(TM1SUBSETALL([Bridge Product].[Bridge Product]) , 0)}}"
+}

@@ -1,0 +1,95 @@
+{
+	"@type":"NativeView",
+	"Name":"Fcst-5.0 Balance Sheet",
+	"Columns":
+	[
+		{
+			"Subset":
+			{
+				"@id":"Dimensions('Period')/Hierarchies('Period')/Subsets('2026 Trailing')"
+			}
+		}
+	],
+	"Rows":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('BS Account')/Hierarchies('BS Account')"
+				},
+				"Alias":"Caption",
+				"Expression":"{[BS Account].[BS Account].[120000],[BS Account].[BS Account].[121100],[BS Account].[BS Account].[121200],[BS Account].[BS Account].[121500],[BS Account].[BS Account].[122000],[BS Account].[BS Account].[123200],[BS Account].[BS Account].[123300],[BS Account].[BS Account].[123410],[BS Account].[BS Account].[123420],[BS Account].[BS Account].[123430],[BS Account].[BS Account].[123440],[BS Account].[BS Account].[123500],[BS Account].[BS Account].[123600],[BS Account].[BS Account].[123700],[BS Account].[BS Account].[123750],[BS Account].[BS Account].[127000],[BS Account].[BS Account].[128000],[BS Account].[BS Account].[130000],[BS Account].[BS Account].[132000],[BS Account].[BS Account].[132000_STAT_FG],[BS Account].[BS Account].[132000_STAT_Raw],[BS Account].[BS Account].[132000_STAT_WIP],[BS Account].[BS Account].[132900],[BS Account].[BS Account].[133000],[BS Account].[BS Account].[135000],[BS Account].[BS Account].[136000],[BS Account].[BS Account].[137000],[BS Account].[BS Account].[140000],[BS Account].[BS Account].[140500],[BS Account].[BS Account].[140700],[BS Account].[BS Account].[144100],[BS Account].[BS Account].[150000],[BS Account].[BS Account].[160000],[BS Account].[BS Account].[165000],[BS Account].[BS Account].[165000_ADD],[BS Account].[BS Account].[165000_RET],[BS Account].[BS Account].[165000_TRANS],[BS Account].[BS Account].[175000],[BS Account].[BS Account].[175000_ADD],[BS Account].[BS Account].[175000_ADJ],[BS Account].[BS Account].[175000_RET],[BS Account].[BS Account].[175000_TRANS],[BS Account].[BS Account].[180000],[BS Account].[BS Account].[180100],[BS Account].[BS Account].[181000],[BS Account].[BS Account].[181000_ADD],[BS Account].[BS Account].[181000_RET],[BS Account].[BS Account].[181000_TRANS],[BS Account].[BS Account].[181100],[BS Account].[BS Account].[181100_ADD],[BS Account].[BS Account].[181100_RET],[BS Account].[BS Account].[181100_TRANS],[BS Account].[BS Account].[190100],[BS Account].[BS Account].[195100],[BS Account].[BS Account].[195200],[BS Account].[BS Account].[195300],[BS Account].[BS Account].[195410],[BS Account].[BS Account].[195425],[BS Account].[BS Account].[195430],[BS Account].[BS Account].[195450],[BS Account].[BS Account].[195500],[BS Account].[BS Account].[195510],[BS Account].[BS Account].[195530],[BS Account].[BS Account].[195600],[BS Account].[BS Account].[195700],[BS Account].[BS Account].[210000],[BS Account].[BS Account].[210100],[BS Account].[BS Account].[210110],[BS Account].[BS Account].[210120],[BS Account].[BS Account].[220000],[BS Account].[BS Account].[240000],[BS Account].[BS Account].[244110],[BS Account].[BS Account].[260100],[BS Account].[BS Account].[260200],[BS Account].[BS Account].[260300],[BS Account].[BS Account].[260400],[BS Account].[BS Account].[260510],[BS Account].[BS Account].[260550],[BS Account].[BS Account].[260600],[BS Account].[BS Account].[260700],[BS Account].[BS Account].[260800],[BS Account].[BS Account].[275110],[BS Account].[BS Account].[275130],[BS Account].[BS Account].[275200],[BS Account].[BS Account].[275300],[BS Account].[BS Account].[275400],[BS Account].[BS Account].[275510],[BS Account].[BS Account].[275550],[BS Account].[BS Account].[275600],[BS Account].[BS Account].[275800],[BS Account].[BS Account].[275920],[BS Account].[BS Account].[275925],[BS Account].[BS Account].[275930],[BS Account].[BS Account].[275940],[BS Account].[BS Account].[275995],[BS Account].[BS Account].[283100],[BS Account].[BS Account].[280100],[BS Account].[BS Account].[280200],[BS Account].[BS Account].[280300],[BS Account].[BS Account].[280410],[BS Account].[BS Account].[280430],[BS Account].[BS Account].[280450],[BS Account].[BS Account].[280470],[BS Account].[BS Account].[280510],[BS Account].[BS Account].[280530],[BS Account].[BS Account].[280550],[BS Account].[BS Account].[280600],[BS Account].[BS Account].[280690],[BS Account].[BS Account].[281010],[BS Account].[BS Account].[281050],[BS Account].[BS Account].[281100],[BS Account].[BS Account].[281210],[BS Account].[BS Account].[281230],[BS Account].[BS Account].[281250],[BS Account].[BS Account].[281270],[BS Account].[BS Account].[281600],[BS Account].[BS Account].[281700],[BS Account].[BS Account].[281910],[BS Account].[BS Account].[281950],[BS Account].[BS Account].[282300],[BS Account].[BS Account].[282500],[BS Account].[BS Account].[282600],[BS Account].[BS Account].[282700],[BS Account].[BS Account].[284200],[BS Account].[BS Account].[284300],[BS Account].[BS Account].[284400],[BS Account].[BS Account].[284600],[BS Account].[BS Account].[NIBCLS],[BS Account].[BS Account].[290910],[BS Account].[BS Account].[290960],[BS Account].[BS Account].[295110],[BS Account].[BS Account].[295200],[BS Account].[BS Account].[295400],[BS Account].[BS Account].[295600],[BS Account].[BS Account].[295700],[BS Account].[BS Account].[296100],[BS Account].[BS Account].[296335],[BS Account].[BS Account].[296345],[BS Account].[BS Account].[296410],[BS Account].[BS Account].[296510],[BS Account].[BS Account].[296550],[BS Account].[BS Account].[CAPEX],[BS Account].[BS Account].[CAPEX_SW],[BS Account].[BS Account].[AP_DAYS_ENTERPRISE],[BS Account].[BS Account].[DSO],[BS Account].[BS Account].[INV_TO_ENTERPRISE],[BS Account].[BS Account].[METRIC_OP_CASHFLOW],[BS Account].[BS Account].[WORKING_CAPITAL]}"
+			}
+		}
+	],
+	"Titles":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Scenario')/Hierarchies('Scenario')"
+				},
+				"Expression":"{[Scenario].[Scenario].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Scenario')/Hierarchies('Scenario')/Elements('Working Forecast')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('BS Input Measure')/Hierarchies('BS Input Measure')"
+				},
+				"Alias":"Caption",
+				"Expression":"{[BS Input Measure].[BS Input Measure].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('BS Input Measure')/Hierarchies('BS Input Measure')/Elements('Ending Balance')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Entity')/Hierarchies('Entity')"
+				},
+				"Alias":"Caption",
+				"Expression":"{{ORDER(TM1FILTERBYLEVEL(TM1SUBSETALL([Entity].[Entity]) , 0) , IIF([Entity].[Entity].CURRENTMEMBER.PROPERTIES(\"Caption\")=\"\", [Entity].[Entity].CURRENTMEMBER.PROPERTIES(\"MEMBER_CAPTION\"), [Entity].[Entity].CURRENTMEMBER.PROPERTIES(\"Caption\")) , BASC)}}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Entity')/Hierarchies('Entity')/Elements('08950010')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Product')/Hierarchies('Product')"
+				},
+				"Alias":"Caption",
+				"Expression":"{{ORDER(TM1FILTERBYLEVEL(TM1SUBSETALL([Product].[Product]) , 0) , IIF([Product].[Product].CURRENTMEMBER.PROPERTIES(\"Caption\")=\"\", [Product].[Product].CURRENTMEMBER.PROPERTIES(\"MEMBER_CAPTION\"), [Product].[Product].CURRENTMEMBER.PROPERTIES(\"Caption\")) , BASC)}}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Product')/Hierarchies('Product')/Elements('001')"
+			}
+		}
+	],
+	"SuppressEmptyColumns":false,
+	"SuppressEmptyRows":false,
+	"FormatString":"0.00",
+	"IsAutocalculate" : true,
+	"IsDeferComputeOnLeafDataEntry" : false,
+	"IsSuppressComputeOnOpen" : false
+}

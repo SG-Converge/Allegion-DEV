@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"Bridge Function",
+	"Alias":"MEMBER_NAME",
+	"Expression":"{{[Bridge Function].[Bridge Function].MEMBERS}}"
+}

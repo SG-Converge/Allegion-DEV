@@ -1,0 +1,50 @@
+#region Prolog
+
+
+
+FALSE = 0;
+TRUE = 1;
+LF     = CHAR(10);
+
+sLogFile = '.\model_upload\logs\' | GetProcessName() | '.log';
+
+# --- Cubes
+sPLInputCube         = 'PL Input';
+sPLReportingCube     = 'PL Reporting';
+sBSInputCube         = 'BS Input';
+sBSReportingCube     = 'BS Reporting';
+sROInputCube         = 'RO Input';
+sROReportingCube     = 'RO Reporting';
+sBridgeInputCube     = 'Bridge Input';
+sBridgeReportingCube = 'Bridge Reporting';
+sFXCube              = 'FX Rates';
+sGlobalAssumptions   = 'Global Assumptions';
+sScenarioAssumptions = 'Scenario Assumptions';
+
+sWFScenario = 'Working Foreast';
+sWROScenario = 'Working RO';
+sWAOPScenario = 'Working AOP';
+sAOPScenario  = 'AOP';
+
+sDestScenario     = pDestScenario;
+sForecastYear     = pForecastYear;
+sForecastType     = UPPER( pForecastType );
+
+
+If( sForecastType @= 'AOP' );
+    # --- Now that all of the data is loaded, make the snapshot
+    ExecuteProcess( 'fin.process.Create AOP Snapshot',
+        'pDestScenario', sDestScenario,
+        'pYear', sForecastYear );
+ElseIf( sForecastType @= 'WF' );
+    # --- Copy working forecast to snapshot
+    ExecuteProcess( 'fin.process.Create WF Snapshot',
+        'pDestScenario', sDestScenario,
+        'pYear', sForecastYear );
+ElseIf( sForecastType @= 'RO' );
+    # --- Copy working RO to destination RO
+    ExecuteProcess( 'fin.process.Create RO Snapshot',
+        'pDestScenario', sDestScenario,
+        'pYear', sForecastYear );
+EndIf;
+#endregion

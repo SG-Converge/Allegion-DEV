@@ -1,0 +1,186 @@
+#region Prolog
+#==============================================================================
+#                             Create User Snapshot
+#
+#  This process will copy either Working Forecast or Working AOP version
+#  to one of the existing user defined snapshots (Snapshot 1 - 4)
+#
+#  CALLS:
+#       sys_Cube - Version Copy
+#
+#    Date      WHO  Description
+#  ----------  ---  -----------------------------------------------------------
+#  2026-09-01  SWG  Created.
+#
+#==============================================================================
+
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = ATTRS( '}Clients', TM1User(), '}TM1_DefaultDisplayValue' );
+sProcessName = GetProcessName();
+sDateStamp = TIMST( NOW, '\Y-\m-\d' );
+sTimeStamp = TIMST( NOW, '\Y-\m-\d \h.\i.\s' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+# --- Static Values
+ERROR  = 1; WARN   = 2; STATS  = 3;
+INFO   = 4; DEBUG  = 5; TRACE  = 6;
+TRUE   = 1; FALSE  = 0;
+LF     = CHAR(10);
+EXCEL_ADJUSTMENT = 21916;
+
+# --- Setup processing information
+bUseTemporaryObjects = TRUE;
+
+# --- Cubes
+sConfigCube      = 'sys.Config';
+sStatsCube       = 'sys.Process Stats';
+sAssumptionsCube = 'Global Assumptions';
+
+# --- Dimensions
+sScenarioDim     = 'Scenario';
+sPeriodDim       = 'Period';
+sYearDim         = 'Year';
+
+# --- Elements
+sWorkingForecast = 'Working Forecast';
+sWorkingRO       = 'Working RO';
+sWorkingAOP      = 'Working AOP';
+
+# --- Cubes to copy
+sCubesExpr = '*';
+
+# --- Setup data export options
+bParallelMode = TRUE;
+bSnapshot = TRUE;
+bSuppressControlCubes = TRUE;
+bSuppressRollups = TRUE;
+bSuppressRollupStrings = TRUE;
+
+# --- Setup timeout options
+nViewTimeout = 1;
+nClearTimeout = 5;
+nExportTimeout = 10;
+nImportTimeout = 30;
+
+#==============================================================================
+#                               LOGGING SECTION
+#==============================================================================
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Started At' );
+CellPutS( sUser, sStatsCube, sProcessName, 'Executed By' );
+
+# --- Setup Logging
+nLogLevel = CellGetN( sStatsCube, sProcessName, 'Logging Level' );
+sLogDir = CellGetS( sConfigCube, 'Log Directory', 'String' );
+sLogFile = sLogDir | sProcessName | '.log';
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log startup
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Started');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+# --- Report how the script was executed 
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand( '%LF%
+        ============================================================================ %LF%
+                        %sProcessName%                                               %LF%
+        ============================================================================ %LF%
+        Executed by [%sUser%]                                                        %LF%
+              pDestScenario     = [%pDestScenario%] %LF%
+              pYear             = [%pYear%] %LF%
+        ============================================================================ %LF%
+    ');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+#==============================================================================
+#                        PARAMETER VALIDATION SECTION
+#==============================================================================
+
+sSourceScenario = pSourceScenario;
+sDestScenario = pDestScenario;
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+sDimName = sScenarioDim;
+sYear = CellGetS( sAssumptionsCube, 'Forecast Start Year', 'String' );
+
+# --- Validation is manual because using DIMIX will halt multi-threading
+If( sSourceScenario @<> 'Working Forecast' & sSourceScenario @<> 'Working AOP' );
+    sMessage = Expand( 'Source Scenario [%sSourceScenario%] must be either [Working Forecast] or [Working AOP]');
+    LogOutput( 'ERROR', sMessage );
+    ProcessError();
+EndIf;
+
+If( sDestScenario @>= 'Snapshot 1' & sDestScenario @<= 'Snapshot 4' );
+Else;
+    sMessage = Expand( 'Destination Scenario [%sDestScenario%] must be [Snapshot 1] through [Snapshot 4]');
+    LogOutput( 'ERROR', sMessage );
+    ProcessError();
+EndIf;
+#------------------------------------------------------------------------------
+#                       COPY THE SCENARIO IN PARALLEL
+#------------------------------------------------------------------------------
+
+# --- All cubes except RO cubes since these don't use Working Forecast
+sCubeExpr = '{
+    Except(
+        TM1SubsetAll([}Cubes]),
+        { TM1FilterByPattern(TM1SubsetAll([}Cubes]) , "RO*") }
+     )
+}';
+
+# --- Process all cubes with the selected scneario and year (Period dimension)
+RunProcess( 'sys_Cube - Scenario Copy', 
+        'pMemberExpr', 'MDX:' | sCubeExpr,
+        'pScenarioDimName', sScenarioDim,
+        'pSourceScenario', sSourceScenario,
+        'pDestScenario', sDestScenario,
+        'pPeriodDimName', sPeriodDim,
+        'pSourcePeriodExpr', '!' | sYear,
+        'pDestPeriodExpr', '!' | sYear,
+        'pDestOffset', 0,
+        'pSnapshot', bSnapshot,
+        'pSuppressControlCubes', bSuppressControlCubes,
+        'pSuppressRollups', bSuppressRollups,
+        'pSuppressRollupStrings', bSuppressRollupStrings,
+        'pViewTimeoutMins', nViewTimeout,
+        'pExportTimeoutMins', nExportTimeout,
+        'pClearTimeoutMins', nClearTimeout,
+        'pImportTimeoutMins', nImportTimeout
+    );
+
+#endregion
+#region Epilog
+
+
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Completed At' );
+
+# --- Append to the log (will overwrite if not done before AsciiOutput)
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log completion
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Completed');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+#endregion

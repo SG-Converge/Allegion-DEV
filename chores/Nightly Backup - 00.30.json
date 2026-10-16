@@ -1,0 +1,64 @@
+{
+	"@type":"Chore",
+	"Name":"Nightly Backup - 00.30",
+	"StartTime":"2026-07-29T17:39Z",
+	"DSTSensitive":false,
+	"Active":true,
+	"ExecutionMode":"SingleCommit",
+	"Frequency":"P1DT00H00M00S",
+	"Tasks":
+	[
+		{
+			"Step":0,
+			"Parameters":
+			[
+				{
+					"Name":"pPrefix",
+					"Value":"_tmp_"
+				}
+			],
+			"Process":
+			{
+				"@id":"Processes('sys.util.Delete all prefixed objects')"
+			}
+		},
+		{
+			"Step":1,
+			"Parameters":[],
+			"Process":
+			{
+				"@id":"Processes('util.admin.Save Data')"
+			}
+		},
+		{
+			"Step":2,
+			"Parameters":
+			[
+				{
+					"Name":"pBackupAuditLogs",
+					"Value":"Yes"
+				},
+				{
+					"Name":"pBackupData",
+					"Value":"Yes"
+				},
+				{
+					"Name":"pBackupProcessLogs",
+					"Value":"Yes"
+				},
+				{
+					"Name":"pBackupServerLogs",
+					"Value":"Yes"
+				},
+				{
+					"Name":"pIncludeModelUpload",
+					"Value":"No"
+				}
+			],
+			"Process":
+			{
+				"@id":"Processes('util.admin.backup')"
+			}
+		}
+	]
+}

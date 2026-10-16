@@ -1,0 +1,13 @@
+#region Prolog
+
+CubeProcessFeeders( 'PL Input' );
+CubeProcessFeeders( 'BS Input' );
+CubeProcessFeeders( 'RO Input' );
+CubeProcessFeeders( 'Bridge Input' );
+
+CubeProcessFeeders( 'PL Reporting' );
+CubeProcessFeeders( 'BS Reporting' );
+CubeProcessFeeders( 'RO Reporting' );
+CubeProcessFeeders( 'Bridge Reporting' );
+
+#endregion

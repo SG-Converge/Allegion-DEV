@@ -1,0 +1,106 @@
+{
+	"@type":"NativeView",
+	"Name":"HFM Actuals - Unmapped Accounts",
+	"Columns":
+	[
+		{
+			"Subset":
+			{
+				"@id":"Dimensions('Period')/Hierarchies('Period')/Subsets('Current Year')"
+			}
+		}
+	],
+	"Rows":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Product')/Hierarchies('Product')"
+				},
+				"Alias":"Caption",
+				"Expression":"{DRILLDOWNMEMBER({{[Product].[Product].Levels(0).MEMBERS}}, {[Product].[Product].[PRODUCTS], [Product].[Product].[TOT_SECURITY], [Product].[Product].[TOT_SECURITY^RSSECURITY], [Product].[Product].[COMMERCIAL], [Product].[Product].[TOT_SECURITY^RSSECURITY^ALLEHOME], [Product].[Product].[SSECTOR], [Product].[Product].[TOT_SECURITY^RSSECURITY^ALLEHOME^T_RSOTHER], [Product].[Product].[T_SSOTHER]}, RECURSIVE)}"
+			}
+		}
+	],
+	"Titles":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Scenario')/Hierarchies('Scenario')"
+				},
+				"Expression":"{[Scenario].[Scenario].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Scenario')/Hierarchies('Scenario')/Elements('Actual')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('BS Reporting Measure')/Hierarchies('BS Reporting Measure')"
+				},
+				"Expression":"{[BS Reporting Measure].[BS Reporting Measure].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('BS Reporting Measure')/Hierarchies('BS Reporting Measure')/Elements('Reorg Amount')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Currency')/Hierarchies('Currency')"
+				},
+				"Expression":"{[Currency].[Currency].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Currency')/Hierarchies('Currency')/Elements('USD')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('BS Account')/Hierarchies('BS Account')"
+				},
+				"Expression":"{DRILLUPMEMBER({[BS Account].[BS Account].MEMBERS}, {[BS Account].[BS Account].[TB], [BS Account].[BS Account].[Account]})}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('BS Account')/Hierarchies('BS Account')/Elements('Account')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Entity')/Hierarchies('Entity')"
+				},
+				"Expression":"{[Entity].[Entity].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Entity')/Hierarchies('Entity')/Elements('MANAGEMENT')"
+			}
+		}
+	],
+	"SuppressEmptyColumns":true,
+	"SuppressEmptyRows":true,
+	"FormatString":"0.00",
+	"IsAutocalculate" : true,
+	"IsDeferComputeOnLeafDataEntry" : false,
+	"IsSuppressComputeOnOpen" : false
+}

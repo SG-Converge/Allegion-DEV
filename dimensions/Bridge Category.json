@@ -1,0 +1,14 @@
+{
+	"@type":"Dimension",
+	"Name":"Bridge Category",
+	"AllLeavesHierarchyName":"Leaves",
+	"Hierarchies@Code.links":
+	[
+		"Bridge Category.hierarchies/Bridge Category.json",
+		"Bridge Category.hierarchies/RO Bridge Category.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('Bridge Category')/Hierarchies('Bridge Category')"
+	}
+}

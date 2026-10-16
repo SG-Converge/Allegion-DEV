@@ -1,0 +1,150 @@
+{
+	"@type":"Hierarchy",
+	"Name":"RO Bridge Category",
+	"Elements":
+	[
+		{
+			"Name":"All Categories",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Material Productivity",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Fixed / Var Mfg Productivity",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"SG&A Productivity",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Price",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Volume",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Mix",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"FX",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Acquisitions",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Divestitures",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Material Inflation",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Material Other",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Other Inflation",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Investments",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"No Category",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Balance Sheet",
+			"Type":"Numeric"
+		}
+	],
+	"Edges":
+	[
+		{
+			"ParentName":"All Categories",
+			"ComponentName":"Price",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Categories",
+			"ComponentName":"Volume",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Categories",
+			"ComponentName":"Mix",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Categories",
+			"ComponentName":"FX",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Categories",
+			"ComponentName":"Acquisitions",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Categories",
+			"ComponentName":"Divestitures",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Categories",
+			"ComponentName":"Material Productivity",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Categories",
+			"ComponentName":"Fixed / Var Mfg Productivity",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Categories",
+			"ComponentName":"SG&A Productivity",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Categories",
+			"ComponentName":"Material Inflation",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Categories",
+			"ComponentName":"Material Other",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Categories",
+			"ComponentName":"Other Inflation",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Categories",
+			"ComponentName":"Investments",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Categories",
+			"ComponentName":"Balance Sheet",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Categories",
+			"ComponentName":"No Category",
+			"Weight":1
+		}
+	],
+	"Subsets@Code.links":[]
+}

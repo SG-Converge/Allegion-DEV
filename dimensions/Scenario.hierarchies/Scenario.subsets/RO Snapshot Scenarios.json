@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"RO Snapshot Scenarios",
+	"Alias":"MEMBER_NAME",
+	"Expression":"{TM1FILTERBYPATTERN(DESCENDANTS([Scenario].[Scenario].[Snapshots] , 99 , LEAVES) , \"RO*\")}"
+}

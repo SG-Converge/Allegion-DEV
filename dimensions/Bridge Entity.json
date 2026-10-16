@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"Bridge Entity",
+	"Hierarchies@Code.links":
+	[
+		"Bridge Entity.hierarchies/Bridge Entity.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('Bridge Entity')/Hierarchies('Bridge Entity')"
+	}
+}

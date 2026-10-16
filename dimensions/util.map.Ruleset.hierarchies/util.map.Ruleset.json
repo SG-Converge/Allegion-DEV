@@ -1,0 +1,109 @@
+{
+	"@type":"Hierarchy",
+	"Name":"util.map.Ruleset",
+	"Elements":
+	[
+		{
+			"Name":"ACTBS",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"ACTPL",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"BSALTE",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"BSUELI",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"CFLC1",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"CFLC2",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"CFUSDLC1",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"CFUSDLC2",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"PLALTE",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"PLUELI",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"HFM Staging",
+			"Type":"Consolidated"
+		}
+	],
+	"Edges":
+	[
+		{
+			"ParentName":"HFM Staging",
+			"ComponentName":"ACTBS",
+			"Weight":1
+		},
+		{
+			"ParentName":"HFM Staging",
+			"ComponentName":"ACTPL",
+			"Weight":1
+		},
+		{
+			"ParentName":"HFM Staging",
+			"ComponentName":"BSALTE",
+			"Weight":1
+		},
+		{
+			"ParentName":"HFM Staging",
+			"ComponentName":"BSUELI",
+			"Weight":1
+		},
+		{
+			"ParentName":"HFM Staging",
+			"ComponentName":"CFLC1",
+			"Weight":1
+		},
+		{
+			"ParentName":"HFM Staging",
+			"ComponentName":"CFLC2",
+			"Weight":1
+		},
+		{
+			"ParentName":"HFM Staging",
+			"ComponentName":"CFUSDLC1",
+			"Weight":1
+		},
+		{
+			"ParentName":"HFM Staging",
+			"ComponentName":"CFUSDLC2",
+			"Weight":1
+		},
+		{
+			"ParentName":"HFM Staging",
+			"ComponentName":"PLALTE",
+			"Weight":1
+		},
+		{
+			"ParentName":"HFM Staging",
+			"ComponentName":"PLUELI",
+			"Weight":1
+		}
+	],
+	"Subsets@Code.links":
+	[
+		"util.map.Ruleset.subsets/Balance Sheet.json",
+		"util.map.Ruleset.subsets/Profit & Loss.json"
+	]
+}

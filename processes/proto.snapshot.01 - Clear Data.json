@@ -1,0 +1,20 @@
+{
+	"@type":"Process",
+	"Name":"proto.snapshot.01 - Clear Data",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"proto.snapshot.01 - Clear Data.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pScenarios",
+			"Prompt":"Scenarios (Working/All)",
+			"Value":"Working",
+			"Type":"String"
+		}
+	],
+	"Variables":[]
+}

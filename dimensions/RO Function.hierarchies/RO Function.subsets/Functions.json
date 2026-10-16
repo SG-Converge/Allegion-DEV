@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"Functions",
+	"Alias":"Caption",
+	"Expression":"{ORDER(TM1FILTERBYLEVEL(TM1SUBSETALL([RO Function].[RO Function]) , 0) , IIF([RO Function].[RO Function].CURRENTMEMBER.PROPERTIES(\"Caption\")=\"\", [RO Function].[RO Function].CURRENTMEMBER.PROPERTIES(\"MEMBER_CAPTION\"), [RO Function].[RO Function].CURRENTMEMBER.PROPERTIES(\"Caption\")) , BASC)}"
+}

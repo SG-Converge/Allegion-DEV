@@ -1,0 +1,50 @@
+{
+	"@type":"Subset",
+	"Name":"Default",
+	"Alias":"MEMBER_NAME",
+	"Elements":
+	[
+		{
+			"@id":"Dimensions('RO Entity')/Hierarchies('RO Entity')/Elements('8143')"
+		},
+		{
+			"@id":"Dimensions('RO Entity')/Hierarchies('RO Entity')/Elements('8633')"
+		},
+		{
+			"@id":"Dimensions('RO Entity')/Hierarchies('RO Entity')/Elements('86300010')"
+		},
+		{
+			"@id":"Dimensions('RO Entity')/Hierarchies('RO Entity')/Elements('86310010')"
+		},
+		{
+			"@id":"Dimensions('RO Entity')/Hierarchies('RO Entity')/Elements('86310040')"
+		},
+		{
+			"@id":"Dimensions('RO Entity')/Hierarchies('RO Entity')/Elements('86340010')"
+		},
+		{
+			"@id":"Dimensions('RO Entity')/Hierarchies('RO Entity')/Elements('97540010')"
+		},
+		{
+			"@id":"Dimensions('RO Entity')/Hierarchies('RO Entity')/Elements('80150111')"
+		},
+		{
+			"@id":"Dimensions('RO Entity')/Hierarchies('RO Entity')/Elements('80150211')"
+		},
+		{
+			"@id":"Dimensions('RO Entity')/Hierarchies('RO Entity')/Elements('84110010')"
+		},
+		{
+			"@id":"Dimensions('RO Entity')/Hierarchies('RO Entity')/Elements('BR_AMER')"
+		},
+		{
+			"@id":"Dimensions('RO Entity')/Hierarchies('RO Entity')/Elements('BR_ASIAPAC')"
+		},
+		{
+			"@id":"Dimensions('RO Entity')/Hierarchies('RO Entity')/Elements('BR_CORPORATE')"
+		},
+		{
+			"@id":"Dimensions('RO Entity')/Hierarchies('RO Entity')/Elements('BR_EMEIA')"
+		}
+	]
+}

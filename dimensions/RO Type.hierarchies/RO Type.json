@@ -1,0 +1,42 @@
+{
+	"@type":"Hierarchy",
+	"Name":"RO Type",
+	"Elements":
+	[
+		{
+			"Name":"All Types",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Risk",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Opportunity",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"No RO Type",
+			"Type":"Numeric"
+		}
+	],
+	"Edges":
+	[
+		{
+			"ParentName":"All Types",
+			"ComponentName":"Risk",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Types",
+			"ComponentName":"Opportunity",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Types",
+			"ComponentName":"No RO Type",
+			"Weight":1
+		}
+	],
+	"Subsets@Code.links":[]
+}

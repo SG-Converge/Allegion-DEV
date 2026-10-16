@@ -1,0 +1,100 @@
+{
+	"@type":"NativeView",
+	"Name":"Forecast Input",
+	"Columns":
+	[
+		{
+			"Subset":
+			{
+				"@id":"Dimensions('Period')/Hierarchies('Period')/Subsets('Default')"
+			}
+		}
+	],
+	"Rows":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('PL Account')/Hierarchies('PL Account')"
+				},
+				"Alias":"Caption",
+				"Expression":"{TM1FILTERBYPATTERN(TM1SubsetAll([PL Account].[PL Account]),\"*S_Bookings*\",\"Caption\")}"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Product')/Hierarchies('Product')"
+				},
+				"Alias":"Caption",
+				"Expression":"{[Product].[Product].[315],[Product].[Product].[316],[Product].[Product].[318],[Product].[Product].[319],[Product].[Product].[321],[Product].[Product].[327],[Product].[Product].[331],[Product].[Product].[314],[Product].[Product].[334],[Product].[Product].[337],[Product].[Product].[338],[Product].[Product].[611],[Product].[Product].[612],[Product].[Product].[613],[Product].[Product].[614],[Product].[Product].[OTH_MECH]}"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Function')/Hierarchies('Function')"
+				},
+				"Alias":"Caption",
+				"Expression":"{[Function].[Function].[Completes]}"
+			}
+		}
+	],
+	"Titles":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Scenario')/Hierarchies('Scenario')"
+				},
+				"Expression":"{[Scenario].[Scenario].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Scenario')/Hierarchies('Scenario')/Elements('Working Forecast')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Entity')/Hierarchies('Entity')"
+				},
+				"Expression":"{[Entity].[Entity].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Entity')/Hierarchies('Entity')/Elements('MANAGEMENT')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('PL Input Measure')/Hierarchies('PL Input Measure')"
+				},
+				"Expression":"{[PL Input Measure].[PL Input Measure].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('PL Input Measure')/Hierarchies('PL Input Measure')/Elements('Reported Amount')"
+			}
+		}
+	],
+	"SuppressEmptyColumns":false,
+	"SuppressEmptyRows":false,
+	"FormatString":"0.00",
+	"IsAutocalculate" : true,
+	"IsDeferComputeOnLeafDataEntry" : false,
+	"IsSuppressComputeOnOpen" : false
+}

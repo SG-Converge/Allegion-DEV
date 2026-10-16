@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"Bridge Function",
+	"Hierarchies@Code.links":
+	[
+		"Bridge Function.hierarchies/Bridge Function.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('Bridge Function')/Hierarchies('Bridge Function')"
+	}
+}

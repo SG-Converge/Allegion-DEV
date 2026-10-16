@@ -1,0 +1,1 @@
+SELECT {[Scenario].[Scenario].[Actual],[Scenario].[Scenario].[AOP],[Scenario].[Scenario].[Working Forecast]}*{[FX Rates Measure].[FX Rates Measure].MEMBERS} ON 0, {[Currency].[Currency].MEMBERS} DIMENSION PROPERTIES [Currency].[Currency].[ID - Name] ON 1 FROM [FX Rates] WHERE ([Period].[Period].[2026 Q2^2026-04]) DIMENSION PROPERTIES [Period].[Period].[Caption]

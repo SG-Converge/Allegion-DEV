@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"AMER",
+	"Alias":"Caption",
+	"Expression":"{{DISTINCT({[Entity].[Entity].[MANAGEMENT^MGT_AMERICAS], DESCENDANTS([Entity].[Entity].[MANAGEMENT^MGT_AMERICAS], 99 , LEAVES)})}}"
+}

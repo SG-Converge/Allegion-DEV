@@ -1,0 +1,133 @@
+#region Prolog
+
+#==============================================================================
+#                          Load All Constant Currencies
+#
+#  This script will execute the constant currency calculation script for all
+#  scenarios defined as a child of 'Constant Currencies' in the scenario
+#  dimension.
+#
+#      Date    WHO  Description
+#  ----------  ---  -----------------------------------------------------------
+#  2026/05/05  SWG  Created.
+#
+#==============================================================================
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = ATTRS( '}Clients', TM1User(), '}TM1_DefaultDisplayValue' );
+sProcessName = GetProcessName();
+sDateStamp = TIMST( NOW, '\Y-\m-\d' );
+sTimeStamp = TIMST( NOW, '\Y-\m-\d \h.\i.\s' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+# --- Static Values
+ERROR  = 1; WARN   = 2; STATS  = 3;
+INFO   = 4; DEBUG  = 5; TRACE  = 6;
+TRUE   = 1; FALSE  = 0;
+LF     = CHAR(10);
+EXCEL_ADJUSTMENT = 21916;
+
+# --- Setup processing information
+bUseTemporaryObjects = TRUE;
+
+# --- Cubes
+sAssumptionCube = 'Global Assumptions';
+sConfigCube     = 'sys.Config';
+sStatsCube      = 'sys.Process Stats';
+
+# --- Dimensions
+sScenarioDim    = 'Scenario';
+
+# --- Members
+sCCParent    = 'Constant Currencies';
+
+# --- Values
+sPLLoadScript     = 'fin.cube.Update PL Constant Currency';
+sBSLoadScript     = 'fin.cube.Update BS Constant Currency';
+
+#==============================================================================
+#                               LOGGING SECTION
+#==============================================================================
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Started At' );
+CellPutS( sUser, sStatsCube, sProcessName, 'Executed By' );
+
+# --- Setup Logging
+nLogLevel = CellGetN( sStatsCube, sProcessName, 'Logging Level' );
+sLogDir = CellGetS( sConfigCube, 'Log Directory', 'String' );
+sLogFile = sLogDir | sProcessName | '.log';
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log startup
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Started');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+# --- Report how the script was executed 
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand( '
+        %LF% ==============================================================
+        %LF%         %sProcessName%
+        %LF% ==============================================================
+        %LF% Executed by [%sUser%]
+        %LF% ==============================================================
+        %LF%
+    ');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+sConstantCurrency = pConstantCurrency;
+
+# --- Loop through all the scenarios under the Constant Currencies member
+
+nIndex = 0;
+nNumScenarios = ELCOMPN( sScenarioDim, sCCParent );
+While( nIndex < nNumScenarios );
+    nIndex = nIndex + 1;
+    sCCScenario = ELCOMP( sScenarioDim, sCCParent, nIndex );
+
+    # --- Report the ruleset being processed
+    If( nLogLevel >= DEBUG );
+        sMsgLevel = 'DEBUG';
+        sMessage = Expand( 'Processing constant currency scenario: [%sCCScenario%] - Load Scripts: [%sPLLoadScript%] & [%sBSLoadScript%]');
+        ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+    EndIf;
+
+    If( sConstantCurrency @= '' % sCCScenario @= sConstantCurrency );
+        ExecuteProcess( sPLLoadScript, 'pScenario', sCCScenario );
+        ExecuteProcess( sBSLoadScript, 'pScenario', sCCScenario );
+    EndIf;
+End;
+#endregion
+#region Epilog
+
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Completed At' );
+
+# --- Append to the log (will overwrite if not done before AsciiOutput)
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log completion
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Completed');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+#endregion

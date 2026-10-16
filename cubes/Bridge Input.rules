@@ -1,0 +1,11 @@
+SKIPCHECK;
+
+
+FEEDERS;
+
+
+['Amount'] => 
+  DB('Bridge Reporting', !Bridge Version, !Period, !Bridge Entity, !Bridge Product,
+     ATTRS( 'Bridge Function', !Bridge Function, 'Reporting Category'), !Bridge Account );
+
+ 

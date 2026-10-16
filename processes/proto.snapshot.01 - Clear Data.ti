@@ -1,0 +1,96 @@
+#region Prolog
+
+
+
+FALSE = 0;
+TRUE = 1;
+LF     = CHAR(10);
+
+sLogFile = '.\model_upload\logs\' | GetProcessName() | '.log';
+
+# --- Cubes
+sPLInputCube         = 'PL Input';
+sPLReportingCube     = 'PL Reporting';
+sBSInputCube         = 'BS Input';
+sBSReportingCube     = 'BS Reporting';
+sROInputCube         = 'RO Input';
+sROReportingCube     = 'RO Reporting';
+sBridgeInputCube     = 'Bridge Input';
+sBridgeReportingCube = 'Bridge Reporting';
+sFXCube              = 'FX Rates';
+sGlobalAssumptions   = 'Global Assumptions';
+sScenarioAssumptions = 'Scenario Assumptions';
+
+sWFScenario = 'Working Foreast';
+sWROScenario = 'Working RO';
+sWAOPScenario = 'Working AOP';
+sAOPScenario  = 'AOP';
+
+
+# --- Prepare the MDX 
+If( UPPER( pScenarios ) @= 'ALL' );
+    sScenarioMDX = 'EXCEPT(TM1SUBSETALL([Scenario]) , {[Scenario].[Actual]})';
+Else;
+    sScenarioMDX = 'DESCENDANTS([Scenario].[Scenario].[Scenarios], 99 , LEAVES)})';
+EndIf;
+sVersionMDX = 'TM1SUBSETALL([Bridge Version])';
+
+#==================================================================================
+#                                  CLEAR DATA
+#==================================================================================
+
+# --- First, clear all data from all planning cubes
+sCubeName = sPLInputCube;
+sViewName = GetProcessName() | ' - ' | sCubeName;
+ExecuteProcess( 'sys_View - Clear',
+    'pCubeName', sCubeName, 'pViewName', '',
+    'pMemberExpr1', 'MDX:' | sScenarioMDX );
+
+sCubeName = sPLReportingCube;
+sViewName = GetProcessName() | ' - ' | sCubeName;
+ExecuteProcess( 'sys_View - Clear',
+    'pCubeName', sCubeName, 'pViewName', '',
+    'pMemberExpr1', 'MDX:' | sScenarioMDX );
+
+sCubeName = sBSInputCube;
+sViewName = GetProcessName() | ' - ' | sCubeName;
+ExecuteProcess( 'sys_View - Clear',
+    'pCubeName', sCubeName, 'pViewName', '',
+    'pMemberExpr1', 'MDX:' | sScenarioMDX );
+
+sCubeName = sBSReportingCube;
+sViewName = GetProcessName() | ' - ' | sCubeName;
+ExecuteProcess( 'sys_View - Clear',
+    'pCubeName', sCubeName, 'pViewName', '',
+    'pMemberExpr1', 'MDX:' | sScenarioMDX );
+
+sCubeName = sROInputCube;
+sViewName = GetProcessName() | ' - ' | sCubeName;
+ExecuteProcess( 'sys_View - Clear',
+    'pCubeName', sCubeName, 'pViewName', '',
+    'pMemberExpr1', 'MDX:' | sScenarioMDX );
+
+sCubeName = sROReportingCube;
+sViewName = GetProcessName() | ' - ' | sCubeName;
+ExecuteProcess( 'sys_View - Clear',
+    'pCubeName', sCubeName, 'pViewName', '',
+    'pMemberExpr1', 'MDX:' | sScenarioMDX );
+
+sCubeName = sBridgeInputCube;
+sViewName = GetProcessName() | ' - ' | sCubeName;
+ExecuteProcess( 'sys_View - Clear',
+    'pCubeName', sCubeName, 'pViewName', '',
+    'pMemberExpr1', 'MDX:' | sVersionMDX );
+
+sCubeName = sBridgeReportingCube;
+sViewName = GetProcessName() | ' - ' | sCubeName;
+ExecuteProcess( 'sys_View - Clear',
+    'pCubeName', sCubeName, 'pViewName', '',
+    'pMemberExpr1', 'MDX:' | sVersionMDX );
+
+
+# --- Initialize the balance sheet with ending balances
+ExecuteProcess( 'proto.cube.Load BS BegBal',
+    'pPeriod', '2018-12' );
+
+#endregion

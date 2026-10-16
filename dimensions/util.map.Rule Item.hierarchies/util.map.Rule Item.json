@@ -1,0 +1,3615 @@
+{
+	"@type":"Hierarchy",
+	"Name":"util.map.Rule Item",
+	"Elements":
+	[
+		{
+			"Name":"All Rules",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Rule 001",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 002",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 003",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 004",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 005",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 006",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 007",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 008",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 009",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 010",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 011",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 012",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 013",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 014",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 015",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 016",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 017",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 018",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 019",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 020",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 021",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 022",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 023",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 024",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 025",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 026",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 027",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 028",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 029",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 030",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 031",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 032",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 033",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 034",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 035",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 036",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 037",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 038",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 039",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 040",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 041",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 042",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 043",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 044",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 045",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 046",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 047",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 048",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 049",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 050",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 051",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 052",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 053",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 054",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 055",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 056",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 057",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 058",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 059",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 060",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 061",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 062",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 063",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 064",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 065",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 066",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 067",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 068",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 069",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 070",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 071",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 072",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 073",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 074",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 075",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 076",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 077",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 078",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 079",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 080",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 081",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 082",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 083",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 084",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 085",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 086",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 087",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 088",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 089",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 090",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 091",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 092",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 093",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 094",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 095",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 096",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 097",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 098",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 099",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 100",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 101",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 102",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 103",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 104",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 105",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 106",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 107",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 108",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 109",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 110",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 111",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 112",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 113",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 114",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 115",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 116",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 117",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 118",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 119",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 120",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 121",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 122",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 123",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 124",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 125",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 126",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 127",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 128",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 129",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 130",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 131",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 132",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 133",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 134",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 135",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 136",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 137",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 138",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 139",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 140",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 141",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 142",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 143",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 144",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 145",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 146",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 147",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 148",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 149",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 150",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 151",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 152",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 153",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 154",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 155",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 156",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 157",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 158",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 159",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 160",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 161",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 162",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 163",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 164",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 165",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 166",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 167",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 168",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 169",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 170",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 171",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 172",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 173",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 174",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 175",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 176",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 177",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 178",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 179",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 180",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 181",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 182",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 183",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 184",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 185",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 186",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 187",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 188",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 189",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 190",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 191",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 192",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 193",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 194",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 195",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 196",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 197",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 198",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 199",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 200",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 201",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 202",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 203",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 204",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 205",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 206",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 207",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 208",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 209",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 210",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 211",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 212",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 213",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 214",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 215",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 216",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 217",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 218",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 219",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 220",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 221",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 222",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 223",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 224",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 225",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 226",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 227",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 228",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 229",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 230",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 231",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 232",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 233",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 234",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 235",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 236",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 237",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 238",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 239",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 240",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 241",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 242",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 243",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 244",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 245",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 246",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 247",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 248",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 249",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 250",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 251",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 252",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 253",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 254",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 255",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 256",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 257",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 258",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 259",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 260",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 261",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 262",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 263",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 264",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 265",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 266",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 267",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 268",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 269",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 270",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 271",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 272",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 273",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 274",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 275",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 276",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 277",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 278",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 279",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 280",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 281",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 282",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 283",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 284",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 285",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 286",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 287",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 288",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 289",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 290",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 291",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 292",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 293",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 294",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 295",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 296",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 297",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 298",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 299",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 300",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 301",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 302",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 303",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 304",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 305",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 306",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 307",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 308",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 309",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 310",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 311",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 312",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 313",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 314",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 315",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 316",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 317",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 318",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 319",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 320",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 321",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 322",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 323",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 324",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 325",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 326",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 327",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 328",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 329",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 330",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 331",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 332",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 333",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 334",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 335",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 336",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 337",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 338",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 339",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 340",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 341",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 342",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 343",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 344",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 345",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 346",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 347",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 348",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 349",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 350",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 351",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 352",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 353",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 354",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 355",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 356",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 357",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 358",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 359",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 360",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 361",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 362",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 363",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 364",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 365",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 366",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 367",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 368",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 369",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 370",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 371",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 372",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 373",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 374",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 375",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 376",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 377",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 378",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 379",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 380",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 381",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 382",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 383",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 384",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 385",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 386",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 387",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 388",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 389",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 390",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 391",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 392",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 393",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 394",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 395",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 396",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 397",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 398",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 399",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Rule 400",
+			"Type":"Numeric"
+		}
+	],
+	"Edges":
+	[
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 001",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 002",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 003",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 004",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 005",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 006",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 007",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 008",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 009",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 010",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 011",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 012",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 013",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 014",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 015",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 016",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 017",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 018",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 019",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 020",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 021",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 022",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 023",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 024",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 025",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 026",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 027",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 028",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 029",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 030",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 031",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 032",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 033",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 034",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 035",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 036",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 037",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 038",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 039",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 040",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 041",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 042",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 043",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 044",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 045",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 046",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 047",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 048",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 049",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 050",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 051",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 052",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 053",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 054",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 055",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 056",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 057",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 058",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 059",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 060",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 061",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 062",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 063",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 064",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 065",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 066",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 067",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 068",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 069",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 070",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 071",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 072",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 073",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 074",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 075",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 076",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 077",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 078",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 079",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 080",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 081",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 082",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 083",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 084",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 085",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 086",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 087",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 088",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 089",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 090",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 091",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 092",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 093",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 094",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 095",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 096",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 097",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 098",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 099",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 100",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 101",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 102",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 103",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 104",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 105",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 106",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 107",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 108",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 109",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 110",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 111",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 112",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 113",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 114",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 115",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 116",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 117",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 118",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 119",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 120",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 121",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 122",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 123",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 124",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 125",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 126",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 127",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 128",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 129",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 130",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 131",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 132",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 133",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 134",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 135",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 136",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 137",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 138",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 139",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 140",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 141",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 142",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 143",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 144",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 145",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 146",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 147",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 148",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 149",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 150",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 151",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 152",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 153",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 154",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 155",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 156",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 157",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 158",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 159",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 160",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 161",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 162",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 163",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 164",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 165",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 166",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 167",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 168",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 169",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 170",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 171",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 172",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 173",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 174",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 175",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 176",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 177",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 178",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 179",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 180",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 181",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 182",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 183",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 184",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 185",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 186",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 187",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 188",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 189",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 190",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 191",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 192",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 193",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 194",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 195",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 196",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 197",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 198",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 199",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 200",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 201",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 202",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 203",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 204",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 205",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 206",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 207",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 208",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 209",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 210",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 211",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 212",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 213",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 214",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 215",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 216",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 217",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 218",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 219",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 220",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 221",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 222",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 223",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 224",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 225",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 226",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 227",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 228",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 229",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 230",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 231",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 232",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 233",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 234",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 235",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 236",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 237",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 238",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 239",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 240",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 241",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 242",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 243",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 244",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 245",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 246",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 247",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 248",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 249",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 250",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 251",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 252",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 253",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 254",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 255",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 256",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 257",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 258",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 259",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 260",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 261",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 262",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 263",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 264",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 265",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 266",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 267",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 268",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 269",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 270",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 271",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 272",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 273",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 274",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 275",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 276",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 277",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 278",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 279",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 280",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 281",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 282",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 283",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 284",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 285",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 286",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 287",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 288",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 289",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 290",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 291",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 292",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 293",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 294",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 295",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 296",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 297",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 298",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 299",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 300",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 301",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 302",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 303",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 304",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 305",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 306",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 307",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 308",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 309",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 310",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 311",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 312",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 313",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 314",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 315",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 316",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 317",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 318",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 319",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 320",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 321",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 322",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 323",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 324",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 325",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 326",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 327",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 328",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 329",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 330",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 331",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 332",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 333",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 334",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 335",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 336",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 337",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 338",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 339",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 340",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 341",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 342",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 343",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 344",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 345",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 346",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 347",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 348",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 349",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 350",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 351",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 352",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 353",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 354",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 355",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 356",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 357",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 358",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 359",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 360",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 361",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 362",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 363",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 364",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 365",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 366",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 367",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 368",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 369",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 370",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 371",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 372",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 373",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 374",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 375",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 376",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 377",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 378",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 379",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 380",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 381",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 382",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 383",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 384",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 385",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 386",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 387",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 388",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 389",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 390",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 391",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 392",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 393",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 394",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 395",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 396",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 397",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 398",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 399",
+			"Weight":1
+		},
+		{
+			"ParentName":"All Rules",
+			"ComponentName":"Rule 400",
+			"Weight":1
+		}
+	],
+	"Subsets@Code.links":[]
+}

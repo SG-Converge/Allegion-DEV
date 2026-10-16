@@ -1,0 +1,149 @@
+{
+	"@type":"Subset",
+	"Name":"Functional Spend",
+	"Alias":"ID - Name",
+	"Elements":
+	[
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('610100')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('610200')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('610300')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('610400')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('610500')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('610000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('615000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('620000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('625000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('685200')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('630100')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('630750')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('630950')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('630000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('635000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('640000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('643000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('645000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('655400')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('655450')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('655500')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('655550')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('655600')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('655700')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('655800')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('655850')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('655900')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('655000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('660000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('665000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('670000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('675000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('680000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('685000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('690000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('692000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('693000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('695000')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('650510')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('600100')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('600200')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('600300')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('641110')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('641120')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('641130')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('699901')"
+		},
+		{
+			"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Elements('600000')"
+		}
+	]
+}

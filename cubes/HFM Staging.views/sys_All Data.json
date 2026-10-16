@@ -1,0 +1,133 @@
+{
+	"@type":"NativeView",
+	"Name":"sys_All Data",
+	"Columns":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('HFM Staging Measure')/Hierarchies('HFM Staging Measure')"
+				},
+				"Expression":"{[HFM Staging Measure].[HFM Staging Measure].MEMBERS}"
+			}
+		}
+	],
+	"Rows":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('HFM Account')/Hierarchies('HFM Account')"
+				},
+				"Expression":"{[HFM Account].[HFM Account].MEMBERS}"
+			}
+		}
+	],
+	"Titles":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('HFM Scenario')/Hierarchies('HFM Scenario')"
+				},
+				"Expression":"{[HFM Scenario].[HFM Scenario].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('HFM Scenario')/Hierarchies('HFM Scenario')/Elements('Adjustment')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"@id":"Dimensions('Period')/Hierarchies('Period')/Subsets('Default')"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Period')/Hierarchies('Period')/Elements('2026')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('HFM Load File')/Hierarchies('HFM Load File')"
+				},
+				"Expression":"{[HFM Load File].[HFM Load File].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('HFM Load File')/Hierarchies('HFM Load File')/Elements('All Files')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('HFM Currency')/Hierarchies('HFM Currency')"
+				},
+				"Expression":"{[HFM Currency].[HFM Currency].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('HFM Currency')/Hierarchies('HFM Currency')/Elements('All Currencies')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('HFM Entity')/Hierarchies('HFM Entity')"
+				},
+				"Expression":"{[HFM Entity].[HFM Entity].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('HFM Entity')/Hierarchies('HFM Entity')/Elements('All Entities')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('HFM Product')/Hierarchies('HFM Product')"
+				},
+				"Expression":"{[HFM Product].[HFM Product].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('HFM Product')/Hierarchies('HFM Product')/Elements('All Products')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('HFM Function')/Hierarchies('HFM Function')"
+				},
+				"Expression":"{[HFM Function].[HFM Function].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('HFM Function')/Hierarchies('HFM Function')/Elements('All Functions')"
+			}
+		}
+	],
+	"SuppressEmptyColumns":false,
+	"SuppressEmptyRows":false,
+	"FormatString":"0.00",
+	"IsAutocalculate" : true,
+	"IsDeferComputeOnLeafDataEntry" : false,
+	"IsSuppressComputeOnOpen" : false
+}

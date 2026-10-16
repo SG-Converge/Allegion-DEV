@@ -1,0 +1,20 @@
+{
+	"@type":"Process",
+	"Name":"fin.process.Load All HFM Staging- Historical",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"fin.process.Load All HFM Staging- Historical.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pYear",
+			"Prompt":"Year to load",
+			"Value":"",
+			"Type":"String"
+		}
+	],
+	"Variables":[]
+}

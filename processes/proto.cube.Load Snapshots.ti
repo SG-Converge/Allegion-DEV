@@ -1,0 +1,53 @@
+#region Prolog
+
+
+
+# sScenarios = 'MDX:{
+#     DESCENDANTS([Scenario].[Scenario].[Scenarios] , 99 , LEAVES),
+#     DESCENDANTS([Scenario].[Scenario].[Snapshots] , 99 , LEAVES)
+# }';
+
+sScenarios = 'MDX:{
+    [Scenario].[Scenario].[Forecast 6+6 Base]
+}';
+
+sPeriod = 'MDX:{
+    DESCENDANTS([Period].[Period].[2026] , 99 , LEAVES)
+}';
+
+sFileDir = '..\Snapshot Data\Scenario Data - ';
+ 
+If( 1 = 2 );
+sCubeName = 'BS Input';
+sFilename = sFileDir | sCubeName | '.txt';
+#ExecuteProcess( 'sys_View - Clear', 'pCubeName', sCubeName, 'pMemberExpr1', sScenarios, 'pMemberExpr2', sPeriod );
+RunProcess( 'sys_Cube - Data Import', 'pFilename', sFilename, 'pCubeName', sCubeName, 'pRecordFormat', 'tab', 'pHeaderRecords', 1, 'pIncrementCubeCells', 0 );
+
+sCubeName = 'BS Reporting';
+sFilename = sFileDir | sCubeName | '.txt';
+#ExecuteProcess( 'sys_View - Clear', 'pCubeName', sCubeName, 'pMemberExpr1', sScenarios, 'pMemberExpr2', sPeriod );
+RunProcess( 'sys_Cube - Data Import', 'pFilename', sFilename, 'pCubeName', sCubeName, 'pRecordFormat', 'tab', 'pHeaderRecords', 1, 'pIncrementCubeCells', 0 );
+
+sCubeName = 'PL Input';
+sFilename = sFileDir | sCubeName | '.txt';
+#ExecuteProcess( 'sys_View - Clear', 'pCubeName', sCubeName, 'pMemberExpr1', sScenarios, 'pMemberExpr2', sPeriod );
+RunProcess( 'sys_Cube - Data Import', 'pFilename', sFilename, 'pCubeName', sCubeName, 'pRecordFormat', 'tab', 'pHeaderRecords', 1, 'pIncrementCubeCells', 0 );
+
+sCubeName = 'PL Reporting';
+sFilename = sFileDir | sCubeName | '.txt';
+#ExecuteProcess( 'sys_View - Clear', 'pCubeName', sCubeName, 'pMemberExpr1', sScenarios, 'pMemberExpr2', sPeriod );
+RunProcess( 'sys_Cube - Data Import', 'pFilename', sFilename, 'pCubeName', sCubeName, 'pRecordFormat', 'tab', 'pHeaderRecords', 1, 'pIncrementCubeCells', 0 );
+EndIf;
+
+# sCubeName = 'RO Input';
+# sFilename = sFileDir | sCubeName | '.txt';
+# #ExecuteProcess( 'sys_View - Clear', 'pCubeName', sCubeName, 'pMemberExpr1', sScenarios );
+# RunProcess( 'sys_Cube - Data Import', 'pFilename', sFilename, 'pCubeName', sCubeName, 'pRecordFormat', 'tab', 'pHeaderRecords', 1, 'pIncrementCubeCells', 0 );
+
+# sCubeName = 'RO Reporting';
+# sFilename = sFileDir | sCubeName | '.txt';
+# #ExecuteProcess( 'sys_View - Clear', 'pCubeName', sCubeName, 'pMemberExpr1', sScenarios );
+# RunProcess( 'sys_Cube - Data Import', 'pFilename', sFilename, 'pCubeName', sCubeName, 'pRecordFormat', 'tab', 'pHeaderRecords', 1, 'pIncrementCubeCells', 0 );
+
+
+#endregion

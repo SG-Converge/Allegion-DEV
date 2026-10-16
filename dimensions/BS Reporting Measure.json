@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"BS Reporting Measure",
+	"Hierarchies@Code.links":
+	[
+		"BS Reporting Measure.hierarchies/BS Reporting Measure.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('BS Reporting Measure')/Hierarchies('BS Reporting Measure')"
+	}
+}

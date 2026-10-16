@@ -1,0 +1,45 @@
+{
+	"@type":"Cube",
+	"Name":"RO Reporting",
+	"Dimensions":
+	[
+		{
+			"@id":"Dimensions('Scenario')"
+		},
+		{
+			"@id":"Dimensions('Year')"
+		},
+		{
+			"@id":"Dimensions('Currency')"
+		},
+		{
+			"@id":"Dimensions('RO Type')"
+		},
+		{
+			"@id":"Dimensions('RO Entity')"
+		},
+		{
+			"@id":"Dimensions('RO Product')"
+		},
+		{
+			"@id":"Dimensions('RO Function')"
+		},
+		{
+			"@id":"Dimensions('RO Account')"
+		},
+		{
+			"@id":"Dimensions('RO Item')"
+		},
+		{
+			"@id":"Dimensions('Bridge Category')"
+		},
+		{
+			"@id":"Dimensions('RO Reporting Measure')"
+		}
+	],
+	"Rules@Code.link":"RO Reporting.rules",
+	"Views@Code.links":
+	[
+		"RO Reporting.views/RO Rpt by Acct.json"
+	]
+}

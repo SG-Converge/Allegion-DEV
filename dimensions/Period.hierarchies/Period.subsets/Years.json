@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"Years",
+	"Alias":"Caption",
+	"Expression":"{[Period].[Period].[All Periods].CHILDREN}"
+}

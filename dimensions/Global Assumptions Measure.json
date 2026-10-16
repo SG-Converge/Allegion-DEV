@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"Global Assumptions Measure",
+	"Hierarchies@Code.links":
+	[
+		"Global Assumptions Measure.hierarchies/Global Assumptions Measure.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('Global Assumptions Measure')/Hierarchies('Global Assumptions Measure')"
+	}
+}

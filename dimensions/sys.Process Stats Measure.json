@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"sys.Process Stats Measure",
+	"Hierarchies@Code.links":
+	[
+		"sys.Process Stats Measure.hierarchies/sys.Process Stats Measure.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('sys.Process Stats Measure')/Hierarchies('sys.Process Stats Measure')"
+	}
+}

@@ -1,0 +1,12 @@
+{
+	"@type":"Process",
+	"Name":"swg.reload bridge data",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"swg.reload bridge data.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[]
+}

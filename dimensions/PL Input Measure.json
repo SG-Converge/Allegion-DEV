@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"PL Input Measure",
+	"Hierarchies@Code.links":
+	[
+		"PL Input Measure.hierarchies/PL Input Measure.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('PL Input Measure')/Hierarchies('PL Input Measure')"
+	}
+}

@@ -1,0 +1,12 @@
+{
+	"@type":"Process",
+	"Name":"swg_Clear Reorg Data",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"swg_Clear Reorg Data.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[]
+}

@@ -1,0 +1,43 @@
+{
+	"@type":"Hierarchy",
+	"Name":"sys.Process Stats Measure",
+	"Elements":
+	[
+		{
+			"Name":"Logging Level Selection",
+			"Type":"String"
+		},
+		{
+			"Name":"Logging Level",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Executed By",
+			"Type":"String"
+		},
+		{
+			"Name":"Last Started Timestamp",
+			"Type":"String"
+		},
+		{
+			"Name":"Last Completed Timestamp",
+			"Type":"String"
+		},
+		{
+			"Name":"Last Elapsed Duration",
+			"Type":"String"
+		},
+		{
+			"Name":"Started At",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Completed At",
+			"Type":"Numeric"
+		}
+	],
+	"Subsets@Code.links":
+	[
+		"sys.Process Stats Measure.subsets/Default.json"
+	]
+}

@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"nLevel",
+	"Alias":"Caption",
+	"Expression":"{{ORDER(TM1FILTERBYLEVEL(TM1SUBSETALL([Product].[Product]) , 0) , IIF([Product].[Product].CURRENTMEMBER.PROPERTIES(\"Caption\")=\"\", [Product].[Product].CURRENTMEMBER.PROPERTIES(\"MEMBER_CAPTION\"), [Product].[Product].CURRENTMEMBER.PROPERTIES(\"Caption\")) , BASC)}}"
+}

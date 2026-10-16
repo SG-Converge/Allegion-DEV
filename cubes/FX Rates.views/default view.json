@@ -1,0 +1,34 @@
+{
+	"@type":"MDXView",
+	"Name":"default view",
+	"MDX@Code.link":"default view.mdx",
+	"IsAutocalculate" : true,
+	"IsDeferComputeOnLeafDataEntry" : false,
+	"IsSuppressComputeOnOpen" : false,
+	"Meta" : 
+	{
+		"Aliases" : 
+		{
+			"[Period].[Period]" : "Caption"
+		},
+		"ContextSets" : 
+		{
+			"[Period].[Period]" : 
+			{
+				"IsPublic" : true,
+				"SubsetName" : "Default"
+			},
+			"[Scenario].[Scenario]" : 
+			{
+				"Expression" : "{[Scenario].[Scenario].MEMBERS}"
+			}
+		},
+		"ExpandAboves" : 
+		{
+			"[Currency].[Currency]" : false,
+			"[FX Rates Measure].[FX Rates Measure]" : false,
+			"[Period].[Period]" : false,
+			"[Scenario].[Scenario]" : false
+		}
+	}
+}

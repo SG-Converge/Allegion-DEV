@@ -1,0 +1,110 @@
+{
+	"@type":"Process",
+	"Name":"sys_Cube - Scenario Copy",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"sys_Cube - Scenario Copy.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pMemberExpr",
+			"Prompt":"Member expression of cube(s) to process",
+			"Value":"*",
+			"Type":"String"
+		},
+		{
+			"Name":"pScenarioDimName",
+			"Prompt":"Scenario dimension name",
+			"Value":"Scenario",
+			"Type":"String"
+		},
+		{
+			"Name":"pSourceScenario",
+			"Prompt":"Source scenario member",
+			"Value":"Working Forecast",
+			"Type":"String"
+		},
+		{
+			"Name":"pDestScenario",
+			"Prompt":"Destination scenario member",
+			"Value":"Forecast 2+10",
+			"Type":"String"
+		},
+		{
+			"Name":"pPeriodDimName",
+			"Prompt":"Period dimension name",
+			"Value":"Period",
+			"Type":"String"
+		},
+		{
+			"Name":"pSourcePeriodExpr",
+			"Prompt":"Member expression for source period(s)",
+			"Value":"!2025",
+			"Type":"String"
+		},
+		{
+			"Name":"pDestPeriodExpr",
+			"Prompt":"Member expression for period(s) to clear",
+			"Value":"!2025",
+			"Type":"String"
+		},
+		{
+			"Name":"pDestOffset",
+			"Prompt":"Offset to source periods",
+			"Value":0,
+			"Type":"Numeric"
+		},
+		{
+			"Name":"pSnapshot",
+			"Prompt":"Load ruled values into new version  (1=Snapshot)",
+			"Value":1,
+			"Type":"Numeric"
+		},
+		{
+			"Name":"pSuppressControlCubes",
+			"Prompt":"Suppress control cubes from version copy",
+			"Value":1,
+			"Type":"Numeric"
+		},
+		{
+			"Name":"pSuppressRollups",
+			"Prompt":"Suppress rollups",
+			"Value":1,
+			"Type":"Numeric"
+		},
+		{
+			"Name":"pSuppressRollupStrings",
+			"Prompt":"Suppress rollup string values",
+			"Value":1,
+			"Type":"Numeric"
+		},
+		{
+			"Name":"pViewTimeoutMins",
+			"Prompt":"View Create maximum wait time (in minutes)",
+			"Value":10,
+			"Type":"Numeric"
+		},
+		{
+			"Name":"pExportTimeoutMins",
+			"Prompt":"Data Export maximum wait time (in minutes)",
+			"Value":20,
+			"Type":"Numeric"
+		},
+		{
+			"Name":"pClearTimeoutMins",
+			"Prompt":"View Clear maximum wait time (in minutes)",
+			"Value":10,
+			"Type":"Numeric"
+		},
+		{
+			"Name":"pImportTimeoutMins",
+			"Prompt":"Data Import maximum wait time (in minutes)",
+			"Value":10,
+			"Type":"Numeric"
+		}
+	],
+	"Variables":[]
+}

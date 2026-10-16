@@ -1,0 +1,39 @@
+#region Prolog
+
+sYear = pStartYear;
+sLoadSnapshots = 'No';
+sPLProcess = 'proto.cube.Load PL Forecast Data';
+sBSProcess = 'proto.cube.Load BS Forecast Data';
+sPLReorgProcess = 'proto.cube.Load Reorg PL Forecast Data';
+sBSReorgProcess = 'proto.cube.Load Reorg BS Forecast Data';
+
+sLogFile = '.\model_upload\logs\' | GetProcessName() | '.log';
+
+While( sYear @<= pEndYear );
+
+    nMonth = 0;
+    While( nMonth < 12 );
+        nMonth = nMonth + 1;
+        sMonth = NumberToStringEx( nMonth, '00', '', '' );
+
+        sWFScenario = '';
+        sWAScenario = 'AOP';
+            
+        ASCIIOutput( sLogFile, 'Loading AOP data', sYear | '-' | sMonth, sWFScenario, sWAScenario );
+
+        # --- PL Load MUST occur before BS because PL clears data
+        # --- in both PL and BS cubes before starting.
+        ExecuteProcess( sPLProcess, 'pPeriod', sYear | '-' | sMonth, 'pWFScenario', sWFScenario, 'pWAScenario', sWAScenario, 'pLoadSnapshots', sLoadSnapshots );
+        ExecuteProcess( sBSProcess, 'pPeriod', sYear | '-' | sMonth, 'pWFScenario', sWFScenario, 'pWAScenario', sWAScenario, 'pLoadSnapshots', sLoadSnapshots );
+    
+        # --- PL Reorg Load MUST occur before BS because PL clears data
+        # --- in both PL and BS cubes before starting.
+        If( sYear @>= '2025' );
+            ExecuteProcess( sPLReorgProcess, 'pPeriod', sYear | '-' | sMonth );
+            ExecuteProcess( sBSReorgProcess, 'pPeriod', sYear | '-' | sMonth );
+        EndIf;    
+    End;
+    
+    sYear = ATTRS( 'Period XRef', sYear, 'Period Next' );
+End;
+#endregion

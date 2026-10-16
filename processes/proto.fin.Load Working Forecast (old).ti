@@ -1,0 +1,27 @@
+#region Prolog
+MinorErrorLogMax = -1;
+OnMinorErrorDoItemSkip = 1;
+CurrentLogSetting = CubeGetLogChanges('PL Input');
+CubeSetLogChanges('PL Input', 0);
+NumMetaRowsRead = 0;
+NumMetaRowsProcessed = 0;
+NumRowsRead = 0;
+NumRowsProcessed = 0;
+SetInputCharacterSet('TM1CS_UTF8');
+#endregion
+#region Data
+NumRowsRead = NumRowsRead + 1;
+If (vValue1 @<> '');
+    If( UPPER(vDim3_1) @= 'LOCAL' );
+        CellPutN(StringToNumberEx(vValue1,'.',','),'PL Input',vDim1_1,vDim2_1,vDim4_1,vDim5_1,vDim6_1,vDim7_1,vDim8_1);
+    EndIf;
+NumRowsProcessed = NumRowsProcessed + 1;
+EndIf;
+#endregion
+#region Epilog
+If (pResult @<> '');
+TextOutput(pResult, NumberToString(NumRowsRead), NumberToString(NumRowsProcessed), NumberToString(NumMetaRowsRead), NumberToString(NumMetaRowsProcessed));
+EndIf;
+CubeSaveData('PL Input');
+CubeSetLogChanges('PL Input', CurrentLogSetting);
+#endregion

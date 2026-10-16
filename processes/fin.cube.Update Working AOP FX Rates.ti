@@ -1,0 +1,234 @@
+#region Prolog
+
+#==============================================================================
+#                           Update Working AOP FX Rates
+#
+#  This script will copy the specified period from Actual to the Working AOP
+#  in the FX Rates cube.  This is used to seed the Working AOP currency 
+#  calculations for a future year.
+#
+#  Note: EOP Rate for actuals will populate both EOP and Avg Rates in 
+#        Working AOP scenario.
+#
+#      Date    WHO  Description
+#  ----------  ---  -----------------------------------------------------------
+#  2026/10/09  SWG  Created.
+#
+#==============================================================================
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = ATTRS( '}Clients', TM1User(), '}TM1_DefaultDisplayValue' );
+sProcessName = GetProcessName();
+sDateStamp = TIMST( NOW, '\Y-\m-\d' );
+sTimeStamp = TIMST( NOW, '\Y-\m-\d \h.\i.\s' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+# --- Static Values
+ERROR  = 1; WARN   = 2; STATS  = 3;
+INFO   = 4; DEBUG  = 5; TRACE  = 6;
+TRUE   = 1; FALSE  = 0;
+LF     = CHAR(10);
+EXCEL_ADJUSTMENT = 21916;
+
+# --- Setup processing information
+bUseTemporaryObjects = TRUE;
+
+# --- Cubes
+sConfigCube    = 'sys.Config';
+sStatsCube     = 'sys.Process Stats';
+sFXCube        = 'FX Rates';
+
+# --- Dimensions
+sScenarioDim   = 'Scenario';
+sPeriodDim     = 'Period';
+sCurrencyDim   = 'Currency';
+sMeasureDim    = 'FX Rates Measure';
+sPeriodXRefDim = 'Period XRef';
+
+# --- Measures
+sWAScenario    = 'Working AOP';
+sScenario      = 'Actual';
+
+#==============================================================================
+#                               LOGGING SECTION
+#==============================================================================
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Started At' );
+CellPutS( sUser, sStatsCube, sProcessName, 'Executed By' );
+
+# --- Setup Logging
+nLogLevel = CellGetN( sStatsCube, sProcessName, 'Logging Level' );
+sLogDir = CellGetS( sConfigCube, 'Log Directory', 'String' );
+sLogFile = sLogDir | sProcessName | '.log';
+
+SetOutputEscapeDoubleQuote( sLogFile, TRUE );
+bUseTemporaryObjects = If( nLogLevel >= DEBUG, FALSE, TRUE );
+
+# --- Append to an existing process log
+If( FileExists( sLogFile ) = TRUE );
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log startup
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Started');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+# --- Report how the script was executed 
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand( '%LF%
+        ============================================================================ %LF%
+                        %sProcessName%                                               %LF%
+        ============================================================================ %LF%
+        Executed by [%sUser%]                                                        %LF%
+              pActualPeriod = [%pActualPeriod%]                                      %LF%
+              pAOPYear      = [%pAOPYear%]                                           %LF%
+        ============================================================================ %LF%
+    ');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+#==============================================================================
+#                        PARAMETER VALIDATION SECTION
+#==============================================================================
+
+
+# --- Validate period to copy
+sActualPeriod = pActualPeriod;
+If( sActualPeriod @<> '' );
+    If( DimensionElementExists( sPeriodDim, sActualPeriod ) = FALSE );
+        sMsgLevel = 'ERROR';
+        sMessage = Expand( 'Specified period to copy [%sActualPeriod%] does not exist in dimension [%sPeriodDim%]');
+        ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+        ProcessError();
+    EndIf;
+EndIf;
+
+# --- Validate AOP year
+sAOPYear = pAOPYear;
+If( sAOPYear @<> '' );
+    If( DimensionElementExists( sPeriodDim, sAOPYear ) = FALSE );
+        sMsgLevel = 'ERROR';
+        sMessage = Expand( 'Specified AOP year to populate [%sAOPYear%] does not exist in dimension [%sPeriodDim%]');
+        ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+        ProcessError();
+    EndIf;
+EndIf;
+
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+# --- Setup destination
+sCubeName = sFXCube;
+
+# --- Clear out the existing rates that we are going to populate
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { [Scenario].[Scenario].[%sWAScenario%] } %LF%
+        SET PeriodSet     as { DISTINCT(DESCENDANTS([Period].[Period].[%sAOPYear%] , 99 , LEAVES)) } %LF%
+        SET CurrencySet   as { TM1FilterByLevel( TM1SubsetAll( [Currency] ), 0 ) } %LF%
+        SET MeasureSet    as { TM1FilterByLevel( TM1SubsetAll( [FX Rates Measure] ), 0 ) } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * PeriodSet * CurrencySet  ON 1 %LF%
+
+    FROM [%sCubeName%] %LF%
+' );
+
+sViewName = sTempName | ' - Dest ';
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand('Destination view: %sViewMDX%');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+ViewCreateByMDX( sCubeName, sViewName, sViewMDX, bUseTemporaryObjects );
+ViewZeroOut( sCubeName, sViewName );
+
+
+# --- Setup source
+sCubeName = sFXCube;
+
+# --- Clear out the existing rates that we are going to populate
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { [Scenario].[Scenario].[%sScenario%] } %LF%
+        SET PeriodSet     as { DISTINCT(DESCENDANTS([Period].[Period].[%sActualPeriod%] , 99 , LEAVES)) } %LF%
+        SET CurrencySet   as { TM1FilterByLevel( TM1SubsetAll( [Currency] ), 0 ) } %LF%
+        SET MeasureSet    as { [FX Rates Measure].[FX Rates Measure].[EOP Rate] } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * PeriodSet * CurrencySet  ON 1 %LF%
+
+    FROM [%sCubeName%] %LF%
+' );
+
+sViewName = sTempName | ' - Source ';
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand('Destination view: %sViewMDX%');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+ViewCreateByMDX( sCubeName, sViewName, sViewMDX, bUseTemporaryObjects );
+
+DatasourceNameForServer = sCubeName;
+DatasourceCubeview = sViewName;
+
+
+
+#endregion
+#region Metadata
+
+
+#endregion
+#region Data
+
+
+
+# ----------------------------------------------------
+# Handle incoming record
+# ----------------------------------------------------
+sScenario  = inScenario;
+sCurrency  = inCurrency;
+sMeasure   = inMeasure;
+nValue     = inValue;
+
+# --- Write the EOP Rate to all months within the AOP year
+If( sMeasure @= 'EOP Rate' );
+    nIdx = 12;
+    While( nIdx > 0 );
+        sPeriod = sAOPYear | ' - ' | NumberToStringEx( nIdx, '00', '', '' );
+        CellPutN(  nValue, sCubeName, sWAScenario, sPeriod, sCurrency, 'EOP Rate' );
+        CellPutN(  nValue, sCubeName, sWAScenario, sPeriod, sCurrency, 'Avg Rate' );
+        nIdx = nIdx - 1;
+    End;
+EndIf;
+#endregion
+#region Epilog
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Completed At' );
+
+# --- Append to the log (will overwrite if not done before AsciiOutput)
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log completion
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Completed');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+#endregion

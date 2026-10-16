@@ -1,0 +1,26 @@
+{
+	"@type":"Process",
+	"Name":"fin.process.Create User Snapshot",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"fin.process.Create User Snapshot.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pSourceScenario",
+			"Prompt":"Source Scenario (Working Forecast/Working AOP)",
+			"Value":"Working Forecast",
+			"Type":"String"
+		},
+		{
+			"Name":"pDestScenario",
+			"Prompt":"Destination Scenario (Snapshot 1 - Snapshot 4)",
+			"Value":"Snapshot 1",
+			"Type":"String"
+		}
+	],
+	"Variables":[]
+}

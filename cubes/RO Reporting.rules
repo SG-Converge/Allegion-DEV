@@ -1,0 +1,35 @@
+SKIPCHECK;
+
+# --- These scenarios are not allowed to be used
+[{'Working AOP','Working Forecast'}] = 0;
+
+# -------------------------------------------------------------
+# Deactivate calculations for all static scenarios
+# -------------------------------------------------------------
+# --- Snapshots and constant currency scenarios are not calculated here
+[] = N:
+  If( !Scenario @= 'Actual' % ELISANC( 'Scenario', 'Scenarios', !Scenario ) = 1,
+    CONTINUE,
+    STET
+  );
+
+# -------------------------------------------------------------
+# Currency
+# -------------------------------------------------------------
+['Currency':'Local' ] = N:
+  ['USD'] \ DB( 'FX Rates', 'Working Forecast', !Year | '-' | !RO Reporting Measure, ATTRS( 'Entity', !RO Entity, 'Local Currency'), 'Avg Rate' );
+
+  
+
+FEEDERS;
+
+['Currency':'USD'] =>
+  ['Currency':'Local'];
+  
+['Local'] =>
+  DB('PL Input', !Scenario, !Year, !RO Entity, !RO Product, !RO Function, !RO Account, 'Reported Amount' ),
+  DB('BS Input', !Scenario, !Year, !RO Entity, !RO Product, !RO Account, 'Ending Balance' );
+
+[] =>
+  DB('PL Reporting', !Scenario, !Year, !Currency, !RO Entity, !RO Product, !RO Function, !RO Account, 'Reported Amount' ),
+  DB('BS Reporting', !Scenario, !Year, !Currency, !RO Entity, !RO Product,  !RO Account, 'Ending Balance' );

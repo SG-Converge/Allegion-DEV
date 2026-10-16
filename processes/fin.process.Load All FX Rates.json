@@ -1,0 +1,12 @@
+{
+	"@type":"Process",
+	"Name":"fin.process.Load All FX Rates",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"fin.process.Load All FX Rates.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[]
+}

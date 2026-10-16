@@ -1,0 +1,357 @@
+#region Prolog
+
+#==============================================================================
+#             sys_Dimension - Period - Build Period-To-Date
+#
+#  This script will generate the period to date rollup structure in a given
+#  hierarchy that was created using the Period XRef source dimension.
+#
+#  REQUIREMENTS:
+#       Period XRef dimension must exist and contain all members within the
+#       dimension to be processed.
+#
+#
+#      Date    WHO  Description
+#  ----------  ---  -----------------------------------------------------------
+#  11/15/2023  SWG  Created.
+#
+#==============================================================================
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = TM1User();
+sProcessName = GetProcessName();
+sTimeStamp = TIMST( NOW, '\Y-\m-\d(\h\i\s)' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+# --- Values
+TRUE = 1;
+FALSE = 0;
+bDebug = TRUE;
+nErrorCount = 0;
+
+# --- Setup Logging
+If( FileExists( './model_upload' ) = TRUE );
+    sLogPath = './model_upload/Logs/Processes/';
+Else;
+    sLogPath = '/Logs/Processes/';
+EndIf;
+sLogFile = sLogPath | sUniqueName | '.log';
+
+#==============================================================================
+#                        PARAMETER VALIDATION SECTION
+#==============================================================================
+
+# --- Capture the name of the cross reference dimension to create
+sDimension = pDimension;
+sHierarchy = If( pHierarchy @= '', pDimension, pHierarchy );
+sHierRootMember = pHierRootMember;
+sPTDType = pPTDType;
+sPTDGranularity = pPTDGranularity;
+sPTDRootMember = pPTDRootMember;
+sPTDFormat = pPTDFormat;
+sPTDYearFormat = pPTDYearFormat;
+sXRefDim = pPeriodXRefDimension;
+
+#------------------------------------------------------------------------------
+#                   Validate XRef dimension
+#------------------------------------------------------------------------------
+# --- Validate the cross reference dimension
+If( DimensionExists( sXRefDim ) = 0 );
+    sMessage = Expand( 'Specified Period Cross-Reference dimension [%pPeriodXRefDimension%] does not exist or cannot be accessed');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    nErrorCount = nErrorCount + 1;
+EndIf;
+
+#------------------------------------------------------------------------------
+#                   Validate Target Dimension
+#------------------------------------------------------------------------------
+# --- Validate the dimension to be processed
+If( DimensionExists( pDimension ) = 0 );
+    sMessage = Expand( 'Specified period dimension to be updated [%pDimension%] does not exist or cannot be accessed');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    nErrorCount = nErrorCount + 1;
+EndIf;
+
+#------------------------------------------------------------------------------
+#                   Validate Hierarchy
+#------------------------------------------------------------------------------
+# --- Validate the dimension to be processed
+If( HierarchyExists( pDimension, sHierarchy ) = 0 );
+    sMessage = Expand( 'Specified hierarchy [%pHierarchy%] in dimension [%pDimension%] does not exist or cannot be accessed');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    nErrorCount = nErrorCount + 1;
+EndIf;
+
+#------------------------------------------------------------------------------
+#                   Validate Hierarchy Root Member
+#------------------------------------------------------------------------------
+# --- Validate the starting member to be processed
+If( HierarchyElementExists( pDimension, sHierarchy, sHierRootMember ) = 0 );
+    sMessage = Expand( 'Specified member [%pHierRootMember%] in hierarchy [%pHierarchy%] in dimension [%pDimension%] does not exist or cannot be accessed');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    nErrorCount = nErrorCount + 1;
+EndIf;
+
+#------------------------------------------------------------------------------
+#                   Validate Member Granularity Parameter
+#------------------------------------------------------------------------------
+sGranularity = '';
+sGranularity = If( LOWER(pGranularity) @= 'day', 'Day', sGranularity );
+sGranularity = If( LOWER(pGranularity) @= 'week', 'Week', sGranularity );
+sGranularity = If( LOWER(pGranularity) @= 'month', 'Month', sGranularity );
+sGranularity = If( LOWER(pGranularity) @= 'quarter', 'Quarter', sGranularity );
+If( sPTDGranularity @= '' );
+    sMessage = Expand( 'Specified member granularity [%pGranularity%] invalid.   Must be Day, Week, Month, or Quarter');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    nErrorCount = nErrorCount + 1;
+EndIf;
+
+
+#------------------------------------------------------------------------------
+#                   Validate Rollup Type Parameter
+#------------------------------------------------------------------------------
+sPTDType = '';
+sPTDType = If( LOWER(pPTDType) @= 'current', 'Current', sPTDType );
+sPTDType = If( LOWER(pPTDType) @= 'periodic', 'Periodic', sPTDType );
+If( sPTDType @= '' );
+    sMessage = Expand( 'Specified rollup type [%pPTDType%] invalid.   Must be Current or Periodic');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    nErrorCount = nErrorCount + 1;
+EndIf;
+
+
+#------------------------------------------------------------------------------
+#                   Validate PTDGranularity Parameter
+#------------------------------------------------------------------------------
+sPTDGranularity = '';
+sPTDGranularity = If( LOWER(pPTDGranularity) @= 'WTD', 'WTD', sPTDGranularity );
+sPTDGranularity = If( LOWER(pPTDGranularity) @= 'MTD', 'MTD', sPTDGranularity );
+sPTDGranularity = If( LOWER(pPTDGranularity) @= 'QTD', 'QTD', sPTDGranularity );
+sPTDGranularity = If( LOWER(pPTDGranularity) @= 'YTD', 'YTD', sPTDGranularity );
+If( sPTDGranularity @= '' );
+    sMessage = Expand( 'Specified PTDgranularity [%pPTDGranularity%] invalid.   Must be WTD, MTD, QTD or YTD');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    nErrorCount = nErrorCount + 1;
+EndIf;
+
+#------------------------------------------------------------------------------
+#                   Validate Granularity Relationships
+#------------------------------------------------------------------------------
+bGranularityError = FALSE;
+bGranularityError = If( sGranularity @= 'Month' & ( sPTDGranularity @= 'WTD' ), TRUE, bGranularityError );
+bGranularityError = If( sGranularity @= 'Quarter' & ( sPTDGranularity @= 'WTD' % sPTDGranularity @= 'MTD' ), TRUE, bGranularityError );
+If( bGranularityError = TRUE );
+    sMessage = Expand( 'Member granularity [%pGranularity%] cannot be higher than period-to-date granularity [%pPTDGranularity%].   ' 
+      | 'Period-to-date must always be the same or higher level of grain');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    nErrorCount = nErrorCount + 1;
+EndIf;
+
+
+#------------------------------------------------------------------------------
+#                       Report validation errors
+#------------------------------------------------------------------------------
+If( nErrorCount > 0 );
+    sMessage = Expand( NumberToString(nErrorCount) | ' validation error(s) occured.  Check logs for detail');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    ProcessError;
+EndIf;
+
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+# --- Setup the format based on granularity if it has not been specified
+If( sPTDFormat @= '' );
+  sPTDFormat = If( sPTDGranularity @= 'WTD', '%sMemberID% WTD', sPTDFormat );
+  sPTDFormat = If( sPTDGranularity @= 'MTD', '%sMemberID% MTD', sPTDFormat );
+  sPTDFormat = If( sPTDGranularity @= 'QTD', '%sMemberID% QTD', sPTDFormat );
+  sPTDFormat = If( sPTDGranularity @= 'YTD', '%sMemberID% YTD', sPTDFormat );
+EndIf;
+
+If( pPTDYearFormat @= '' );
+  sPTDYearFormat = If( sPTDGranularity @= 'WTD', '%period_beginning_year% WTD', pPTDYearFormat );
+  sPTDYearFormat = If( sPTDGranularity @= 'MTD', '%period_beginning_year% MTD', pPTDYearFormat );
+  sPTDYearFormat = If( sPTDGranularity @= 'QTD', '%period_beginning_year% QTD', pPTDYearFormat );
+  sPTDYearFormat = If( sPTDGranularity @= 'YTD', '%period_beginning_year% YTD', pPTDYearFormat );
+EndIf;
+
+
+# --- Create the Period-To-Date root member, or if it already exists, then 
+# --- remove the existing period to date children members for them to be
+# --- replaced.
+If( HierarchyElementExists( sDimension, sHierarchy, sPTDRootMember ) = 0 );
+    HierarchyElementInsert( sDimension, sHierarchy, '', sPTDRootMember, 'N' );
+Else;
+    sParentElemID = sPTDRootMember;
+    nNumMembers = ElementComponentCount( sDimension, sHierarchy, sParentElemID );
+    While( nNumMembers > 0 );
+        sMemberID = ElementComponent( sDimension, sHierarchy, sParentElemID, nNumMembers );
+        HierarchyElementDelete( sDimension, sHierarchy, sMemberID );
+        nNumMembers = nNumMembers - 1;
+    End;
+EndIf;
+
+# --- Setup the datasource
+DatasourceNameForServer = sDimension;
+
+
+
+#endregion
+#region Metadata
+
+
+
+# --- Capture the period member which is native to the XRef dimension
+sMemberID = inMemberID;
+sPeriod = ATTRS( sDimension, sMemberID, 'XRef' );
+
+# --- Skip any members which were not built using the cross reference dimension.
+If( sPeriod @= '' );
+    ItemSkip;
+EndIf;
+
+# --- Filter out any members not at the specified granularity.
+period_type = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Type');
+If( SCAN( sGranularity, period_type ) = 0 );
+    ItemSkip;
+EndIf;
+
+# --- If provided, skip any elements which are not in the hierarchy root
+If( ElementIsAncestor( sDimension, sHierarchy, sHierRootMember, sMemberID ) = FALSE );
+    ItemSkip;
+EndIf;
+
+
+#Region Attribute Value
+short_name                  = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Short Name');
+long_name                   = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Long Name');
+period_days                 = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'Period Days');
+period_weeks                = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'Period Weeks');
+period_months               = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'Period Months');
+period_quarters             = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'Period Quarters');
+period_beginning_day        = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Beginning Day');
+period_ending_day           = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Ending Day');
+period_beginning_week       = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Beginning Week');
+period_ending_week          = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Ending Week');
+period_beginning_month      = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Beginning Month');
+period_ending_month         = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Ending Month');
+period_beginning_quarter    = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Beginning Quarter');
+period_ending_quarter       = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Ending Quarter');
+period_beginning_half       = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Beginning Half');
+period_ending_half          = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Ending Half');
+period_beginning_year       = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Beginning Year');
+period_ending_year          = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Ending Year');
+period_prior                = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Prior');
+period_next                 = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Next');
+period_prior_day            = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Prior Day');
+period_next_day             = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Next Day');
+period_prior_week           = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Prior Week');
+period_next_week            = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Next Week');
+period_prior_month          = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Prior Month');
+period_next_month           = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Next Month');
+period_prior_quarter        = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Prior Quarter');
+period_next_quarter         = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Next Quarter');
+period_prior_half           = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Prior Half');
+period_next_half            = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Next Half');
+period_prior_year           = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Prior Year');
+period_next_year            = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Period Next Year');
+calendar_start_date         = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Start Date');
+calendar_end_date           = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar End Date');
+calendar_day_of_week        = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Day Of Week');
+calendar_day_of_month       = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Day Of Month');
+calendar_day_of_quarter     = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Day Of Quarter');
+calendar_day_of_year        = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Day Of Year');
+calendar_week_of_month      = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Week Of Month');
+calendar_week_of_quarter    = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Week Of Quarter');
+calendar_week_of_year       = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Week Of Year');
+calendar_month_short        = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Month Short');
+calendar_month_long         = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Month Long');
+calendar_month_of_quarter   = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Month Of Quarter');
+calendar_month_of_year      = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Month Of Year');
+calendar_quarter_of_year    = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Quarter Of Year');
+calendar_half_of_year       = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Half Of Year');
+calendar_year               = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Calendar Year');
+fiscal_week                 = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Fiscal Week');
+fiscal_month                = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Fiscal Month');
+fiscal_quarter              = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Fiscal Quarter');
+fiscal_half                 = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Fiscal Half');
+fiscal_year                 = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'Fiscal Year');
+mfg_week                    = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'MFG Week');
+mfg_month                   = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'MFG Month');
+mfg_quarter                 = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'MFG Quarter');
+mfg_half                    = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'MFG Half');
+mfg_year                    = ElementAttrS( sXRefDim, sXRefDim, sPeriod, 'MFG Year');
+tm1_serial                  = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'TM1 Serial');
+first_day_tm1_serial        = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'First Day TM1 Serial');
+last_day_tm1_serial         = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'Last Day TM1 Serial');
+excel_serial                = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'Excel Serial');
+first_day_excel_serial      = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'First Day Excel Serial');
+last_day_excel_serial       = ElementAttrN( sXRefDim, sXRefDim, sPeriod, 'Last Day Excel Serial');
+#EndRegion
+
+sYearMemberID = EXPAND( sPTDYearFormat );
+If( HierarchyElementExists( sDimension, sHierarchy, sYearMemberID ) = 0 );
+    HierarchyElementInsert( sDimension, sHierarchy, '', sYearMemberID, 'C' );
+EndIf;
+HierarchyElementComponentAdd( sDimension, sHierarchy, sPTDRootMember, sYearMemberID, 1 );
+
+sParentMemberID = EXPAND( sPTDFormat );
+If( HierarchyElementExists( sDimension, sHierarchy, sParentMemberID ) = 0 );
+    HierarchyElementInsert( sDimension, sHierarchy, '', sParentMemberID, 'C' );
+EndIf;
+HierarchyElementComponentAdd( sDimension, sHierarchy, sYearMemberID, sParentMemberID, 1 );
+
+HierarchyElementComponentAdd( sDimension, sHierarchy, sParentMemberID, sMemberID, 1 );
+
+
+
+# --- Now, work backward, adding prior periods until the granularity changes
+sPriorPeriod = period_prior;
+If( sPTDGranularity @= 'WTD' );
+  sCurrentPeriodCheck = period_beginning_week;
+  sPriorPeriodCheck = ElementAttrS( sXRefDim, sXRefDim, sPriorPeriod, 'Period Beginning Week');
+ElseIf( sPTDGranularity @= 'MTD' );
+  sCurrentPeriodCheck = period_beginning_month;
+  sPriorPeriodCheck = ElementAttrS( sXRefDim, sXRefDim, sPriorPeriod, 'Period Beginning Month');
+ElseIf( sPTDGranularity @= 'QTD' );
+  sCurrentPeriodCheck = period_beginning_quarter;
+  sPriorPeriodCheck = ElementAttrS( sXRefDim, sXRefDim, sPriorPeriod, 'Period Beginning Quarter');
+Else;
+  sCurrentPeriodCheck = period_beginning_year;
+  sPriorPeriodCheck = ElementAttrS( sXRefDim, sXRefDim, sPriorPeriod, 'Period Beginning Year');
+EndIf;
+
+While( sCurrentPeriodCheck @= sPriorPeriodCheck );
+    HierarchyElementComponentAdd( sDimension, sHierarchy, sParentMemberID, sPriorPeriod, 1 );
+    
+    If( HierarchyElementExists( sXRefDim, sXRefDim, sPriorPeriod ) = TRUE );
+        # --- Go back one period and re-check
+        sPriorPeriod = ElementAttrS( sXRefDim, sXRefDim, sPriorPeriod, 'Period Prior');
+        If( sPTDGranularity @= 'WTD' );
+          sPriorPeriodCheck = ElementAttrS( sXRefDim, sXRefDim, sPriorPeriod, 'Period Beginning Week');
+        ElseIf( sPTDGranularity @= 'MTD' );
+          sPriorPeriodCheck = ElementAttrS( sXRefDim, sXRefDim, sPriorPeriod, 'Period Beginning Month');
+        ElseIf( sPTDGranularity @= 'QTD' );
+          sPriorPeriodCheck = ElementAttrS( sXRefDim, sXRefDim, sPriorPeriod, 'Period Beginning Quarter');
+        Else;
+          sPriorPeriodCheck = ElementAttrS( sXRefDim, sXRefDim, sPriorPeriod, 'Period Beginning Year');
+        EndIf;
+    EndIf;
+End;
+
+#endregion

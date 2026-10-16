@@ -1,0 +1,30 @@
+{
+	"@type":"Cube",
+	"Name":"BS Input",
+	"Dimensions":
+	[
+		{
+			"@id":"Dimensions('Scenario')"
+		},
+		{
+			"@id":"Dimensions('Period')"
+		},
+		{
+			"@id":"Dimensions('Entity')"
+		},
+		{
+			"@id":"Dimensions('Product')"
+		},
+		{
+			"@id":"Dimensions('BS Account')"
+		},
+		{
+			"@id":"Dimensions('BS Input Measure')"
+		}
+	],
+	"Rules@Code.link":"BS Input.rules",
+	"Views@Code.links":
+	[
+		"BS Input.views/Fcst-5.0 Balance Sheet.json"
+	]
+}

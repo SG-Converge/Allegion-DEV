@@ -1,0 +1,311 @@
+#region Prolog
+
+#==============================================================================
+#                             Load MGTAMER Forecast Data
+#
+#  This script will load a file using the MGTAmer file format into the PL 
+#  and BS cubes.   This process will overwrite data in the exising forecast
+#  replacing any data in the same intersection.
+#
+#      Date    WHO  Description
+#  ----------  ---  -----------------------------------------------------------
+#  2026/07/13  SWG  Created.
+#
+#==============================================================================
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = ATTRS( '}Clients', TM1User(), '}TM1_DefaultDisplayValue' );
+sProcessName = GetProcessName();
+sDateStamp = TIMST( NOW, '\Y-\m-\d' );
+sTimeStamp = TIMST( NOW, '\Y-\m-\d \h.\i.\s' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+# --- Static Values
+ERROR  = 1; WARN   = 2; STATS  = 3;
+INFO   = 4; DEBUG  = 5; TRACE  = 6;
+TRUE   = 1; FALSE  = 0;
+LF     = CHAR(10);
+EXCEL_ADJUSTMENT = 21916;
+
+# --- Setup processing information
+bUseTemporaryObjects = TRUE;
+
+# --- Cubes
+sConfigCube      = 'sys.Config';
+sStatsCube       = 'sys.Process Stats';
+sPLInputCube     = 'PL Input';
+sPLReportingCube = 'PL Reporting';
+sBSInputCube     = 'BS Input';
+sBSReportingCube = 'BS Reporting';
+
+# --- Dimensions
+sScenarioDim   = 'Scenario';
+sPeriodDim     = 'Period';
+sCurrencyDim   = 'Currency';
+sEntityDim     = 'Entity';
+sProductDim    = 'Product';
+sFunctionDim   = 'Function';
+sAccountDim    = 'PL Account';
+sMapDim        = 'util.map.MGTAmer';
+
+# --- Members
+sEntityRoot     = 'All Entities';
+sProductRoot    = 'All Products';
+sFunctionRoot   = 'All Functions';
+sAccountRoot    = 'All Accounts';
+sLoadMeasure    = 'Reported Amount';
+sLoadAdjMeasure = 'Load Adjustment';
+sWFScenario     = 'Working Forecast';
+sWAScenario     = 'Working AOP';
+
+# --- Data values
+sFileDir = CellGetS( sConfigCube, 'MgtAmer Upload Directory', 'String' );
+
+#==============================================================================
+#                               LOGGING SECTION
+#==============================================================================
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Started At' );
+CellPutS( sUser, sStatsCube, sProcessName, 'Executed By' );
+
+# --- Setup Logging
+nLogLevel = CellGetN( sStatsCube, sProcessName, 'Logging Level' );
+sLogDir = CellGetS( sConfigCube, 'Log Directory', 'String' );
+sLogFile = sLogDir | sProcessName | '.log';
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log startup
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Started');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+# --- Report how the script was executed 
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand( '%LF%
+        ============================================================================ %LF%
+                        %sProcessName%                                               %LF%
+        ============================================================================ %LF%
+        Executed by [%sUser%]                                                        %LF%
+              pFilename       = [%pFilename%] %LF%
+              pStartingPeriod = [%pStartingPeriod%] %LF%
+        ============================================================================ %LF%
+    ');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+#==============================================================================
+#                        PARAMETER VALIDATION SECTION
+#==============================================================================
+
+# --- Validate input filename
+sFilename = pFilename;
+If( sFilename @<> '' );
+    sInputFile = sFileDir | sFilename;
+    If( FileExists( sInputFile ) = FALSE );
+        sMsgLevel = 'ERROR';
+        sMessage = Expand( 'Specified file [%sFilename%] does not exist or cannot be accessed in [%sHFMDir%]');
+        ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+        ProcessError();
+    EndIf;
+    DatasourceNameForServer = sInputFile;
+EndIf;
+
+sStartingPeriod = pStartingPeriod;
+sYear = SUBST( sStartingPeriod, 1, 4 );
+sStartingMonth = SUBST( sStartingPeriod, 6, 2 );
+
+sScenario = pScenario;
+If( sScenario @<> 'Working Forecast' & sScenario @<> 'Working AOP' );
+    sMsgLevel = 'ERROR';
+    sMessage = Expand( 'Specified scenario to load [%sScenario%] is invalid.  Must be Working AOP or Working Forecast');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+    ProcessError();
+EndIf;
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+
+
+#endregion
+#region Metadata
+
+# --- Map the incoming variables to working variables
+sVersion = inVersion;
+sCurrency = inCurrency;
+sMGTEntity = inEntity;
+sProduct = SUBST( inProduct, 2, 250 );
+sFunction = If( inFunction @= 'No Cost Center', 'Completes', SUBST( infunction, 2, 250 ) );
+sAccount = SUBST( inAccount, 2, 250 );
+
+If( inScenario @<> 'Working' ); ItemSkip; EndIf;
+
+# --- We only want to deal with Working Forecast
+# --- or Working AOP data only.  
+If( sScenario @= 'Working Forecast' );
+    If( sVersion @<> 'Forecast' ); ItemSkip; EndIf;
+Else;
+    If( sVersion @<> 'AOP' ); ItemSkip; EndIf;
+EndIf;
+
+# --- Make sure the entities exist in the mapping dimension
+If( DimensionElementExists( sMapDim, sMGTEntity ) = FALSE );
+    DimensionElementInsert( sMapDim, '', sMGTEntity, 'N' );
+EndIf;
+
+
+#endregion
+#region Data
+
+# --- Map the incoming variables to working variables
+sVersion = inVersion;
+sCurrency = inCurrency;
+sMGTEntity = inEntity;
+sProduct = SUBST( inProduct, 2, 250 );
+sFunction = If( inFunction @= 'No Cost Center', 'Completes', SUBST( infunction, 2, 250 ) );
+sAccount = SUBST( inAccount, 2, 250 );
+
+If( inScenario @<> 'Working' ); ItemSkip; EndIf;
+
+# --- We only want to deal with Working Forecast
+# --- or Working AOP data only.  
+If( sScenario @= 'Working Forecast' );
+    If( sVersion @<> 'Forecast' ); ItemSkip; EndIf;
+Else;
+    If( sVersion @<> 'AOP' ); ItemSkip; EndIf;
+EndIf;
+
+# --- Get the monthly values
+nJan = If( inJan @= '#Mi', 0, NUMBR( inJan ) );
+nFeb = If( inFeb @= '#Mi', 0, NUMBR( inFeb ) );
+nMar = If( inMar @= '#Mi', 0, NUMBR( inMar ) );
+nApr = If( inApr @= '#Mi', 0, NUMBR( inApr ) );
+nMay = If( inMay @= '#Mi', 0, NUMBR( inMay ) );
+nJun = If( inJun @= '#Mi', 0, NUMBR( inJun ) );
+nJul = If( inJul @= '#Mi', 0, NUMBR( inJul ) );
+nAug = If( inAug @= '#Mi', 0, NUMBR( inAug ) );
+nSep = If( inSep @= '#Mi', 0, NUMBR( inSep ) );
+nOct = If( inOct @= '#Mi', 0, NUMBR( inOct ) );
+nNov = If( inNov @= '#Mi', 0, NUMBR( inNov ) );
+nDec = If( inDec @= '#Mi', 0, NUMBR( inDec ) );
+
+# --- Get the mapped entity
+sEntity = '';
+If( DimensionElementExists( sMapDim, sMGTEntity )  = TRUE );
+    sEntity = ATTRS( sMapDim, sMGTEntity, 'Destination' );
+EndIf;
+
+# --- Clean up the currency
+sCurrency = If( sCurrency @= 'Entity_Currency', 'Local', sCurrency );
+sCurrency = If( sCurrency @= 'Local_Currency', 'Local', sCurrency );
+sCurrency = If( sCurrency @= 'Local Currency', 'Local', sCurrency );
+
+# --- Now, check to see if we have the elements in the dimensions
+If( DimensionElementExists( sEntityDim, sEntity ) = 0 );
+    If( DimensionElementExists( sEntityDim, sEntity | '_INPUT') > 0 );
+        sEntity = sEntity | '_INPUT';
+    Else;
+        bIsUnmapped = TRUE;
+        sEntity = 'Unmapped Entity';
+    EndIf;
+EndIf;
+
+If( DimensionElementExists( sProductDim, sProduct ) = 0 );
+    bIsUnmapped = TRUE;
+    sProduct = 'Unmapped Product';
+EndIf;
+
+If( DimensionElementExists( sFunctionDim, sFunction ) = 0 );
+    bIsUnmapped = TRUE;
+    sFunction = 'Unmapped Function';
+EndIf;
+
+If( DimensionElementExists( sAccountDim, sAccount ) = 0 );
+    bIsUnmapped = TRUE;
+    sAccount = 'Unmapped Account';
+EndIf;
+    
+If( CellIsUpdateable( sPLinputCube,  sScenario, sYear | '-' | sStartingMonth, sEntity, sProduct, sFunction, sAccount, sLoadMeasure ) = FALSE );
+    ASCIIOutput( sLogFile, 'Not Updateable - Not Loaded.', 
+        sPLinputCube, sScenario, sYear, sEntity, sProduct, sFunction, sAccount, sLoadMeasure, '<------',
+        inScenario, sYear, inEntity, inProduct, inFunction, inAccount, NumberToString( nJan )
+    );
+Else;
+    If( bIsUnmapped = TRUE );
+        ASCIIOutput( sLogFile, 'Unmapped record - Loaded', 
+            sPLinputCube, sScenario, sYear, sEntity, sProduct, sFunction, sAccount, sLoadMeasure, '<------',
+            inScenario, sYear, inCurrency, inEntity, inProduct, inFunction, inAccount, NumberToString( nJan )
+        );
+    EndIf;
+
+    If( sCurrency @= 'Local' );
+        If( sStartingMonth @<= '01' );
+            CellIncrementN( nJan, sPLinputCube, sScenario, sYear | '-01', sEntity, sProduct, sFunction, sAccount, sLoadMeasure );
+        EndIf;
+        If( sStartingMonth @<= '02' );
+            CellIncrementN( nFeb, sPLinputCube, sScenario, sYear | '-02', sEntity, sProduct, sFunction, sAccount, sLoadMeasure );
+        EndIf;
+        If( sStartingMonth @<= '03' );
+            CellIncrementN( nMar, sPLinputCube, sScenario, sYear | '-03', sEntity, sProduct, sFunction, sAccount, sLoadMeasure );
+        EndIf;
+        If( sStartingMonth @<= '04' );
+            CellIncrementN( nApr, sPLinputCube, sScenario, sYear | '-04', sEntity, sProduct, sFunction, sAccount, sLoadMeasure );
+        EndIf;
+        If( sStartingMonth @<= '05' );
+            CellIncrementN( nMay, sPLinputCube, sScenario, sYear | '-05', sEntity, sProduct, sFunction, sAccount, sLoadMeasure );
+        EndIf;
+        If( sStartingMonth @<= '06' );
+            CellIncrementN( nJun, sPLinputCube, sScenario, sYear | '-06', sEntity, sProduct, sFunction, sAccount, sLoadMeasure );
+        EndIf;
+        If( sStartingMonth @<= '07' );
+            CellIncrementN( nJul, sPLinputCube, sScenario, sYear | '-07', sEntity, sProduct, sFunction, sAccount, sLoadMeasure );
+        EndIf;
+        If( sStartingMonth @<= '08' );
+            CellIncrementN( nAug, sPLinputCube, sScenario, sYear | '-08', sEntity, sProduct, sFunction, sAccount, sLoadMeasure );
+        EndIf;
+        If( sStartingMonth @<= '09' );
+            CellIncrementN( nSep, sPLinputCube, sScenario, sYear | '-09', sEntity, sProduct, sFunction, sAccount, sLoadMeasure );
+        EndIf;
+        If( sStartingMonth @<= '10' );
+            CellIncrementN( nOct, sPLinputCube, sScenario, sYear | '-10', sEntity, sProduct, sFunction, sAccount, sLoadMeasure );
+        EndIf;
+        If( sStartingMonth @<= '11' );
+            CellIncrementN( nNov, sPLinputCube, sScenario, sYear | '-11', sEntity, sProduct, sFunction, sAccount, sLoadMeasure );
+        EndIf;
+        If( sStartingMonth @<= '12' );
+            CellIncrementN( nDec, sPLinputCube, sScenario, sYear | '-12', sEntity, sProduct, sFunction, sAccount, sLoadMeasure );
+        EndIf;
+    EndIf;
+
+        
+EndIf;
+#endregion
+#region Epilog
+
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Completed At' );
+
+# --- Append to the log (will overwrite if not done before AsciiOutput)
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log completion
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Completed');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+#endregion

@@ -1,0 +1,27 @@
+{
+	"@type":"Cube",
+	"Name":"Bridge Reporting",
+	"Dimensions":
+	[
+		{
+			"@id":"Dimensions('Bridge Version')"
+		},
+		{
+			"@id":"Dimensions('Period')"
+		},
+		{
+			"@id":"Dimensions('Bridge Entity')"
+		},
+		{
+			"@id":"Dimensions('Bridge Product')"
+		},
+		{
+			"@id":"Dimensions('Bridge Category')"
+		},
+		{
+			"@id":"Dimensions('Bridge Reporting Measure')"
+		}
+	],
+	"Rules@Code.link":"Bridge Reporting.rules",
+	"Views@Code.links":[]
+}

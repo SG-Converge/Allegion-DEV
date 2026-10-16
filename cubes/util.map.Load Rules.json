@@ -1,0 +1,21 @@
+{
+	"@type":"Cube",
+	"Name":"util.map.Load Rules",
+	"Dimensions":
+	[
+		{
+			"@id":"Dimensions('util.map.Ruleset')"
+		},
+		{
+			"@id":"Dimensions('util.map.Section')"
+		},
+		{
+			"@id":"Dimensions('util.map.Rule Item')"
+		},
+		{
+			"@id":"Dimensions('util.map.Load Rules Measure')"
+		}
+	],
+	"Rules@Code.link":"util.map.Load Rules.rules",
+	"Views@Code.links":[]
+}

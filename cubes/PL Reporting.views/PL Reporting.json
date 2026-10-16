@@ -1,0 +1,116 @@
+{
+	"@type":"NativeView",
+	"Name":"PL Reporting",
+	"Columns":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Scenario')/Hierarchies('Scenario')"
+				},
+				"Expression":"{[Scenario].[Scenario].[Actual],[Scenario].[Scenario].[Forecast 8+4],[Scenario].[Scenario].[AOP]}"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Period')/Hierarchies('Period')"
+				},
+				"Alias":"Caption",
+				"Expression":"{[Period].[Period].[2026 Q1^2026-01]}"
+			}
+		}
+	],
+	"Rows":
+	[
+		{
+			"Subset":
+			{
+				"@id":"Dimensions('PL Account')/Hierarchies('PL Account')/Subsets('PL Income Statement')"
+			}
+		}
+	],
+	"Titles":
+	[
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Entity')/Hierarchies('Entity')"
+				},
+				"Expression":"{[Entity].[Entity].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Entity')/Hierarchies('Entity')/Elements('MANAGEMENT')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Product')/Hierarchies('Product')"
+				},
+				"Expression":"{[Product].[Product].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Product')/Hierarchies('Product')/Elements('PRODUCTS')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Function')/Hierarchies('Function')"
+				},
+				"Expression":"{[Function].[Function].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Function')/Hierarchies('Function')/Elements('Total Function')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('Currency')/Hierarchies('Currency')"
+				},
+				"Expression":"{[Currency].[Currency].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('Currency')/Hierarchies('Currency')/Elements('USD')"
+			}
+		},
+		{
+			"Subset":
+			{
+				"Hierarchy":
+				{
+					"@id":"Dimensions('PL Reporting Measure')/Hierarchies('PL Reporting Measure')"
+				},
+				"Expression":"{[PL Reporting Measure].[PL Reporting Measure].MEMBERS}"
+			},
+			"Selected":
+			{
+				"@id":"Dimensions('PL Reporting Measure')/Hierarchies('PL Reporting Measure')/Elements('Reorg Adjusted')"
+			}
+		}
+	],
+	"SuppressEmptyColumns":false,
+	"SuppressEmptyRows":false,
+	"FormatString":"0.00",
+	"IsAutocalculate" : true,
+	"IsDeferComputeOnLeafDataEntry" : false,
+	"IsSuppressComputeOnOpen" : false
+}

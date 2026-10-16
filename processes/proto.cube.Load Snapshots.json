@@ -1,0 +1,12 @@
+{
+	"@type":"Process",
+	"Name":"proto.cube.Load Snapshots",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"proto.cube.Load Snapshots.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[]
+}

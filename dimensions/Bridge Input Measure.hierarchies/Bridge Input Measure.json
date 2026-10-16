@@ -1,0 +1,12 @@
+{
+	"@type":"Hierarchy",
+	"Name":"Bridge Input Measure",
+	"Elements":
+	[
+		{
+			"Name":"Amount",
+			"Type":"Numeric"
+		}
+	],
+	"Subsets@Code.links":[]
+}

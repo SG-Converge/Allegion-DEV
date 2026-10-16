@@ -1,0 +1,26 @@
+{
+	"@type":"Process",
+	"Name":"proto.snapshot.02 - Load Working Data",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"proto.snapshot.02 - Load Working Data.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pForecastType",
+			"Prompt":"Forecast type to load (Forecast/AOP)",
+			"Value":"Forecast",
+			"Type":"String"
+		},
+		{
+			"Name":"pForecastPeriod",
+			"Prompt":"Enter forecast period to process (YYYY-MM)",
+			"Value":"2025-03",
+			"Type":"String"
+		}
+	],
+	"Variables":[]
+}

@@ -1,0 +1,177 @@
+#region Prolog
+
+FALSE = 0;
+TRUE = 1;
+LF     = CHAR(10);
+
+sLogFile = '.\model_upload\logs\' | GetProcessName() | '-' | pPeriod | '.log';
+
+# --- Cubes
+sInputCube     = 'Bridge Input';
+sFXCube        = 'FX Rates';
+
+# --- Dimensions
+sScenarioDim   = 'Bridge Version';
+sPeriodDim     = 'Period';
+sEntityDim     = 'Bridge Entity';
+sProductDim    = 'Bridge Product';
+sFunctionDim   = 'Bridge Function';
+sAccountDim    = 'Bridge Account';
+
+# --- Members
+sACTScenario = 'BRIDGE_ACTCY_VPY';
+sMeasure       = 'Amount';
+
+sPeriod = pPeriod;
+sYear = SUBST( pPeriod, 1, 4 );
+sFY = SUBST( pPeriod, 3, 2 );
+sMonth = ATTRS( 'Period XRef', pPeriod, 'Calendar Month Short' );
+sFilename = Expand( '.\model_upload\Uploads\Historical\Planning\%sYear%\PLAN_Pandl_FY%sFY%_%sMonth%_toIBM.txt' );
+
+# --- Special routing to the working versions, if specified.
+sWFScenario = pWFScenario;
+sWAScenario = pWAScenario;
+
+DatasourceNameForServer = sFilename;
+
+#------------------------------------------
+# Destination View:  Bridge Input
+#------------------------------------------
+
+sCubeName = sInputCube;
+
+sVersionMDX = '[Bridge Version].[BRIDGE_ACTCY_VPY]';
+If( sWFScenario @<> '' );
+    sVersionMDX = sVersionMDX | ',[Bridge Version].[BRIDGE_WRK_FCST_VPY]';
+EndIf;
+If( sWAScenario @<> '' );
+    sVersionMDX = sVersionMDX| ',[Bridge Version].[BRIDGE_WRK_AOP_VPY]';
+EndIf;
+    
+# --- Clear out all data for the period to be loaded.
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { %sVersionMDX% } %LF%
+        SET PeriodSet     as { DISTINCT(DESCENDANTS([Period].[Period].[%sPeriod%] , 99 , LEAVES)) } %LF%
+        SET EntitySet     as { TM1FilterByLevel( TM1SubsetAll( [Bridge Entity] ), 0 ) } %LF%
+        SET ProductSet    as { TM1FilterByLevel( TM1SubsetAll( [Bridge Product] ), 0 ) } %LF%
+        SET FunctionSet   as { TM1FilterByLevel( TM1SubsetAll( [Bridge Function] ), 0 ) } %LF%
+        SET AccountSet    as { TM1FilterByLevel( TM1SubsetAll( [Bridge Account] ), 0 ) } %LF%
+        SET MeasureSet    as { TM1FilterByLevel( TM1SubsetAll( [Bridge Input Measure] ), 0 ) } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * PeriodSet * EntitySet * ProductSet * FunctionSet * AccountSet ON 1 %LF%
+
+    FROM [%sCubeName%] %LF%
+' );
+
+sViewName =  GetProcessName()| ' - Bridge Input ' | pPeriod;
+ViewCreateByMDX( sCubeName, sViewName, sViewMDX, TRUE );
+ViewZeroOut( sCubeName, sViewName );
+#endregion
+#region Metadata
+
+sVersion = inVersion;
+sScenario = inScenario;
+sCurrency = inCurrency;
+sEntity = inEntity;
+sProduct = inProduct;
+sFunction = infunction;
+sAccount = inAccount;
+nValue = inValue;
+
+# --- Only load Bridge data here
+sScenario = inScenario;
+If( SUBST( sScenario, 1, 6 ) @<> 'BRIDGE' ); ItemSkip; EndIf;
+If( sAccount @= 'AVGRATE' ); ItemSkip; Endif;
+
+# --- For AOP and FCST 2/10 we only want final 
+If( sVersion @<> 'Final'); ItemSkip; EndIf;
+
+# --- Clean up the currency
+sCurrency = If( sCurrency @= 'Entity_Currency', 'Local', sCurrency );
+
+# --- Now, check to see if we have the elements in the dimensions
+bIsUnmapped = FALSE;
+If( DIMIX( sEntityDim, sEntity ) = 0 );
+    DimensionElementInsert( sEntityDim, '', sEntity, 'N' );
+    DimensionElementComponentAdd( sEntityDim, 'All Entities', sEntity, 1 );
+EndIf;
+
+If( DIMIX( sProductDim, sProduct ) = 0 );
+    DimensionElementInsert( sProductDim, '', sProduct, 'N' );
+    DimensionElementComponentAdd( sProductDim, 'All Products', sProduct, 1 );
+EndIf;
+
+If( DIMIX( sFunctionDim, sFunction ) = 0 );
+    DimensionElementInsert( sFunctionDim, '', sFunction, 'N' );
+    DimensionElementComponentAdd( sFunctionDim, 'All Functions', sFunction, 1 );
+EndIf;
+
+If( DIMIX( sAccountDim, sAccount ) = 0 );
+    DimensionElementInsert( sAccountDim, '', sAccount, 'N' );
+EndIf;
+
+#endregion
+#region Data
+
+sVersion = inVersion;
+sScenario = inScenario;
+sCurrency = inCurrency;
+sEntity = inEntity;
+sProduct = inProduct;
+sFunction = infunction;
+sAccount = inAccount;
+nValue = inValue;
+
+# --- Only load Bridge data here
+sScenario = inScenario;
+If( SUBST( sScenario, 1, 6 ) @<> 'BRIDGE' ); ItemSkip; EndIf;
+If( sAccount @= 'AVGRATE' ); ItemSkip; Endif;
+
+# --- For AOP and FCST 2/10 we only want final 
+If( sVersion @<> 'Final'); ItemSkip; EndIf;
+
+# --- Clean up the currency
+sCurrency = If( sCurrency @= 'Entity_Currency', 'Local', sCurrency );
+
+# --- Now, check to see if we have the elements in the dimensions
+bIsUnmapped = FALSE;
+If( DIMIX( sEntityDim, sEntity ) = 0 );
+    bIsUnmapped = TRUE;
+    sEntity = 'Unmapped Entity';
+EndIf;
+
+If( DIMIX( sFunctionDim, sFunction ) = 0 );
+    bIsUnmapped = TRUE;
+    sFunction = 'Unmapped Function';
+EndIf;
+
+If( bIsUnmapped = TRUE );
+    ASCIIOutput( sLogFile, 'Unmapped record - Loaded', 
+        sInputCube, sScenario, sPeriod, sEntity, sProduct, sProduct, sFunction, sAccount, sMeasure, '<------',
+        inScenario, sPeriod, inCurrency, inEntity, inProduct, inFunction, inAccount, NumberToString( nValue )
+    );
+Else;
+    If( sCurrency @= 'Local' );
+        If( sScenario @= sACTScenario );
+            If( CellIsUpdateable( sInputCube,  sACTScenario, sPeriod, sEntity, sProduct, sFunction, sAccount, sMeasure ) = TRUE );
+                CellIncrementN( nValue, sInputCube, sACTScenario, sPeriod, sEntity, sProduct, sFunction, sAccount, sMeasure );
+            EndIf;
+        EndIf;
+        
+        If( sScenario @= sWFScenario );
+            If( CellIsUpdateable( sInputCube,  'BRIDGE_WRK_FCST_VPY', sPeriod, sEntity, sProduct, sFunction, sAccount, sMeasure ) = TRUE );
+                CellIncrementN( nValue, sInputCube, 'BRIDGE_WRK_FCST_VPY', sPeriod, sEntity, sProduct, sFunction, sAccount, sMeasure );
+            EndIf;
+        EndIf;
+        
+        If( sScenario @= sWAScenario );
+            If( CellIsUpdateable( sInputCube,  'BRIDGE_WRK_AOP_VPY', sPeriod, sEntity, sProduct, sFunction, sAccount, sMeasure ) = TRUE );
+                CellIncrementN( nValue, sInputCube, 'BRIDGE_WRK_AOP_VPY', sPeriod, sEntity, sProduct, sFunction, sAccount, sMeasure );
+            EndIf;
+        EndIf;
+    EndIf;
+EndIf;
+#endregion

@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"Non USD Entities",
+	"Alias":"Caption",
+	"Expression":"{ORDER(FILTER(TM1FILTERBYLEVEL(TM1SUBSETALL([Entity].[Entity]) , 0) , ([Entity].[Entity].CURRENTMEMBER.PROPERTIES(\"Local Currency\") <> \"USD\")) , IIF([Entity].[Entity].CURRENTMEMBER.PROPERTIES(\"Caption\")=\"\", [Entity].[Entity].CURRENTMEMBER.PROPERTIES(\"MEMBER_CAPTION\"), [Entity].[Entity].CURRENTMEMBER.PROPERTIES(\"Caption\")) , BASC)}"
+}

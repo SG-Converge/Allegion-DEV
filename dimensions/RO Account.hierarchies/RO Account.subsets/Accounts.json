@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"Accounts",
+	"Alias":"Caption",
+	"Expression":"{ORDER(TM1FILTERBYLEVEL(TM1SUBSETALL([RO Account].[RO Account]) , 0) , IIF([RO Account].[RO Account].CURRENTMEMBER.PROPERTIES(\"Caption\")=\"\", [RO Account].[RO Account].CURRENTMEMBER.PROPERTIES(\"MEMBER_CAPTION\"), [RO Account].[RO Account].CURRENTMEMBER.PROPERTIES(\"Caption\")) , BASC)}"
+}

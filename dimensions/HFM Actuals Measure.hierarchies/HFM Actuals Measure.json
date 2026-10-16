@@ -1,0 +1,20 @@
+{
+	"@type":"Hierarchy",
+	"Name":"HFM Actuals Measure",
+	"Elements":
+	[
+		{
+			"Name":"Amount",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"TB Amount",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Validation Amount",
+			"Type":"Numeric"
+		}
+	],
+	"Subsets@Code.links":[]
+}

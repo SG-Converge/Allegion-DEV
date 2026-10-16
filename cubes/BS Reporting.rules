@@ -1,0 +1,539 @@
+SKIPCHECK;
+
+['BS Account':'BS Account':'Account'] = 0;
+
+# -------------------------------------------------------------
+# Deactivate calculations for all static scenarios
+# -------------------------------------------------------------
+# --- Snapshots and constant currency scenarios are not calculated here
+[] = N:
+  If( !Scenario @= 'Actual' % ELISANC( 'Scenario', 'Scenarios', !Scenario ) = 1,
+    CONTINUE,
+    STET
+  );
+
+# -------------------------------------------------------------
+# Actual periods of working forecast should be from Actuals
+# -------------------------------------------------------------
+[{'Working Forecast'}] = 
+  If( !Period @< DB( 'Global Assumptions', 'Working Forecast Horizon Start Year', 'String' ),
+    0,
+    If( ELLEV( 'Period', !Period ) = 0,
+      If( !Period @> DB('Global Assumptions', 'Actual End Period', 'String' ),
+        CONTINUE,
+        ['Actual']
+      ),
+      CONTINUE
+    )
+  );
+
+# -------------------------------------------------------------
+#                          TEMPORARY
+#            TO BE REMOVED AFTER COPY STATIC VALUES
+# For 2026 and beyond, second submit (reorgs) will be entered
+# manually.   Historically, however, they are to be calcualted
+# from a load from HFM that contains ending balances.
+# -------------------------------------------------------------
+['Actual','Reorg Amount'] = N:
+  If( SUBST( !Period, 1, 4 ) @> '2025',
+    STET,
+    ['Historical Reorg Delta']
+  );
+['Reorg Amount'] = N: 0;
+['Historical Reorg Amount'] = N:
+  If( SUBST( !Period, 1, 4 ) @> '2025',
+    0,
+    CONTINUE
+  );
+
+# --- RO Data comes from RO Reporting.   No calculations apply here
+[{'Working RO', 'RO 3+9','RO 6+6','RO 9+3'}, 'Ending Balance',{'Local', 'USD'}] = N:
+  DB('RO Reporting', !Scenario, SUBST(!Period, 1, 4), !Currency, 'All Types', !Entity, 
+     !Product, 'All Functions' , !BS Account, 'All RO Items', 'All Categories', 
+     SUBST(!Period, 6, 2)
+  );
+
+# --- Prevent input anywhere else within RO scenarios.
+[{'Working RO', 'RO 3+9','RO 6+6','RO 9+3'}] = N: 0;
+  
+# -------------------------------------------------------------
+# Forecast pull from BS Input cube which only has local currency
+# -------------------------------------------------------------
+['Currency':'Local', {'Working AOP', 'Working Forecast' } ] = N:
+  DB( 'BS Input', !Scenario, !Period, !Entity, !Product, !BS Account, !BS Reporting Measure );
+
+# -------------------------------------------------------------
+# Currency
+# -------------------------------------------------------------
+['Currency':'USD', {'Working Forecast', 'Working RO' }] = N:
+  ['Local']  
+  * If( ATTRS( 'BS Account', !BS Account, 'Skip FX Conversion' ) @<> '',
+    1,
+    DB( 'FX Rates', 'Working Forecast', !Period, ATTRS( 'Entity', !Entity, 'Local Currency'), 'EOP Rate' )
+  );
+
+['Currency':'USD', 'Working AOP'] = N:
+  ['Local']  
+  * If( ATTRS( 'BS Account', !BS Account, 'Skip FX Conversion' ) @<> '',
+    1,
+    DB( 'FX Rates', !Scenario, !Period, ATTRS( 'Entity', !Entity, 'Local Currency'), 'EOP Rate' )
+  );
+
+# --------------------------------------------
+# PL Account data for calculations
+# --------------------------------------------
+
+['STAT_OPINCOME'] = 
+    DB( 'PL Reporting', !Scenario, !Period, !Currency, !Entity, !Product, 'Total Function', 'OPINCOME', 'Reported Amount' );
+['STAT_OPINCOME_ADJ'] = N:
+    DB( 'PL Reporting', !Scenario, !Period, !Currency, !Entity, !Product, 'Total Function', 'OPINCOME', 'Adjusted Total' );
+  # DB( 'PL Reporting', !Scenario, !Period, 'Local', !Entity, !Product, 'Total Function', 'OPINCOME', 'Adjusted Total' );
+['410000_STAT'] = 
+    DB( 'PL Reporting', !Scenario, !Period, !Currency, !Entity, !Product, 'Total Function', '410000', 'Reported Amount' );
+['641120_STAT'] = 
+    DB( 'PL Reporting', !Scenario, !Period, !Currency, !Entity, !Product, 'Total Function', '641120', 'Reported Amount' );
+['641130_STAT'] = 
+    DB( 'PL Reporting', !Scenario, !Period, !Currency, !Entity, !Product, 'Total Function', '641130', 'Reported Amount' );
+['STAT_COSTOFSALES'] = 
+    DB( 'PL Reporting', !Scenario, !Period, !Currency, !Entity, !Product, 'Total Function', 'MGT_COSTOFSALES', 'Reported Amount' );
+['STAT_COSTOFSALESWORESTMA'] = 
+    DB( 'PL Reporting', !Scenario, !Period, !Currency, !Entity, !Product, 'Total Function', 'MGT_COSWORESTMA', 'Reported Amount' );
+
+
+# --------------------------------------------
+# Balance Sheet calculations
+# --------------------------------------------
+# --- Special seeding for Historical Reorg data
+[{'165000_BEGBAL', '175000_BEGBAL', '181100_BEGBAL', '181000_BEGBAL'}, 'Actual', 'Historical Reorg Amount'] = N:
+  ['Ending Balance'];
+
+['CAPEX', 'Actual', 'Ending Balance'] = N: 
+    ['165000_ADD'] 
+        -  ['165100_ADD'] + ['168400_TRANS'] + ['168500_TRANS'] + ['168600_TRANS'] + ['168800_TRANS'] + ['168900_TRANS'] ;
+
+['INV_TO_ENTERPRISE'] = 
+  If( ELLEV( 'Period', !Period ) = 0,
+    (( ['STAT_COSTOFSALES']
+        + DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Prior' ),
+            !Currency, !Entity, !Product, 'STAT_COSTOFSALES', !BS Reporting Measure)
+        + DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', ATTRS( 'Period XRef', !Period, 'Period Prior' ), 'Period Prior' ),
+            !Currency, !Entity, !Product, 'STAT_COSTOFSALES', !BS Reporting Measure)
+    ) * 4) \ ['130000'],
+    CONTINUE
+  );
+
+
+['INVENTORY_TURNS_ADJ'] = 
+  If( ELLEV( 'Period', !Period ) = 0,
+    ( ['STAT_COSTOFSALESWORESTMA']
+        + DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Prior' ),
+            !Currency, !Entity, !Product, 'STAT_COSTOFSALESWORESTMA', !BS Reporting Measure)
+        + DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', ATTRS( 'Period XRef', !Period, 'Period Prior' ), 'Period Prior' ),
+            !Currency, !Entity, !Product, 'STAT_COSTOFSALESWORESTMA', !BS Reporting Measure)
+    ) * 4 \ ['130000'],
+    CONTINUE
+  );
+
+
+['INVENTORY_DAYS'] = 
+  If( ELLEV( 'Period', !Period ) = 0,
+    365 \ ['INV_TO_ENTERPRISE'],
+    CONTINUE
+  );
+
+['INVENTORY_DAYS_ADJ'] = 
+  If( ELLEV( 'Period', !Period ) = 0,
+    365 \ ['INVENTORY_TURNS_ADJ'],
+    CONTINUE
+  );
+
+['AP_DAYS_ENTERPRISE'] = 
+  If( ELLEV( 'Period', !Period ) = 0,
+    ['210000'] \ (
+        ( ['STAT_COSTOFSALES']
+            + DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Prior' ),
+                !Currency, !Entity, !Product, 'STAT_COSTOFSALES', !BS Reporting Measure)
+            + DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', ATTRS( 'Period XRef', !Period, 'Period Prior' ), 'Period Prior' ),
+                !Currency, !Entity, !Product, 'STAT_COSTOFSALES', !BS Reporting Measure)
+        ) * 4
+    ) * 365,
+    CONTINUE
+  );
+
+['DPO_ADJ'] = 
+  If( ELLEV( 'Period', !Period ) = 0,
+    ['210000'] \ (
+        ( ['STAT_COSTOFSALESWORESTMA']
+            + DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Prior' ),
+                !Currency, !Entity, !Product, 'STAT_COSTOFSALESWORESTMA', !BS Reporting Measure)
+            + DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', ATTRS( 'Period XRef', !Period, 'Period Prior' ), 'Period Prior' ),
+                !Currency, !Entity, !Product, 'STAT_COSTOFSALESWORESTMA', !BS Reporting Measure)
+        ) * 4
+    ) * 365,
+    CONTINUE
+  );
+
+
+['DSO'] = 
+  If( ELLEV( 'Period', !Period ) = 0,
+    ['120000'] \ (
+        ( ['410000_STAT']
+            + DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Prior' ),
+                !Currency, !Entity, !Product, '410000_STAT', !BS Reporting Measure)
+            + DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', ATTRS( 'Period XRef', !Period, 'Period Prior' ), 'Period Prior' ),
+                !Currency, !Entity, !Product, '410000_STAT', !BS Reporting Measure)
+        ) * 4
+    ) * 365,
+    CONTINUE
+  );
+
+['CASH_CONVERSION'] = 
+  If( ELLEV( 'Period', !Period ) = 0,
+    ['DSO'] + 365 \ ['INV_TO_ENTERPRISE'] - ['AP_DAYS_ENTERPRISE'],
+    CONTINUE
+  );
+
+['S_ACCUM_WCOBS'] = N:
+    ['S_InvOBS'] + ['S_AROBS'] - ['S_APOBS'] - ['S_OtherAPOBS'];
+
+# --------------------------------------------
+# Balance Sheet stat calculations
+# --------------------------------------------
+['132000'] = N: 
+    ['132000_STAT_FG'] + ['132000_STAT_WIP'] + ['132000_STAT_Raw'];
+
+['165000'] = N: 
+    ['165000_BEGBAL'] + ['165000_ADD'] + ['165000_RET'] + ['165000_TRANS'] + ['165000_ADJ'];
+
+['175000'] = N: 
+    ['175000_BEGBAL'] + ['175000_ADD'] + ['175000_RET'] + ['175000_TRANS'] + ['175000_ADJ'];
+
+['181000'] = N:
+    ['181000_BEGBAL'] + ['181000_ADD'] + ['181000_RET'] + ['181000_TRANS'] + ['181000_ADJ'];
+
+['181100'] = N: 
+    ['181100_BEGBAL'] + ['181100_ADD'] + ['181100_RET'] + ['181100_TRANS'] + ['181100_ADJ'];
+
+
+# --------------------------------------------
+# METRIC OP CASHFLOW
+# --------------------------------------------
+# --- Actuals
+['METRIC_OP_CASHFLOW', 'Actual'] = N:
+    ['STAT_OPINCOME'] - ['175000_ADD'] - ['175000_ADJ'] - ['181000_ADD'] - ['CAPEX'] - ['CAPEX_SW'] 
+    + (
+      DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Prior'), !Currency, !Entity, !Product, 'WORKING_CAPITAL', !BS Reporting Measure)
+      - ['BS Account':'WORKING_CAPITAL']
+    ); 
+
+['METRIC_OP_CASHFLOW_ADJ', 'Actual'] = N:
+    ['STAT_OPINCOME_ADJ'] - ['175000_ADD'] - ['175000_ADJ'] - ['181000_ADD'] - ['CAPEX'] - ['CAPEX_SW'] 
+    + (
+      DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Prior'), !Currency, !Entity, !Product, 'WORKING_CAPITAL', !BS Reporting Measure)
+      - ['BS Account':'WORKING_CAPITAL']
+    ) - ['641120_STAT'] - ['641130_STAT']; 
+
+# --- Working AOP
+['METRIC_OP_CASHFLOW', 'Working AOP'] = N:
+    # --- JANUARY ONLY
+    If( SUBST( !Period, 6, 2 )  @= '01',
+      ['STAT_OPINCOME'] - ['175000_ADD'] - ['175000_ADJ'] - ['181000_ADD'] - ['CAPEX'] - ['CAPEX_SW'] 
+      + (
+        DB('BS Reporting', 'Working Forecast', DB( 'Global Assumptions', 'Working AOP Seed Period', 'String' ), 
+           !Currency, !Entity, !Product, 'WORKING_CAPITAL', !BS Reporting Measure)
+        - ['BS Account':'WORKING_CAPITAL']
+      ) + ['641120_STAT'] + ['641130_STAT'],
+  
+      ['STAT_OPINCOME'] - ['175000_ADD'] - ['175000_ADJ'] - ['181000_ADD'] - ['CAPEX'] - ['CAPEX_SW'] 
+      + (
+        DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Prior'), !Currency, !Entity, !Product, 'WORKING_CAPITAL', !BS Reporting Measure)
+        - ['BS Account':'WORKING_CAPITAL']
+      ) + ['641120_STAT'] + ['641130_STAT']
+    );
+
+
+['METRIC_OP_CASHFLOW_ADJ', 'Working AOP'] = N:
+    # --- JANUARY ONLY
+    If( SUBST( !Period, 6, 2 )  @= '01',
+    ['STAT_OPINCOME_ADJ'] - ['175000_ADD'] - ['175000_ADJ'] - ['181000_ADD'] - ['CAPEX'] - ['CAPEX_SW'] 
+    + (
+      DB('BS Reporting', 'Working Forecast', DB( 'Global Assumptions', 'Working AOP Seed Period', 'String' ), 
+           !Currency, !Entity, !Product, 'WORKING_CAPITAL', !BS Reporting Measure)
+      - ['BS Account':'WORKING_CAPITAL']
+    ),
+  
+      ['STAT_OPINCOME_ADJ'] - ['175000_ADD'] - ['175000_ADJ'] - ['181000_ADD'] - ['CAPEX'] - ['CAPEX_SW'] 
+    + (
+      DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Prior'), !Currency, !Entity, !Product, 'WORKING_CAPITAL', !BS Reporting Measure)
+      - ['BS Account':'WORKING_CAPITAL']
+    )
+  ); 
+
+
+# --- Working Forecast
+['METRIC_OP_CASHFLOW', 'Working Forecast'] = N:
+    ['STAT_OPINCOME'] - ['175000_ADD'] - ['175000_ADJ'] - ['181000_ADD'] - ['CAPEX'] - ['CAPEX_SW'] 
+    + (
+      DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Prior'), !Currency, !Entity, !Product, 'WORKING_CAPITAL', !BS Reporting Measure)
+      - ['BS Account':'WORKING_CAPITAL']
+    ) + ['641120_STAT'] + ['641130_STAT']; 
+
+['METRIC_OP_CASHFLOW_ADJ', 'Working Forecast'] = N:
+    ['STAT_OPINCOME_ADJ'] - ['175000_ADD'] - ['175000_ADJ'] - ['181000_ADD'] - ['CAPEX'] - ['CAPEX_SW'] 
+    + (
+      DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Prior'), !Currency, !Entity, !Product, 'WORKING_CAPITAL', !BS Reporting Measure)
+      - ['BS Account':'WORKING_CAPITAL']
+    ); 
+
+
+# --------------------------------------------
+# Beginning Balance Related Accounts - Disabled for now
+# I take no responsibility for these rules!!
+# --------------------------------------------
+
+['165000_ADD']    = N: STET;
+['165000_RET']    = N: STET;
+['165000_BEGBAL'] = N:
+    DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Prior'), !Currency, !Entity, !Product, '165000_BEGBAL', !BS Reporting Measure)
+      + DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Prior'), !Currency, !Entity, !Product, '165000_ADD', !BS Reporting Measure)
+      + DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Prior'), !Currency, !Entity, !Product, '165000_RET', !BS Reporting Measure)
+      + DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Prior'), !Currency, !Entity, !Product, '165000_TRANS', !BS Reporting Measure)
+      + DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Prior'), !Currency, !Entity, !Product, '165000_ADJ', !BS Reporting Measure);
+
+[{'Working Forecast', 'Working AOP' },'175000_ADD']    = N:
+  -1 * ( DB('PL Reporting', !Scenario, !Period, !Currency, !Entity, !Product, 'Total Function', '692000', 'Reported Amount' )
+         + DB('PL Reporting', !Scenario, !Period, !Currency, !Entity, !Product, 'Total Function', '514102', 'Reported Amount' ) 
+       );
+['175000_ADD']    = N: STET;
+['175000_RET']    = N: STET;
+['175000_ADJ']    = N: STET;
+['175000_BEGBAL'] = N:
+    DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Prior'), !Currency, !Entity, !Product, '175000_Calc', !BS Reporting Measure);
+
+[{'Working Forecast', 'Working AOP' },'181100_ADD']    = N: 
+  -1 * DB('PL Reporting', !Scenario, !Period, !Currency, !Entity, !Product, 'Total Function', '640330', 'Reported Amount' );
+['181100_ADD']    = N: STET;
+['181100_RET']    = N: STET;
+['181100_BEGBAL'] = N:
+    DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Prior'), !Currency, !Entity, !Product, '181100_Calc', !BS Reporting Measure);
+
+[{'Working Forecast', 'Working AOP' },'181000_ADD']    = N:
+  -1 * DB('PL Reporting', !Scenario, !Period, !Currency, !Entity, !Product, 'Total Function', '640320', 'Reported Amount' );
+['181000_ADD']    = N: STET;
+['181000_RET']    = N: STET;
+['181000_BEGBAL'] = N:
+    DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Prior'), !Currency, !Entity, !Product, '181000_Calc', !BS Reporting Measure);
+
+
+
+# --------------------------------------------
+# Ending balance CATCH-ALL
+# --------------------------------------------
+# NRR 2026-10-02 this was changed from the original rule so that the False condition will be picked up in the next rule.  
+['Ending Balance'] = 
+ If( ATTRS( 'BS Account', !BS Account, 'Time Balance' ) @= 'flow',
+    STET,
+   CONTINUE
+);
+
+
+
+
+# --- Balance type accounts need to look back at the last month of the 
+# --- period rather than aggregating.
+# --- NRR updated rule 2026-10-01.  The rule below that is commented out will be removed after testing.  
+# --- Note that Historical Reorg Delta is not included in the as this measure it temporary and should not be used.  
+['BS Reporting Measure':'BS Reporting Measure':{'Ending Balance','Reorg Amount','Amount'}]=C:
+ IF( ATTRS( 'BS Account', !BS Account, 'Time Balance' ) @= 'balance' &  ELLEV( 'Period', !Period ) > 0,
+    IF(ELISANC( 'Period', !Period, DB('Global Assumptions', 'Actual End Period', 'String' ) )= 1,
+        DB( 'BS Reporting', !Scenario, DB('Global Assumptions', 'Actual End Period', 'String' ), !Currency, !Entity, !Product, !BS Account, !BS Reporting Measure ),
+        IF( SCAN( 'TD', !Period ) > 0,
+          DB( 'BS Reporting', !Scenario, SUBST( !Period, 1, 7 ), !Currency, !Entity, !Product, !BS Account, !BS Reporting Measure ), 
+          DB( 'BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Ending Month' ), !Currency, !Entity, !Product, !BS Account, !BS Reporting Measure )
+        )
+      ),
+  CONTINUE
+  );
+
+
+# --------------------------------------------
+# Ending balance CATCH-ALL
+# --------------------------------------------
+# NRR 2026-10-01 this rule was moved above the new rule on line 344 after testing this rule can be deleted. 
+
+#['Ending Balance'] = 
+#If( ATTRS( 'BS Account', !BS Account, 'Time Balance' ) @= 'flow',
+#    STET,
+#    If( ELLEV( 'Period', !Period ) = 0,
+#      STET,
+#      DB( 'BS Reporting', !Scenario, 
+#         ATTRS( 'Period XRef', !Period, 'Period Ending Month' ), 
+#          !Currency, !Entity, !Product, !BS Account, !BS Reporting Measure 
+#      )
+#    )
+#  );
+
+
+FEEDERS;
+
+# -------------------------------------------------------------
+#                          TEMPORARY
+#            TO BE REMOVED AFTER COPY STATIC VALUES
+#
+# For 2026 and beyond, second submit (reorgs) will be entered
+# manually.   Historically, however, they are to be calcualted
+# from a load from HFM that contains ending balances.
+# -------------------------------------------------------------
+['Actual', 'Historical Reorg Delta'] => ['Reorg Amount'];
+
+  
+# -------------------------------------------------------------
+# Currency
+# -------------------------------------------------------------
+['Currency':'Local', 'Scenarios' ] =>
+  ['USD'];
+
+# --- Added because we have USD only transactions in actual
+# --- that need to included in snapshots.  Calcs are missed
+# --- in snapshot since not driven by local.
+['Actual', 'USD' ] => ['Working Forecast'];
+  
+['165000_ADD', {'Actual','Scenarios'}]   => ['CAPEX'];
+['165100_ADD', {'Actual','Scenarios'}]   => ['CAPEX'];
+['168400_TRANS', {'Actual','Scenarios'}] => ['CAPEX'];
+['168500_TRANS', {'Actual','Scenarios'}] => ['CAPEX'];
+['168600_TRANS', {'Actual','Scenarios'}] => ['CAPEX'];
+['168800_TRANS', {'Actual','Scenarios'}] => ['CAPEX'];
+['168900_TRANS', {'Actual','Scenarios'}] => ['CAPEX'];
+
+  
+['STAT_COSTOFSALES', {'Actual','Scenarios'}] =>
+    ['INV_TO_ENTERPRISE'];
+
+['STAT_COSTOFSALES', {'Actual','Scenarios'}] =>
+    DB(
+        'BS Reporting', !Scenario, ATTRS('Period XRef', !Period, 'Period Next'),
+        !Currency, !Entity, !Product, 'INV_TO_ENTERPRISE', !BS Reporting Measure
+    );
+
+['STAT_COSTOFSALES', {'Actual','Scenarios'}] =>
+    DB(
+        'BS Reporting', !Scenario, ATTRS('Period XRef', ATTRS('Period XRef', !Period, 'Period Next'), 'Period Next'),
+        !Currency, !Entity, !Product, 'INV_TO_ENTERPRISE', !BS Reporting Measure
+    );
+
+
+['STAT_COSTOFSALESWORESTMA', {'Actual','Scenarios'}] =>
+    ['INVENTORY_TURNS_ADJ'];
+
+['STAT_COSTOFSALESWORESTMA', {'Actual','Scenarios'}] =>
+    DB(
+        'BS Reporting', !Scenario, ATTRS('Period XRef', !Period, 'Period Next'),
+        !Currency, !Entity, !Product, 'INVENTORY_TURNS_ADJ', !BS Reporting Measure
+    );
+
+['STAT_COSTOFSALESWORESTMA', {'Actual','Scenarios'}] =>
+    DB(
+        'BS Reporting', !Scenario, ATTRS('Period XRef', ATTRS('Period XRef', !Period, 'Period Next'), 'Period Next'),
+        !Currency, !Entity, !Product, 'INVENTORY_TURNS_ADJ', !BS Reporting Measure
+    );
+
+
+['INV_TO_ENTERPRISE', {'Actual','Scenarios'}] =>
+    ['INVENTORY_DAYS'];
+
+['INVENTORY_TURNS_ADJ', {'Actual','Scenarios'}] =>
+    ['INVENTORY_DAYS_ADJ'];
+
+
+['210000', {'Actual','Scenarios'}] =>
+    ['AP_DAYS_ENTERPRISE'];
+
+['210000', {'Actual','Scenarios'}] =>
+    ['DPO_ADJ'];
+
+
+['120000', {'Actual','Scenarios'}] =>
+    ['DSO'];
+
+
+[{'DSO', 'INV_TO_ENTERPRISE', 'AP_DAYS_ENTERPRISE'}, {'Actual','Scenarios'}] =>
+    ['CASH_CONVERSION'];
+
+[{'S_InvOBS', 'S_AROBS', 'S_APOBS', 'S_OtherAPOBS'}, {'Actual','Scenarios'}] =>
+    ['S_ACCUM_WCOBS'];
+
+
+# --------------------------------------------
+# Balance Sheet stat calculations
+# --------------------------------------------
+[{'132000_STAT_FG', '132000_STAT_WIP', '132000_STAT_Raw'}, {'Actual','Scenarios'}] =>
+    ['132000'];
+
+[{'165000_BEGBAL','165000_ADD', '165000_RET', '165000_TRANS', '165000_ADJ'}, {'Actual','Scenarios'}] =>
+    ['165000'];
+
+[{'175000_BEGBAL','175000_ADD', '175000_RET', '175000_TRANS', '175000_ADJ'}, {'Actual','Scenarios'}] =>
+    ['175000'];
+
+[{'181000_BEGBAL','181000_ADD', '181000_RET', '181000_TRANS', '181000_ADJ'}, {'Actual','Scenarios'}] =>
+    ['181000'];
+
+[{'181100_BEGBAL','181100_ADD', '181100_RET', '181100_TRANS', '181100_ADJ'}, {'Actual','Scenarios'}] =>
+    ['181100'];
+  
+['STAT_OPINCOME_ADJ', {'Actual','Scenarios'}] =>
+    ['METRIC_OP_CASHFLOW_ADJ'];  
+
+[{'175000_ADD', '175000_ADJ', '181000_ADD', 'CAPEX', 'CAPEX_SW'}, {'Actual','Scenarios'}] =>
+    ['METRIC_OP_CASHFLOW_ADJ'];
+
+['WORKING_CAPITAL', {'Actual','Scenarios'}] =>
+    ['METRIC_OP_CASHFLOW_ADJ'];
+  
+['STAT_OPINCOME', {'Actual','Scenarios'}] =>
+    ['METRIC_OP_CASHFLOW'];
+
+[{'175000_ADD', '175000_ADJ', '181000_ADD', 'CAPEX', 'CAPEX_SW'}, {'Actual','Scenarios'}] =>
+    ['METRIC_OP_CASHFLOW'];
+
+['WORKING_CAPITAL', {'Actual','Scenarios'}] =>
+    ['METRIC_OP_CASHFLOW'];
+
+['WORKING_CAPITAL', 'Actual'] =>
+    DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Next'), !Currency, !Entity, !Product, 'METRIC_OP_CASHFLOW', !BS Reporting Measure);
+
+['WORKING_CAPITAL', 'Working Forecast'] =>
+  DB( If( !Period @= DB( 'Global Assumptions', 'Working AOP Seed Period', 'String' ), 'BS Reporting', '*** No Feed ***' ),
+      'Working AOP', DB( 'Global Assumptions', 'Working AOP Start Year', 'String' ) | '-01',
+      !Currency, !Entity, !Product, 'METRIC_OP_CASHFLOW', !BS Reporting Measure
+  );
+
+['WORKING_CAPITAL', 'Actual'] =>
+    DB('BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Next'), !Currency, !Entity, !Product, 'METRIC_OP_CASHFLOW_ADJ', !BS Reporting Measure);
+
+['WORKING_CAPITAL', 'Working Forecast'] =>
+  DB( If( !Period @= DB( 'Global Assumptions', 'Working AOP Seed Period', 'String' ), 'BS Reporting', '*** No Feed ***' ),
+      'Working AOP', DB( 'Global Assumptions', 'Working AOP Start Year', 'String' ) | '-01',
+      !Currency, !Entity, !Product, 'METRIC_OP_CASHFLOW_ADJ', !BS Reporting Measure
+  );
+  
+# --------------------------------------------
+# Beginning Balance Related Accounts 
+# --------------------------------------------
+['Actual', 'Ending Balance', {'165000_BEGBAL', '175000_BEGBAL', '181100_BEGBAL', '181000_BEGBAL'}] => 
+  ['Historical Reorg Amount'];
+ 
+[{'165000_BEGBAL','165000_ADD', '165000_RET', '165000_TRANS', '165000_ADJ'}, {'Actual','Scenarios'}] =>
+  DB( 'BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Next'), !Currency, !Entity, !Product, '165000_BEGBAL', !BS Reporting Measure );
+
+['175000_Calc', {'Actual','Scenarios'}] =>
+  DB( 'BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Next'), !Currency, !Entity, !Product, '175000_BEGBAL', !BS Reporting Measure );
+
+['181100_Calc', {'Actual','Scenarios'}] =>
+  DB( 'BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Next'), !Currency, !Entity, !Product, '181100_BEGBAL', !BS Reporting Measure );
+
+['181000_Calc', {'Actual','Scenarios'}] =>
+  DB( 'BS Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Next'), !Currency, !Entity, !Product, '181000_BEGBAL', !BS Reporting Measure );
+
+

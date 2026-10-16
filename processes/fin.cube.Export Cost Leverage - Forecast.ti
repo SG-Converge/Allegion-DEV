@@ -1,0 +1,383 @@
+#region Prolog
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#==============================================================================
+#                       Export Cost Leverage - Forecast
+#
+#  This process creates the five monthly Cost Leverage files used for
+#  Forecast reporting to be uploaded in Cost Leverage.
+#
+#
+#    Date        WHO  Description
+#  ----------    ---  ---------------------------------------------------------
+#  07/29/2026    SWG  Created.
+#
+#==============================================================================
+
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = TM1User();
+sProcessName = GetProcessName();
+sDateStamp = TIMST( NOW, '\Y-\m-\d' );
+sTimeStamp = TIMST( NOW, '\Y-\m-\d (\h.\i.\s)' );
+sUniqueID = NumberToString( INT( RAND() * 10000 ) );
+sUniqueName = Expand( '%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand( '_tmp_%sUniqueName%' );
+
+# --- Static Values
+ERROR = 1; WARN = 2; STATS = 3;
+INFO = 4; DEBUG = 5; TRACE = 6;
+TRUE = 1; FALSE = 0;
+LF = CHAR(10);
+TAB = CHAR(9);
+
+# --- Default Settings
+nDataRecCount = 0;
+nFileRecCount = 0;
+
+# --- Cubes
+sConfigCube = 'sys.Config';
+sProcessesCube = 'sys.Process Stats';
+sGlobalCube = 'Global Assumptions';
+sSourceCube = 'PL Reporting';
+
+# --- Dimensions
+sProductDim  = 'Product';
+sPerioddim   = 'Period';
+sScenarioDim = 'Scenario';
+
+# --- Source members
+sCurrency = 'USD';
+sScenario = 'Working Forecast';
+sMeasure = 'Reported Amount';
+sScenario = 'Forecast 5+7';
+
+# --- Output members
+sFinalVersion = 'Final';
+sWorkingVersion = 'Working';
+sReportingView = 'As_Loaded';
+
+# --- Selector groups
+sMainFileEntities = '|80010035|80010040|80010060|80010080|80010100|80030010|80030020|80030030|80030040'
+    | '|80030050|80030060|80040010|80040020|80050010|80060010|80060050|80080010|81040030|81040050'
+    | '|8117|8123|81290010|81290020|81290030|8143|8416|91160040|91160050|80150211|80150311|81300010'
+    | '|80010950|81500010|81510010|';
+sRSSCOMMFileEntities = '|80010090|81040040|80010070|81040020|';
+sExitsAccyFileEntity = '80010035';
+sRSSProductRoot = 'RSSECURITY';
+sCOMMProductRoot = 'SSECTOR';
+sExitsProductRoot = 'ALT_PROD_EXITS';
+sAccyProductRoot = 'ALT_PROD_ACCY';
+
+
+#==============================================================================
+#                               LOGGING SECTION
+#==============================================================================
+
+# --- Setup Logging
+nLogLevel = CellGetN( sProcessesCube, sProcessName, 'Logging Level' );
+sLogDir = CellGetS( sConfigCube, 'Log Directory', 'String' );
+sLogFile = sLogDir | sProcessName | '.log';
+
+SetOutputEscapeDoubleQuote( sLogFile, TRUE );
+bUseTemporaryObjects = If( nLogLevel >= DEBUG, FALSE, TRUE );
+
+# --- Append to an existing process log
+If( FileExists( sLogFile ) = TRUE );
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log startup
+If( nLogLevel >= INFO );
+    sLogLevel = 'INFO';
+    sMessage = 'Started';
+    ASCIIOutput( sLogFile, sLogLevel | TAB | sMessage );
+EndIf;
+
+# --- Report how the script was executed
+If( nLogLevel >= DEBUG );
+    sLogLevel = 'DEBUG';
+    sMessage = Expand( '%LF%
+        ======================================================================== %LF%
+                        %sProcessName% %LF%
+        ======================================================================== %LF%
+        Executed by [%sUser%] %LF%
+              pOutputDirectory = [%pOutputDirectory%] %LF%
+        ======================================================================== %LF%
+    ' );
+    ASCIIOutput( sLogFile, sLogLevel | TAB | sMessage );
+EndIf;
+
+
+#==============================================================================
+#                        PARAMETER VALIDATION SECTION
+#==============================================================================
+
+# --- Use the parameter only as an explicit override of the configured directory
+sOutputDirectory = CellGetS( sConfigCube, 'Cost Leverage Download Directory', 'String' );
+If( TRIM( pOutputDirectory ) @<> '' );
+    sOutputDirectory = TRIM( pOutputDirectory );
+EndIf;
+
+If( sOutputDirectory @= '' );
+    sLogLevel = 'ERROR';
+    sMessage = 'Cost Leverage Output Directory is not configured and no parameter override was supplied';
+    LogOutput( sLogLevel, sMessage );
+    If( nLogLevel >= ERROR );
+        ASCIIOutput( sLogFile, sLogLevel | TAB | sMessage );
+    EndIf;
+    ProcessError();
+EndIf;
+
+# --- Capture / calculate the forecast start period
+sPeriod = CellGetS( sGlobalCube, 'Forecast Start Period', 'String' ); 
+If( pPeriod @<> '' );
+    If( DimensionElementExists( sPeriodDim, pPeriod ) = FALSE );
+        sLogLevel = 'ERROR';
+        sMessage = Expand( 'Invalid Forecast start period provided [%pPeriod%]' );
+        LogOutput( sLogLevel, sMessage );
+        If( nLogLevel >= ERROR );
+            ASCIIOutput( sLogFile, sLogLevel | TAB | sMessage );
+        EndIf;
+        ProcessError();
+    EndIf;
+    
+    sPeriod = pPeriod;
+EndIf;
+
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+# --- Capture the forecast start year and month separately
+sYear = SUBST( sPeriod, 1, 4 );
+sMonth = SUBST( sPeriod, 6, 2 );
+nMonth = NUMBR( sMonth );
+
+sYearLabel = 'FY' | SUBST( sYear, 3, 2 );
+sMonthNames = 'JanFebMarAprMayJunJulAugSepOctNovDec';
+sMonthName = SUBST( sMonthNames, ( nMonth - 1 ) * 3 + 1, 3 );
+
+If( nMonth >= 2 & nMonth <= 4 );
+    sOutputScenario = 'FCST_02_10';
+ElseIf( nMonth >= 5 & nMonth <= 7 );
+    sOutputScenario = 'FCST_05_07';
+Else;
+    sOutputScenario = 'FCST_08_04';
+EndIf;
+
+# --- Normalize output directory
+sLastCharacter = SUBST( sOutputDirectory, LONG( sOutputDirectory ), 1 );
+If( sLastCharacter @<> '\' & sLastCharacter @<> '/' );
+    sOutputDirectory = sOutputDirectory | '/';
+EndIf;
+
+#------------------------------------------------------------------------------
+# --- Resolve the fifteen output files.
+#------------------------------------------------------------------------------
+sMainFile = sOutputDirectory | 'CL_Forecast.txt';
+sRSSFile = sOutputDirectory | 'CL_Forecast_RSS.txt';
+sCOMMFile = sOutputDirectory | 'CL_Forecast_COMM.txt';
+sExitsFile = sOutputDirectory | 'CL_Forecast_Exits.txt';
+sAccyFile = sOutputDirectory | 'CL_Forecast_Accy.txt';
+
+# --- Lines are assembled explicitly to reproduce the representative CSV format
+DatasourceASCIIDelimiter = ',';
+DatasourceASCIIQuoteCharacter = '';
+
+sHeader1 = '"Years","Version","Scenario","Currency","Function","Product","Entity","Account","ReportingView","Period"';
+sHeader2 = '"BegBalance","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","NoPeriod","RF-YTD2"';
+
+If( FileExists( sMainFile ) = TRUE ); ASCIIDelete( sMainFile ); EndIf;
+If( FileExists( sRSSFile ) = TRUE ); ASCIIDelete( sRSSFile ); EndIf;
+If( FileExists( sCOMMFile ) = TRUE ); ASCIIDelete( sCOMMFile ); EndIf;
+If( FileExists( sExitsFile ) = TRUE ); ASCIIDelete( sExitsFile ); EndIf;
+If( FileExists( sAccyFile ) = TRUE ); ASCIIDelete( sAccyFile ); EndIf;
+
+#------------------------------------------------------------------------------
+# --- Build one source view using Year and Reported Amount as record drivers.
+#------------------------------------------------------------------------------
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet AS { [Scenario].[Scenario].[%sScenario%] } %LF%
+        SET PeriodSet   AS { [Period].[Period].[%sYear%] } %LF%
+        SET CurrencySet AS { [Currency].[Currency].[%sCurrency%] } %LF%
+        SET EntitySet   AS { %LF%
+            [Entity].[Entity].[80010035], [Entity].[Entity].[80010040], [Entity].[Entity].[80010060], %LF%
+            [Entity].[Entity].[80010080], [Entity].[Entity].[80010100], [Entity].[Entity].[80030010], %LF%
+            [Entity].[Entity].[80030020], [Entity].[Entity].[80030030], [Entity].[Entity].[80030040], %LF%
+            [Entity].[Entity].[80030050], [Entity].[Entity].[80030060], [Entity].[Entity].[80040010], %LF%
+            [Entity].[Entity].[80040020], [Entity].[Entity].[80050010], [Entity].[Entity].[80060010], %LF%
+            [Entity].[Entity].[80060050], [Entity].[Entity].[80080010], [Entity].[Entity].[81040030], %LF%
+            [Entity].[Entity].[81040050], [Entity].[Entity].[8117], [Entity].[Entity].[8123], %LF%
+            [Entity].[Entity].[81290010], [Entity].[Entity].[81290020], [Entity].[Entity].[81290030], %LF%
+            [Entity].[Entity].[8143], [Entity].[Entity].[8416], [Entity].[Entity].[91160040], %LF%
+            [Entity].[Entity].[91160050], [Entity].[Entity].[80150211], [Entity].[Entity].[80150311], %LF%
+            [Entity].[Entity].[81300010], [Entity].[Entity].[80010950], [Entity].[Entity].[81500010], %LF%
+            [Entity].[Entity].[81510010], [Entity].[Entity].[80010090], [Entity].[Entity].[81040040], %LF%
+            [Entity].[Entity].[80010070], [Entity].[Entity].[81040020] %LF%
+        } %LF%
+        SET ProductSet AS TM1FilterByLevel( TM1SubsetAll( [Product] ), 0 ) %LF%
+        SET FunctionSet AS TM1FilterByLevel( TM1SubsetAll( [Function] ), 0 ) %LF%
+        SET AccountSet AS DISTINCT( %LF%
+            { [PL Account].[PL Account].[411100] } %LF%
+            + TM1FilterByLevel( DESCENDANTS( [PL Account].[PL Account].[500000] ), 0 ) %LF%
+            + TM1FilterByLevel( DESCENDANTS( [PL Account].[PL Account].[600000] ), 0 ) %LF%
+        ) %LF%
+        SET MeasureSet AS { [PL Reporting Measure].[PL Reporting Measure].[Record Count] } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * PeriodSet * CurrencySet * EntitySet %LF%
+            * ProductSet * FunctionSet * AccountSet ON 1 %LF%
+
+    FROM [%sSourceCube%] %LF%
+' );
+
+sViewName = sTempName | ' - Cost Leverage Source';
+If( nLogLevel >= DEBUG );
+    sLogLevel = 'DEBUG';
+    sMessage = Expand( 'Source view [%sViewName%]:%LF%%sViewMDX%' );
+    ASCIIOutput( sLogFile, sLogLevel | TAB | sMessage );
+EndIf;
+
+ViewCreateByMDX( sSourceCube, sViewName, sViewMDX, bUseTemporaryObjects );
+ViewExtractSkipRuleValuesSet( sSourceCube, sViewName, FALSE );
+ViewExtractSkipZeroesSet( sSourceCube, sViewName, TRUE );
+ViewExtractSkipCalcsSet( sSourceCube, sViewName, FALSE );
+
+
+DatasourceNameForServer = sSourceCube;
+DatasourceCubeView = sViewName;
+#endregion
+#region Metadata
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+nDataRecCount = nDataRecCount + 1;
+
+
+If( nDataRecCount = 1 );
+    ASCIIOutput( sMainFile, sHeader1 );
+    ASCIIOutput( sMainFile, sHeader2 );
+    ASCIIOutput( sRSSFile, sHeader1 );
+    ASCIIOutput( sRSSFile, sHeader2 );
+    ASCIIOutput( sCOMMFile, sHeader1 );
+    ASCIIOutput( sCOMMFile, sHeader2 );
+    ASCIIOutput( sExitsFile, sHeader1 );
+    ASCIIOutput( sExitsFile, sHeader2 );
+    ASCIIOutput( sAccyFile, sHeader1 );
+    ASCIIOutput( sAccyFile, sHeader2 );
+EndIf;
+
+
+# --- Copy incoming datasource values to typed working variables
+sScenario = inScenario;
+sPeriod   = inPeriod;
+sCurrency = inCurrency;
+sEntity   = inEntity;
+sProduct  = inProduct;
+sFunction = inFunction;
+sAccount  = inAccount;
+nValue    = inValue;
+
+sYear     = SUBST( sPeriod, 1, 4 );
+
+# --- Get the monthly values
+nJan = CellGetN( sSourceCube, sScenario, sYear | '-01', sCurrency, sEntity, sProduct, sFunction, sAccount, sMeasure );
+nFeb = CellGetN( sSourceCube, sScenario, sYear | '-02', sCurrency, sEntity, sProduct, sFunction, sAccount, sMeasure );
+nMar = CellGetN( sSourceCube, sScenario, sYear | '-03', sCurrency, sEntity, sProduct, sFunction, sAccount, sMeasure );
+nApr = CellGetN( sSourceCube, sScenario, sYear | '-04', sCurrency, sEntity, sProduct, sFunction, sAccount, sMeasure );
+nMay = CellGetN( sSourceCube, sScenario, sYear | '-05', sCurrency, sEntity, sProduct, sFunction, sAccount, sMeasure );
+nJun = CellGetN( sSourceCube, sScenario, sYear | '-06', sCurrency, sEntity, sProduct, sFunction, sAccount, sMeasure );
+nJul = CellGetN( sSourceCube, sScenario, sYear | '-07', sCurrency, sEntity, sProduct, sFunction, sAccount, sMeasure );
+nAug = CellGetN( sSourceCube, sScenario, sYear | '-08', sCurrency, sEntity, sProduct, sFunction, sAccount, sMeasure );
+nSep = CellGetN( sSourceCube, sScenario, sYear | '-09', sCurrency, sEntity, sProduct, sFunction, sAccount, sMeasure );
+nOct = CellGetN( sSourceCube, sScenario, sYear | '-10', sCurrency, sEntity, sProduct, sFunction, sAccount, sMeasure );
+nNov = CellGetN( sSourceCube, sScenario, sYear | '-11', sCurrency, sEntity, sProduct, sFunction, sAccount, sMeasure );
+nDec = CellGetN( sSourceCube, sScenario, sYear | '-12', sCurrency, sEntity, sProduct, sFunction, sAccount, sMeasure );
+
+# --- Convert them to strings for file output
+sJan = NumberToString( nJan );  sFeb = NumberToString( nFeb );  sMar = NumberToString( nMar );  sApr = NumberToString( nApr );
+sMay = NumberToString( nMay );  sJun = NumberToString( nJun );  sJul = NumberToString( nJul );  sAug = NumberToString( nAug );
+sSep = NumberToString( nSep );  sOct = NumberToString( nOct );  sNov = NumberToString( nNov );  sDec = NumberToString( nDec );
+
+# --- Prepare the output line
+sLine = '"' | sYearLabel | '","' | sWorkingVersion | '","' | sOutputScenario
+    | '","' | sCurrency | '","' | sFunction | '","' | sProduct
+    | '","' | sEntity | '","' | sAccount | '","' | sReportingView | '",#Mi,'
+    | sJan | ',' | sFeb | ',' | sMar | ',' | sApr | ',' | sMay | ',' | sJun
+    | ',' | sJul | ',' | sAug | ',' | sSep | ',' | sOct | ',' | sNov | ',' | sDec;
+
+
+# --- Route the row using only selector groups proven identical in the requirements
+If( SCAN( '|' | sEntity | '|', sMainFileEntities ) > 0 );
+    ASCIIOutput( sMainFile, sLine );
+    nFileRecCount = nFileRecCount + 1;
+EndIf;
+
+If( SCAN( '|' | sEntity | '|', sRSSCOMMFileEntities ) > 0 );
+    If( ELISANC( sProductDim, sRSSProductRoot, sProduct ) = TRUE );
+        ASCIIOutput( sRSSFile, sLine );
+        nFileRecCount = nFileRecCount + 1;
+    EndIf;
+
+    If( ELISANC( sProductDim, sCOMMProductRoot, sProduct ) = TRUE );
+        ASCIIOutput( sCOMMFile, sLine );
+        nFileRecCount = nFileRecCount + 1;
+    EndIf;
+EndIf;
+
+If( sEntity @= sExitsAccyFileEntity );
+    If( ELISANC( sProductDim, sExitsProductRoot, sProduct ) = TRUE );
+        ASCIIOutput( sExitsFile, sLine );
+        nFileRecCount = nFileRecCount + 1;
+    EndIf;
+
+    If( ELISANC( sProductDim, sAccyProductRoot, sProduct ) = TRUE );
+        ASCIIOutput( sAccyFile, sLine );
+        nFileRecCount = nFileRecCount + 1;
+    EndIf;
+EndIf;
+
+
+If( nLogLevel >= TRACE );
+    sLogLevel = 'TRACE';
+    sMessage = 'Exported Year / Reported Amount driver record';
+    ASCIIOutput( sLogFile, sLogLevel | TAB | sMessage | TAB | sScenario | TAB | sPeriod
+        | TAB | sEntity | TAB | sProduct | TAB | sFunction | TAB | sAccount );
+EndIf;
+#endregion
+#region Epilog
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+# --- Append to the log
+If( FileExists( sLogFile ) = TRUE );
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log measured results
+If( nLogLevel >= STATS );
+    sLogLevel = 'STATS';
+    sMessage = 'Cost Leverage export statistics';
+    ASCIIOutput( sLogFile, sLogLevel | TAB | sMessage | TAB | 'Source Records='
+        | NumberToString( nDataRecCount ) | TAB | 'File Records=' | NumberToString( nFileRecCount )
+        | TAB | 'Files Created=15' );
+EndIf;
+
+# --- Log completion
+If( nLogLevel >= INFO );
+    sLogLevel = 'INFO';
+    sMessage = 'Completed';
+    ASCIIOutput( sLogFile, sLogLevel | TAB | sMessage );
+EndIf;
+#endregion

@@ -1,0 +1,797 @@
+SKIPCHECK;
+
+
+# --- Keep track of records for exports even when values net to zero across months
+['PL Reporting Measure':'Record Count','Scenario':{'Working Forecast','Working AOP','Forecast 5+7','AOP'}] = N:
+  If( (ABS(['Reported Amount']) + ABS(['One-Time Adjustment']) + ABS(['Standard Adjustment']) + ABS(['Reorg Amount']) ) > 0,
+    1,
+    0
+  );
+
+
+# -------------------------------------------------------------
+# Deactivate calculations for all static scenarios
+# -------------------------------------------------------------
+# --- Snapshots and constant currency scenarios are not calculated here
+[] = N:
+  If( !Scenario @= 'Actual' % ELISANC( 'Scenario', 'Scenarios', !Scenario ) = 1,
+    CONTINUE,
+    STET
+  );
+
+# -------------------------------------------------------------
+#                          TEMPORARY
+#            TO BE REMOVED AFTER COPY STATIC VALUES
+# For 2026 and beyond, second submit (reorgs) will be entered
+# manually.   Historically, however, they are to be calcualted
+# from a load from HFM that contains ending balances.
+# -------------------------------------------------------------
+['Actual','Reorg Amount'] = N:
+  If( SUBST( !Period, 1, 4 ) @> '2025',
+    STET,
+    ['Historical Reorg Delta']
+  );
+['Reorg Amount'] = N: 0;
+['Historical Reorg Amount'] = N:
+  If( SUBST( !Period, 1, 4 ) @> '2025',
+    0,
+    CONTINUE
+  );
+['Reorg Amount'] = C: STET;
+
+# -------------------------------------------------------------
+# Actual periods of working forecast should be from Actuals
+# -------------------------------------------------------------
+['Working Forecast'] = N:
+  If( !Period @> DB('Global Assumptions', 'Actual End Period', 'String' ),
+    CONTINUE,
+    If( !Period @< DB( 'Global Assumptions', 'Working Forecast Horizon Start Year', 'String' ),
+      0,
+      ['Actual']
+    )
+  );
+
+
+# --- Standard adjustment is always calculated.  Data entry is put in
+# --- One-Time adjustments.
+[{'Working Forecast', 'Actual'},'Standard Adjustment'] = N:
+  ['Load Delta'];
+
+['s_Backlog'] =
+  ['S_BeginningBacklog'] + ['S_NetBookings'] + ['S_BackLogAdj'] +
+  ['S_BacklogTran'] - ['410000'];
+
+# --- RO Data comes from RO Reporting.   No calculations apply here
+[{'Working RO', 'RO 3+9','RO 6+6','RO 9+3'}, 'Reported Amount',{'Local', 'USD'}] = N:
+  DB('RO Reporting', !Scenario, SUBST(!Period, 1, 4), !Currency, 'All Types', !Entity, 
+     !Product, !Function, !PL Account, 'All RO Items', 'All Categories', 
+     SUBST(!Period, 6, 2)
+  );
+
+# --- Prevent input anywhere else within RO scenarios.
+[{'Working RO', 'RO 3+9','RO 6+6','RO 9+3'}] = N: 0;
+  
+# -----05/18/2026 - RJL - Add for S_Backlog
+# --- Balance type accounts need to look back at the last month of the 
+# --- period rather than aggregating.
+['S_BeginningBacklog','Actual'] = C:
+    If( ELLEV( 'Period', !Period ) > 0,
+      If( SUBST( !Period, 1, 4 ) @> SUBST( DB('Global Assumptions', 'Actual End Period', 'String' ), 1, 4 ),
+        0,
+        If( SCAN( 'TD', !Period ) > 0,
+            DB( 'PL Reporting', !Scenario, SUBST( !Period, 1, 7 ), !Currency, !Entity, !Product, !Function, !PL Account, !PL Reporting Measure ),
+            DB( 'PL Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Beginning Month' ), !Currency, !Entity, !Product, !Function, !PL Account, !PL Reporting Measure )
+        )
+      ),
+      CONTINUE
+    );
+
+# --- 09/09/2026 - SWG - Added for AOP beginning backlog
+# --- Special seeding for Working AOP
+['S_BeginningBacklog', 'Working AOP'] = 
+  If( !Period @= DB( 'Global Assumptions', 'Working AOP Start Year', 'String' ) | '-01',
+    DB('PL Reporting', 'Working Forecast', DB('Global Assumptions', 'Working AOP Seed Period', 'String' ), 
+       !Currency, !Entity, !Product, !Function, !PL Account, !PL Reporting Measure ),
+    CONTINUE
+  );
+
+
+# --- Balance type accounts need to look back at the last month of the 
+# --- period rather than aggregating.
+# --- NRR updated rule 2026-09-24.  The rule below that is commented out will be removed after testing.  
+
+ ['Actual'] = C:
+  If( ATTRS( 'PL Account', !PL Account, 'Time Balance' ) @= 'balance' &  ELLEV( 'Period', !Period ) > 0,
+#      If(  (ATTRS('Period XRef', !Period, 'Period Type' ) @= 'Calendar Quarter' % ATTRS('Period XRef', !Period, 'Period Type' ) @= 'Calendar Year') &
+#            !Period @= ATTRS('Period XRef', DB('Global Assumptions', 'Actual End Period', 'String' ), 'Period Ending Quarter' ),	 
+      If(ELISANC( 'Period', !Period, DB('Global Assumptions', 'Actual End Period', 'String' ) )= 1,
+          DB( 'PL Reporting', !Scenario, DB('Global Assumptions', 'Actual End Period', 'String' ), !Currency, !Entity, !Product, !Function, !PL Account, !PL Reporting Measure ),
+		  
+		  IF( SCAN( 'TD', !Period ) > 0,
+              DB( 'PL Reporting', !Scenario, SUBST( !Period, 1, 7 ), !Currency, !Entity, !Product, !Function, !PL Account, !PL Reporting Measure ),
+              DB( 'PL Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Ending Month' ), !Currency, !Entity, !Product, !Function, !PL Account, !PL Reporting Measure )
+			)
+		),
+	CONTINUE
+  );
+
+
+# --- Balance type accounts need to look back at the last month of the 
+# --- period rather than aggregating.
+#['Actual'] = C:
+#  If( ATTRS( 'PL Account', !PL Account, 'Time Balance' ) @= 'balance',
+#    If( ELLEV( 'Period', !Period ) > 0,
+#      If( SUBST( !Period, 1, 4 ) @> SUBST( DB('Global Assumptions', 'Actual End Period', 'String' ), 1, 4 ),
+#        0,
+#        If( !Period @> DB('Global Assumptions', 'Actual End Period', 'String' ) % !Period @= SUBST( DB('Global Assumptions', 'Actual End Period', 'String' ), 1, 4 ),
+#          DB( 'PL Reporting', !Scenario, DB('Global Assumptions', 'Actual End Period', 'String' ), !Currency, !Entity, !Product, !Function, !PL Account, !PL Reporting Measure ),
+#          If( SCAN( 'TD', !Period ) > 0,
+#              DB( 'PL Reporting', !Scenario, SUBST( !Period, 1, 7 ), !Currency, !Entity, !Product, !Function, !PL Account, !PL Reporting Measure ),
+#              DB( 'PL Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Ending Month' ), !Currency, !Entity, !Product, !Function, !PL Account, !PL Reporting Measure )
+#          )
+#        )
+#      ),
+#      CONTINUE
+#    ),
+#    CONTINUE
+#  );
+
+# -----05/18/2026 - RJL - Add for S_Backlog
+# --- Balance type accounts need to look back at the last month of the 
+# --- period rather than aggregating.
+['S_BeginningBacklog'] = C:
+    If( ELLEV( 'Period', !Period ) > 0,
+      If( SCAN( 'TD', !Period ) > 0,
+          DB( 'PL Reporting', !Scenario, SUBST( !Period, 1, 7 ), !Currency, !Entity, !Product, !Function, !PL Account, !PL Reporting Measure ),
+          DB( 'PL Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Beginning Month' ), !Currency, !Entity, !Product, !Function, !PL Account, !PL Reporting Measure )
+      ),
+      CONTINUE
+    );
+
+# --- Balance type accounts need to look back at the last month of the 
+# --- period rather than aggregating.
+[] = C:
+  If( ATTRS( 'PL Account', !PL Account, 'Time Balance' ) @= 'balance',
+    If( ELLEV( 'Period', !Period ) > 0,
+      If( SCAN( 'TD', !Period ) > 0,
+          DB( 'PL Reporting', !Scenario, SUBST( !Period, 1, 7 ), !Currency, !Entity, !Product, !Function, !PL Account, !PL Reporting Measure ),
+          DB( 'PL Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Ending Month' ), !Currency, !Entity, !Product, !Function, !PL Account, !PL Reporting Measure )
+      ),
+      CONTINUE
+    ),
+    CONTINUE
+  );
+
+
+#05/18/2026 - RJL - Updated EPS calcs to only calculate on USD
+# -------------------------------------------------------------
+# BASIC_EPS_CO Calculations
+# -------------------------------------------------------------
+['BASIC_EPS_CO_MTD','USD'] = C:
+  ( ['NETEARNPT'] - ['804600'] ) \ ['89000010', 'S_BASIC_SHARES_MTD'];
+
+['BASIC_EPS_CO_QTD','USD'] = C:
+  If( ELLEV( 'Period', !Period ) = 0,
+    ( 
+      DB( 'PL Reporting', !Scenario, !Period | ' QTD', !Currency, !Entity, !Product, !Function, 'NETEARNPT', !PL Reporting Measure )
+      - DB( 'PL Reporting', !Scenario, !Period | ' QTD', !Currency, !Entity, !Product, !Function, '804600', !PL Reporting Measure )
+    ) 
+      \ ['89000010', 'S_BASIC_SHARES_QTD'],
+    ( ['NETEARNPT'] - ['804600'] ) \ ['89000010', 'S_BASIC_SHARES_QTD']
+  );
+
+['BASIC_EPS_CO_YTD','USD'] = C:
+  If( ELLEV( 'Period', !Period ) = 0,
+    ( 
+      DB( 'PL Reporting', !Scenario, !Period | ' YTD', !Currency, !Entity, !Product, !Function, 'NETEARNPT', !PL Reporting Measure )
+      - DB( 'PL Reporting', !Scenario, !Period | ' YTD', !Currency, !Entity, !Product, !Function, '804600', !PL Reporting Measure )
+    ) 
+      \ ['89000010', 'S_BASIC_SHARES_YTD'],
+    ( ['NETEARNPT'] - ['804600'] ) \ ['89000010', 'S_BASIC_SHARES_YTD']
+  );
+
+
+# -------------------------------------------------------------
+# BASIC_EPS_DO Calculations
+# -------------------------------------------------------------
+['BASIC_EPS_DO_MTD','USD'] = C:
+  ['804600'] \ ['89000010', 'S_BASIC_SHARES_MTD'];
+
+['BASIC_EPS_DO_QTD','USD'] = C:
+  If( ELLEV( 'Period', !Period ) = 0,
+    DB( 'PL Reporting', !Scenario, !Period | ' QTD', !Currency, !Entity, !Product, !Function, '804600', !PL Reporting Measure )
+      \ ['89000010', 'S_BASIC_SHARES_QTD'],
+    ['804600'] \ ['89000010', 'S_BASIC_SHARES_QTD']
+  );
+
+['BASIC_EPS_DO_YTD','USD'] = C:
+  If( ELLEV( 'Period', !Period ) = 0,
+    DB( 'PL Reporting', !Scenario, !Period | ' YTD', !Currency, !Entity, !Product, !Function, '804600', !PL Reporting Measure )
+      \ ['89000010', 'S_BASIC_SHARES_YTD'],
+    ['804600'] \ ['89000010', 'S_BASIC_SHARES_YTD']
+  );
+
+
+# -------------------------------------------------------------
+# BASIC_EPS_TOT Calculations
+# -------------------------------------------------------------
+['BASIC_EPS_TOT_MTD','USD'] = C:
+  ['NETEARNPT'] \ ['89000010', 'S_BASIC_SHARES_MTD'];
+
+['BASIC_EPS_TOT_QTD','USD'] = C:
+  If( ELLEV( 'Period', !Period ) = 0,
+    DB( 'PL Reporting', !Scenario, !Period | ' QTD', !Currency, !Entity, !Product, !Function, 'NETEARNPT', !PL Reporting Measure )
+      \ ['89000010', 'S_BASIC_SHARES_QTD'],
+    ['NETEARNPT'] \ ['89000010', 'S_BASIC_SHARES_QTD']
+  );
+
+['BASIC_EPS_TOT_YTD','USD'] = C:
+  If( ELLEV( 'Period', !Period ) = 0,
+    DB( 'PL Reporting', !Scenario, !Period | ' YTD', !Currency, !Entity, !Product, !Function, 'NETEARNPT', !PL Reporting Measure )
+      \ ['89000010', 'S_BASIC_SHARES_YTD'],
+    ['NETEARNPT']  \ ['89000010', 'S_BASIC_SHARES_YTD']
+  );
+
+
+#05/18/2026 - RJL - Added if statements for greter than NETEARNPT
+# -------------------------------------------------------------
+# DILUTED_EPS_CO Calculations
+# -------------------------------------------------------------
+['DILUTED_EPS_CO_MTD','USD'] = C:
+  If(['NETEARNPT']>0,
+    ( ['NETEARNPT'] - ['804600'] ) \ ['89000010', 'S_DILUTED_SHARES_MTD'],
+    ['BASIC_EPS_CO_MTD']
+  );
+
+['DILUTED_EPS_CO_QTD','USD'] = C:
+  If( ELLEV( 'Period', !Period ) = 0,
+    If(DB( 'PL Reporting', !Scenario, !Period | ' QTD', !Currency, !Entity, !Product, !Function, 'NETEARNPT', !PL Reporting Measure )>0,
+      ( 
+        DB( 'PL Reporting', !Scenario, !Period | ' QTD', !Currency, !Entity, !Product, !Function, 'NETEARNPT', !PL Reporting Measure )
+        - DB( 'PL Reporting', !Scenario, !Period | ' QTD', !Currency, !Entity, !Product, !Function, '804600', !PL Reporting Measure )
+      ) 
+        \ ['89000010', 'S_DILUTED_SHARES_QTD'],
+      ['BASIC_EPS_CO_QTD']
+    ),
+    If(['NETEARNPT']>0,
+      (['NETEARNPT'] - ['804600'] ) \ ['89000010', 'S_DILUTED_SHARES_QTD'],
+      ['BASIC_EPS_CO_QTD']
+    )
+  );
+
+['DILUTED_EPS_CO_YTD','USD'] = C:
+  If( ELLEV( 'Period', !Period ) = 0,
+    If(DB( 'PL Reporting', !Scenario, !Period | ' YTD', !Currency, !Entity, !Product, !Function, 'NETEARNPT', !PL Reporting Measure )>0,
+      ( 
+        DB( 'PL Reporting', !Scenario, !Period | ' YTD', !Currency, !Entity, !Product, !Function, 'NETEARNPT', !PL Reporting Measure )
+        - DB( 'PL Reporting', !Scenario, !Period | ' YTD', !Currency, !Entity, !Product, !Function, '804600', !PL Reporting Measure )
+      ) 
+        \ ['89000010', 'S_DILUTED_SHARES_YTD'],
+      ['BASIC_EPS_CO_YTD']
+    ),
+    If(['NETEARNPT']>0,
+      ( ['NETEARNPT'] - ['804600'] ) \ ['89000010', 'S_DILUTED_SHARES_YTD'],
+      ['BASIC_EPS_CO_YTD']
+    )
+  );
+
+
+# -------------------------------------------------------------
+# DILUTED_EPS_DO Calculations
+# -------------------------------------------------------------
+['DILUTED_EPS_DO_MTD','USD'] = C:
+  If(['NETEARNPT']>0,
+    ['804600'] \ ['89000010', 'S_DILUTED_SHARES_MTD'],
+  ['BASIC_EPS_DO_MTD']
+  );
+
+['DILUTED_EPS_DO_QTD','USD'] = C:
+  If( ELLEV( 'Period', !Period ) = 0,
+    If(DB( 'PL Reporting', !Scenario, !Period | ' QTD', !Currency, !Entity, !Product, !Function, 'NETEARNPT', !PL Reporting Measure )>0,
+      DB( 'PL Reporting', !Scenario, !Period | ' QTD', !Currency, !Entity, !Product, !Function, '804600', !PL Reporting Measure )
+      \ ['89000010', 'S_DILUTED_SHARES_QTD'],
+      ['BASIC_EPS_CO_QTD']
+    ),
+    If(['NETEARNPT']>0,
+      ['804600'] \ ['89000010', 'S_DILUTED_SHARES_QTD'],
+      ['BASIC_EPS_CO_QTD']
+    )
+  );
+
+['DILUTED_EPS_DO_YTD','USD'] = C:
+  If( ELLEV( 'Period', !Period ) = 0,
+    If(DB( 'PL Reporting', !Scenario, !Period | ' YTD', !Currency, !Entity, !Product, !Function, 'NETEARNPT', !PL Reporting Measure )>0,
+      DB( 'PL Reporting', !Scenario, !Period | ' YTD', !Currency, !Entity, !Product, !Function, '804600', !PL Reporting Measure )
+        \ ['89000010', 'S_DILUTED_SHARES_YTD'],
+      ['BASIC_EPS_CO_YTD']
+    ),
+    If(['NETEARNPT']>0,  
+      ['804600'] \ ['89000010', 'S_DILUTED_SHARES_YTD'],
+      ['BASIC_EPS_CO_YTD']
+    )
+  );
+
+
+# -------------------------------------------------------------
+# DILUTED_EPS_TOT Calculations
+# -------------------------------------------------------------
+['DILUTED_EPS_TOT_MTD','USD'] = C:
+  If(['NETEARNPT']>0,
+  ['NETEARNPT'] \ ['89000010', 'S_DILUTED_SHARES_MTD'],
+  ['BASIC_EPS_TOT_MTD']
+  );
+
+['DILUTED_EPS_TOT_QTD','USD'] = C:
+  If( ELLEV( 'Period', !Period ) = 0,
+    If(DB( 'PL Reporting', !Scenario, !Period | ' QTD', !Currency, !Entity, !Product, !Function, 'NETEARNPT', !PL Reporting Measure )>0,
+      DB( 'PL Reporting', !Scenario, !Period | ' QTD', !Currency, !Entity, !Product, !Function, 'NETEARNPT', !PL Reporting Measure )
+        \ ['89000010', 'S_DILUTED_SHARES_QTD'],
+      ['BASIC_EPS_CO_QTD']
+    ),
+    If(['NETEARNPT']>0,
+        ['NETEARNPT'] \ ['89000010', 'S_DILUTED_SHARES_QTD'],
+        ['BASIC_EPS_CO_QTD']
+    )
+  );
+
+['DILUTED_EPS_TOT_YTD','USD'] = C:
+  If( ELLEV( 'Period', !Period ) = 0,
+    If(DB( 'PL Reporting', !Scenario, !Period | ' QTD', !Currency, !Entity, !Product, !Function, 'NETEARNPT', !PL Reporting Measure )>0,
+      DB( 'PL Reporting', !Scenario, !Period | ' YTD', !Currency, !Entity, !Product, !Function, 'NETEARNPT', !PL Reporting Measure )
+        \ ['89000010', 'S_DILUTED_SHARES_YTD'],
+      ['BASIC_EPS_CO_YTD']
+    ),
+    If(['NETEARNPT']>0,
+      ['NETEARNPT']  \ ['89000010', 'S_DILUTED_SHARES_YTD'],
+      ['BASIC_EPS_CO_YTD']  
+    )
+  );
+
+
+# -------------------------------------------------------------
+# Other Calculations
+# -------------------------------------------------------------
+
+# --- ACF_to_NETEARN
+['ACF_to_NETEARN'] =  
+    ['S_ACF'] \ ['NETEARN'];
+
+# --- Carry over the ending backlog from the prior period and bring that 
+# --- into the opening backlog
+['S_BeginningBacklog'] =  
+  If( SUBST( !Period, 6, 2 ) @= '01',
+      ['S_OpenBacklog'],
+      DB( 'PL Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Prior' ), !Currency, !Entity, !Product, !Function, 'S_Backlog', !PL Reporting Measure )
+  );
+
+# --- Direct variable costs expenses
+['DIR_VAR_COST_EXPENSES', 'NoFunction'] = N: 
+   ['600100', '10000'] + ['600100', '15000'] + ['600200', '10000'] + ['600200', '15000'];
+
+# --- Fixed cost expenses
+['FIXED_COST_EXPENSES', 'NoFunction'] = N: 
+   ['600100', '73000'] + ['600100', '50000'] + ['600100', '30000'] + ['600100', '20000'] + ['600200', '20000'] + ['600200', '50000'];
+ 
+
+# -------------------------------------------------------------
+# SG&A for ACTUAL scenario during REORGANIZATONS
+# -------------------------------------------------------------
+
+['MFGDIRECT', '10000', 'Actual', 'Reorg Amount'] = N: 
+    ['600100'];
+
+['MFGINDIRECT', 'Actual', 'Reorg Amount'] = N: 
+    If( ELISANC('Function', '20000', !Function) = 1,
+        ['600100'],
+        CONTINUE
+    );
+
+['DISTRIBUTION', 'Actual', 'Reorg Amount'] = N: 
+    If( ELISANC('Function', '50000', !Function) = 1,
+        ['600100'],
+        CONTINUE
+    );
+
+['ENGINEERING', '73000', 'Actual', 'Reorg Amount'] = N: 
+    ['600100'];
+
+['SERVICEA', 'Actual', 'Reorg Amount'] = N: 
+    If( ELISANC('Function', 'T_30000', !Function) = 1,
+        ['600100'],
+        CONTINUE
+    );
+
+['VARINDIRECT', '15000', 'Actual', 'Reorg Amount'] = N: 
+    ['600100'];
+
+['SELLING', 'Actual', 'Reorg Amount'] = N: 
+    If( ELISANC('Function', 'T_90000', !Function) = 1,
+        ['600100'],
+        CONTINUE
+    );
+
+['ENGINEERING_SGA', 'Actual', 'Reorg Amount'] = N: 
+    If( ELISANC('Function', 'T_72000', !Function) = 1 % !Function @= '71000',
+        ['600100'],
+        CONTINUE
+    );
+
+['GA', 'Actual', 'Reorg Amount'] = N: 
+    If( ELISANC('Function', '80000', !Function) = 1,
+        ['600100'],
+        CONTINUE
+    );
+
+['QUALRESTCOST', 'Actual', 'Reorg Amount'] = N: 
+    If( !Function @= '10000' % !Function @= '15000' % !Function @= '73000'
+          % ELISANC('Function', '20000', !Function) = 1
+          % ELISANC('Function', '30000', !Function) = 1
+          % ELISANC('Function', '50000', !Function) = 1,
+        ['640120'],
+        CONTINUE
+    );
+
+['NONQUALRESTCOST', 'Actual', 'Reorg Amount'] = N: 
+    If( !Function @= '10000' % !Function @= '15000' % !Function @= '73000'
+          % ELISANC('Function', '20000', !Function) = 1
+          % ELISANC('Function', '30000', !Function) = 1
+          % ELISANC('Function', '50000', !Function) = 1,
+        ['640130'],
+        CONTINUE
+    );
+
+['QUALRESTSGA', 'Actual', 'Reorg Amount'] = N: 
+    If( !Function @= '71000'
+          % ELISANC('Function', '20000', !Function) = 1
+          % ELISANC('Function', '30000', !Function) = 1
+          % ELISANC('Function', '50000', !Function) = 1,
+        ['640120'],
+        CONTINUE
+    );
+
+['NONQUALRESTSGA', 'Actual', 'Reorg Amount'] = N: 
+    If( !Function @= '71000'
+          % ELISANC('Function', '20000', !Function) = 1
+          % ELISANC('Function', '30000', !Function) = 1
+          % ELISANC('Function', '50000', !Function) = 1,
+        ['640130'],
+        CONTINUE
+    );
+
+['MACOST', 'Actual', 'Reorg Amount'] = N: 
+    If( !Function @= '10000' % !Function @= '15000' % !Function @= '73000'
+          % ELISANC('Function', '20000', !Function) = 1
+          % ELISANC('Function', 'T_30000', !Function) = 1
+          % ELISANC('Function', '50000', !Function) = 1,
+        ['600400'],
+        CONTINUE
+    );
+
+['MASGA', 'Actual', 'Reorg Amount'] = N: 
+    If( !Function @= '71000'
+          % ELISANC('Function', 'T_72000', !Function) = 1
+          % ELISANC('Function', '80000', !Function) = 1
+          % ELISANC('Function', 'T_90000', !Function) = 1,
+        ['600400'],
+        CONTINUE
+    );
+
+# -------------------------------------------------------------
+# Currency
+# -------------------------------------------------------------
+['Currency':'USD', {'Working Forecast', 'Working RO' }] = N:
+  ['Local']  
+  * If( ATTRS( 'PL Account', !PL Account, 'Skip FX Conversion' ) @<> '',
+    1,
+    DB( 'FX Rates', 'Working Forecast', !Period, ATTRS( 'Entity', !Entity, 'Local Currency'), 'Avg Rate' )
+  );
+
+['Currency':'USD', 'Working AOP'] = N:
+  ['Local']  
+  * If( ATTRS( 'PL Account', !PL Account, 'Skip FX Conversion' ) @<> '',
+    1,
+    DB( 'FX Rates', !Scenario, !Period, ATTRS( 'Entity', !Entity, 'Local Currency'), 'EOP Rate' )
+  );
+
+# -------------------------------------------------------------
+# Forecast pull from PL Input cube which only has local currency
+# -------------------------------------------------------------
+['Currency':'Local', {'Working AOP', 'Working Forecast' } ] = N:
+  DB( 'PL Input', !Scenario, !Period, !Entity, !Product, !Function, !PL Account, !PL Reporting Measure );
+
+
+
+FEEDERS;
+
+# -------------------------------------------------------------
+#                          TEMPORARY
+#            TO BE REMOVED AFTER COPY STATIC VALUES
+#
+# For 2026 and beyond, second submit (reorgs) will be entered
+# manually.   Historically, however, they are to be calcualted
+# from a load from HFM that contains ending balances.
+# -------------------------------------------------------------
+['Actual', 'Historical Reorg Delta'] => ['Reorg Amount'];
+
+  
+['Actual'] =>
+  DB( If( !Period @>= DB('Global Assumptions', 'Working Forecast Horizon Start Year', 'String'), 'PL Reporting', '*** No Feed ***'),
+      'Working Forecast', !Period, !Currency, !Entity, !Product, !Function, !PL Account, !PL Reporting Measure );
+  
+['PL Reporting Measure':'Load Delta'] => ['PL Reporting Measure':'Standard Adjustment'];
+
+# --- Basic shares are the driver for CO, DO and TOT EPS
+['89000010', 'S_BASIC_SHARES_MTD', 'USD', {'Actual','Scenarios'}] => 
+  ['MANAGEMENT', 'BASIC_EPS_CO_MTD'], ['MANAGEMENT', 'BASIC_EPS_DO_MTD'], ['MANAGEMENT', 'BASIC_EPS_TOT_MTD'];
+['89000010', 'S_BASIC_SHARES_QTD', 'USD', {'Actual','Scenarios'}] => 
+  ['MANAGEMENT', 'BASIC_EPS_CO_QTD'], ['MANAGEMENT', 'BASIC_EPS_DO_QTD'], ['MANAGEMENT', 'BASIC_EPS_TOT_QTD'];
+['89000010', 'S_BASIC_SHARES_YTD', 'USD', {'Actual','Scenarios'}] => 
+  ['MANAGEMENT', 'BASIC_EPS_CO_YTD'], ['MANAGEMENT', 'BASIC_EPS_DO_YTD'], ['MANAGEMENT', 'BASIC_EPS_TOT_YTD'];
+
+#05/18/2026 - RJL - Added for diluted EPS calc change
+['BASIC_EPS_CO_MTD','USD', {'Actual','Scenarios'}] =>
+  ['DILUTED_EPS_CO_MTD'],['DILUTED_EPS_DO_MTD'],['DILUTED_EPS_TOT_MTD'];
+ ['BASIC_EPS_CO_QTD','USD', {'Actual','Scenarios'}] =>
+  ['DILUTED_EPS_CO_QTD'],['DILUTED_EPS_DO_QTD'],['DILUTED_EPS_TOT_QTD'];
+['BASIC_EPS_CO_YTD','USD', {'Actual','Scenarios'}] =>
+  ['DILUTED_EPS_CO_YTD'],['DILUTED_EPS_DO_YTD'],['DILUTED_EPS_TOT_YTD'];
+  
+# --- Diluted shares are the driver for CO, DO and TOT EPS
+['89000010', 'S_DILUTED_SHARES_MTD','USD', {'Actual','Scenarios'}] => 
+  ['MANAGEMENT', 'DILUTED_EPS_CO_MTD'], ['MANAGEMENT', 'DILUTED_EPS_DO_MTD'], ['MANAGEMENT', 'DILUTED_EPS_TOT_MTD'];
+['89000010', 'S_DILUTED_SHARES_QTD','USD', {'Actual','Scenarios'}] => 
+  ['MANAGEMENT', 'DILUTED_EPS_CO_QTD'], ['MANAGEMENT', 'DILUTED_EPS_DO_QTD'], ['MANAGEMENT', 'DILUTED_EPS_TOT_QTD'];
+['89000010', 'S_DILUTED_SHARES_YTD','USD', {'Actual','Scenarios'}] => 
+  ['MANAGEMENT', 'DILUTED_EPS_CO_YTD'], ['MANAGEMENT', 'DILUTED_EPS_DO_YTD'], ['MANAGEMENT', 'DILUTED_EPS_TOT_YTD'];
+
+# --- ACF to Net Earnings
+['S_ACF', {'Actual','Scenarios'}] =>
+  ['ACF_to_NETEARN'];
+
+# --- Current backlog feeds next period backlog to carry balances forward
+['S_Backlog', {'Actual','Scenarios'}] =>
+  DB( 'PL Reporting', !Scenario, ATTRS( 'Period XRef', !Period, 'Period Next' ), 
+      !Currency, !Entity, !Product, !Function, !PL Account, !PL Reporting Measure );
+
+['S_OpenBacklog', 'Actual'] =>
+  ['S_BeginningBacklog'];
+
+# --- Feed beginning backlog for Working AOP
+['S_BeginningBacklog','Working Forecast'] =>
+  DB( If( !Period @= DB('Global Assumptions', 'Working AOP Seed Period', 'String' ), 'PL Reporting', '*** NO FEED ***'),
+      'Working AOP', DB( 'Global Assumptions', 'Working AOP Start Year', 'String' ) | '-01', 
+      !Currency, !Entity, !Product, !Function, !PL Account, !PL Reporting Measure );
+
+  
+# --- Feed the Direct Variable Cost Expenses
+['600100', '10000', {'Actual','Scenarios'}] => ['DIR_VAR_COST_EXPENSES', 'NoFunction'];
+['600100', '15000', {'Actual','Scenarios'}] => ['DIR_VAR_COST_EXPENSES', 'NoFunction'];
+['600200', '10000', {'Actual','Scenarios'}] => ['DIR_VAR_COST_EXPENSES', 'NoFunction'];
+['600200', '15000', {'Actual','Scenarios'}] => ['DIR_VAR_COST_EXPENSES', 'NoFunction'];
+
+# --- Feed the Fixed Cost Expenses
+['600100', '73000', {'Actual','Scenarios'}] => ['FIXED_COST_EXPENSES', 'NoFunction'];
+['600100', '50000', {'Actual','Scenarios'}] => ['FIXED_COST_EXPENSES', 'NoFunction'];
+['600100', '30000', {'Actual','Scenarios'}] => ['FIXED_COST_EXPENSES', 'NoFunction'];
+['600100', '20000', {'Actual','Scenarios'}] => ['FIXED_COST_EXPENSES', 'NoFunction'];
+['600200', '20000', {'Actual','Scenarios'}] => ['FIXED_COST_EXPENSES', 'NoFunction'];
+['600200', '50000', {'Actual','Scenarios'}] => ['FIXED_COST_EXPENSES', 'NoFunction'];
+
+ 
+# -------------------------------------------------------------
+# Function Mapping to PL Accounts for ACTUAL REORGANIZATIONS
+# -------------------------------------------------------------
+
+['600100', '10000', 'Actual', 'Reorg Amount'] =>
+    ['MFGDIRECT'];
+
+['600100', 'Actual', 'Reorg Amount'] =>
+    DB(
+        IF(ELISANC('Function', '20000', !Function) = 1, 'PL Reporting', '*** No Feed ***'),
+        !Scenario, !Period, !Currency, !Entity, !Product, !Function, 
+            'MFGINDIRECT', !PL Reporting Measure
+    );
+
+['600100', 'Actual', 'Reorg Amount'] =>
+    DB(
+        IF(ELISANC('Function', '50000', !Function) = 1, 'PL Reporting', '*** No Feed ***'),
+        !Scenario, !Period, !Currency, !Entity, !Product, !Function, 
+            'DISTRIBUTION', !PL Reporting Measure
+    );
+
+['600100', '73000', 'Actual', 'Reorg Amount'] =>
+    ['ENGINEERING'];
+
+['600100', 'Actual', 'Reorg Amount'] =>
+    DB(
+        IF(ELISANC('Function', 'T_30000', !Function) = 1, 'PL Reporting', '*** No Feed ***'),
+        !Scenario, !Period, !Currency, !Entity, !Product, !Function,
+            'SERVICEA', !PL Reporting Measure
+    );
+
+['600100', '15000', 'Actual', 'Reorg Amount'] =>
+    ['VARINDIRECT'];
+
+['600100', 'Actual', 'Reorg Amount'] =>
+    DB(
+        IF(ELISANC('Function', 'T_90000', !Function) = 1, 'PL Reporting', '*** No Feed ***'),
+        !Scenario, !Period, !Currency, !Entity, !Product, !Function,
+            'SELLING', !PL Reporting Measure
+    );
+
+['600100', 'Actual', 'Reorg Amount'] =>
+    DB(
+        IF(ELISANC('Function', 'T_72000', !Function) = 1 % !Function @= '71000', 'PL Reporting', '*** No Feed ***'),
+        !Scenario, !Period, !Currency, !Entity, !Product, !Function,
+            'ENGINEERING_SGA', !PL Reporting Measure
+    );
+
+['600100', 'Actual', 'Reorg Amount'] =>
+    DB(
+        IF(ELISANC('Function', '80000', !Function) = 1, 'PL Reporting', '*** No Feed ***'),
+        !Scenario, !Period, !Currency, !Entity, !Product, !Function,
+            'GA', !PL Reporting Measure
+    );
+
+['640120', 'Actual', 'Reorg Amount'] =>
+    DB(
+        IF( !Function @= '10000' % !Function @= '15000' % !Function @= '73000'
+                % ELISANC('Function', '20000', !Function) = 1
+                % ELISANC('Function', '30000', !Function) = 1
+                % ELISANC('Function', '50000', !Function) = 1,
+            'PL Reporting', 
+            '*** No Feed ***'
+        ),
+        !Scenario, !Period, !Currency, !Entity, !Product, !Function,
+            'QUALRESTCOST', !PL Reporting Measure
+    );
+
+['640130', 'Actual', 'Reorg Amount'] =>
+    DB(
+        IF( !Function @= '10000' % !Function @= '15000' % !Function @= '73000'
+                % ELISANC('Function', '20000', !Function) = 1
+                % ELISANC('Function', '30000', !Function) = 1
+                % ELISANC('Function', '50000', !Function) = 1,
+            'PL Reporting', 
+            '*** No Feed ***'
+        ),
+        !Scenario, !Period, !Currency, !Entity, !Product, !Function,
+            'NONQUALRESTCOST', !PL Reporting Measure
+    );
+
+['640120', 'Actual', 'Reorg Amount'] =>
+    DB(
+        IF( !Function @= '71000'
+                % ELISANC('Function', '20000', !Function) = 1
+                % ELISANC('Function', '30000', !Function) = 1
+                % ELISANC('Function', '50000', !Function) = 1,
+            'PL Reporting', 
+            '*** No Feed ***'
+        ),
+        !Scenario, !Period, !Currency, !Entity, !Product, !Function,
+            'QUALRESTSGA', !PL Reporting Measure
+    );
+
+['640130', 'Actual', 'Reorg Amount'] =>
+    DB(
+        IF( !Function @= '71000'
+                % ELISANC('Function', '20000', !Function) = 1
+                % ELISANC('Function', '30000', !Function) = 1
+                % ELISANC('Function', '50000', !Function) = 1,
+            'PL Reporting', 
+            '*** No Feed ***'
+        ),
+        !Scenario, !Period, !Currency, !Entity, !Product, !Function,
+            'NONQUALRESTSGA', !PL Reporting Measure
+    );
+
+['600400', 'Actual', 'Reorg Amount'] =>
+    DB(
+        IF( !Function @= '10000' % !Function @= '15000' % !Function @= '73000'
+                % ELISANC('Function', '20000', !Function) = 1
+                % ELISANC('Function', 'T_30000', !Function) = 1
+                % ELISANC('Function', '50000', !Function) = 1,
+            'PL Reporting', 
+            '*** No Feed ***'
+        ),
+        !Scenario, !Period, !Currency, !Entity, !Product, !Function,
+            'MACOST', !PL Reporting Measure
+    );
+
+['600400', 'Actual', 'Reorg Amount'] =>
+    DB( 
+        IF( !Function @= '71000'
+                % ELISANC('Function', 'T_72000', !Function) = 1
+                % ELISANC('Function', '80000', !Function) = 1
+                % ELISANC('Function', 'T_90000', !Function) = 1,
+            'PL Reporting', 
+            '*** No Feed ***'
+        ),
+        !Scenario, !Period, !Currency, !Entity, !Product, !Function,
+            'MASGA', !PL Reporting Measure
+    );
+  
+# -------------------------------------------------------------
+# Currency
+# -------------------------------------------------------------
+['Currency':'Local', 'Scenarios' ] =>
+  ['USD'];
+
+# -------------------------------------------------------------
+# Balance Sheet feeders for asset accounts
+# -------------------------------------------------------------
+[{'Working Forecast', 'Working AOP' }, '692000','Reported Amount'] => 
+  DB('BS Reporting', !Scenario, !Period, !Currency, !Entity, !Product, '175000_ADD', 'Amount');
+
+[{'Working Forecast', 'Working AOP' }, '514102','Reported Amount'] => 
+  DB('BS Reporting', !Scenario, !Period, !Currency, !Entity, !Product, '175000_ADD', 'Reported Amount');
+
+[{'Working Forecast', 'Working AOP' }, '640320','Reported Amount'] => 
+  DB('BS Reporting', !Scenario, !Period, !Currency, !Entity, !Product, '181000_ADD', 'Reported Amount');
+
+[{'Working Forecast', 'Working AOP' }, '640330','Reported Amount'] => 
+  DB('BS Reporting', !Scenario, !Period, !Currency, !Entity, !Product, '181100_ADD', 'Reported Amount');
+  
+# -------------------------------------------------------------
+# Balance Sheet feeders for statistical reporting
+# -------------------------------------------------------------
+['OPINCOME', {'Actual','Scenarios'}, 'Reported Amount'] =>
+    DB( 'BS Reporting', !Scenario, !Period, !Currency, !Entity, !Product, 'STAT_OPINCOME', 'Ending Balance' );
+['OPINCOME', {'Actual','Scenarios'}, 'Adjusted Total'] =>
+    DB( 'BS Reporting', !Scenario, !Period, !Currency, !Entity, !Product, 'STAT_OPINCOME_ADJ', 'Ending Balance' );
+['410000', {'Actual','Scenarios'}, 'Reported Amount'] =>
+    DB( 'BS Reporting', !Scenario, !Period, !Currency, !Entity, !Product, '410000_STAT', 'Ending Balance' );
+['641120', {'Actual','Scenarios'}, 'Reported Amount'] =>
+    DB( 'BS Reporting', !Scenario, !Period, !Currency, !Entity, !Product, '641120_STAT', 'Ending Balance' );
+['641130', {'Actual','Scenarios'}, 'Reported Amount'] =>
+    DB( 'BS Reporting', !Scenario, !Period, !Currency, !Entity, !Product, '641130_STAT', 'Ending Balance' );
+['MGT_COSTOFSALES', {'Actual','Scenarios'}, 'Reported Amount'] =>
+    DB( 'BS Reporting', !Scenario, !Period, !Currency, !Entity, !Product, 'STAT_COSTOFSALES', 'Ending Balance' );
+['MGT_COSWORESTMA', {'Actual','Scenarios'}, 'Reported Amount'] =>
+    DB( 'BS Reporting', !Scenario, !Period, !Currency, !Entity, !Product, 'STAT_COSTOFSALESWORESTMA', 'Ending Balance' );
+
+# -------------------------------------------------------------
+# Balance Sheet feeders for statistical reporting
+# -------------------------------------------------------------
+['OPINCOME','Local', {'Actual','Scenarios'}, 'Reported Amount'] =>
+    DB( 'BS Input', !Scenario, !Period, !Entity, !Product, 'STAT_OPINCOME', 'Ending Balance' );
+['OPINCOME', 'Local', {'Actual','Scenarios'}, 'Adjusted Total'] =>
+    DB( 'BS Input', !Scenario, !Period, !Entity, !Product, 'STAT_OPINCOME_ADJ', 'Ending Balance' );
+['410000','Local', {'Actual','Scenarios'}, 'Reported Amount'] =>
+    DB( 'BS Input', !Scenario, !Period, !Entity, !Product, '410000_STAT', 'Ending Balance' );
+['641120','Local', {'Actual','Scenarios'}, 'Reported Amount'] =>
+    DB( 'BS Input', !Scenario, !Period, !Entity, !Product, '641120_STAT', 'Ending Balance' );
+['641130','Local', {'Actual','Scenarios'}, 'Reported Amount'] =>
+    DB( 'BS Input', !Scenario, !Period, !Entity, !Product, '641130_STAT', 'Ending Balance' );
+['MGT_COSTOFSALES','Local', {'Actual','Scenarios'}, 'Reported Amount'] =>
+    DB( 'BS Input', !Scenario, !Period, !Entity, !Product, 'STAT_COSTOFSALES', 'Ending Balance' );
+['MGT_COSWORESTMA','Local', {'Actual','Scenarios'}, 'Reported Amount'] =>
+    DB( 'BS Input', !Scenario, !Period, !Entity, !Product, 'STAT_COSTOFSALESWORESTMA', 'Ending Balance' );
+
+# -------------------------------------------------------------
+# Bridge data
+# Temporarily disabled until 2027
+# -------------------------------------------------------------
+# ['Actual','410000'] =>
+#   DB( 'Bridge Reporting', 'BRIDGE_ACTCY_VAOP', !Period, !Entity, 'NoProduct', 'Period Reported', 'S_OPS_Revenues' );
+# ['Actual', 'MGT_COSTOFSALES'] =>
+#   DB( 'Bridge Reporting', 'BRIDGE_ACTCY_VAOP', !Period, !Entity, 'NoProduct', 'Period Reported', 'S_OPS_COGS' );
+# ['Actual', 'SGA'] =>
+#   DB( 'Bridge Reporting', 'BRIDGE_ACTCY_VAOP', !Period, !Entity, 'NoProduct', 'Period Reported', 'S_OPS_SGA' );
+
+# ['Working Forecast','410000'] =>
+#   DB( 'Bridge Reporting', 'BRIDGE_WRK_FCST_VPY', !Period, !Entity, 'NoProduct', 'Period Reported', 'S_OPS_Revenues' );
+# ['Working Forecast', 'MGT_COSTOFSALES'] =>
+#   DB( 'Bridge Reporting', 'BRIDGE_WRK_FCST_VPY', !Period, !Entity, 'NoProduct', 'Period Reported', 'S_OPS_COGS' );
+# ['Working Forecast', 'SGA'] =>
+#   DB( 'Bridge Reporting', 'BRIDGE_WRK_FCST_VPY', !Period, !Entity, 'NoProduct', 'Period Reported', 'S_OPS_SGA' );
+  
+# ['Working AOP','410000'] =>
+#   DB( 'Bridge Reporting', 'BRIDGE_WRK_AOP_VPY', !Period, !Entity, 'NoProduct', 'Period Reported', 'S_OPS_Revenues' );
+# ['Working AOP', 'MGT_COSTOFSALES'] =>
+#   DB( 'Bridge Reporting', 'BRIDGE_WRK_AOP_VPY', !Period, !Entity, 'NoProduct', 'Period Reported', 'S_OPS_COGS' );
+# ['Working AOP', 'SGA'] =>
+#   DB( 'Bridge Reporting', 'BRIDGE_WRK_AOP_VPY', !Period, !Entity, 'NoProduct', 'Period Reported', 'S_OPS_SGA' );
+  
+# --- Record count feeder
+['Reorg Adjusted',{'Working Forecast','Working AOP','Forecast 5+7','AOP'}] => ['PL Reporting Measure':'Record Count'];

@@ -1,0 +1,692 @@
+#region Prolog
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+#==============================================================================
+#                             sys_Cube - Data Import
+#
+#  This process will load data from a text file into a cube.   It must follow 
+#  the format of:
+#
+#       CubeName, Dim1, Dim2, Dim3, ... DimN, Value
+#
+#   The first column will always be ignored.   It is used primarily to be
+#   compatible with sys_Cube - Export data, but any value (IDs, Row #s Etc)
+#   could exist in this column and not affect the load.   This script has one
+#   extra pMemberExpr (#21) than what is in sys_Cube - Export Data.   This is
+#   to account for the value (21st column) that would exist on a 20 dimension cube.
+#
+#   If values for the pMemberExpr## can either be one of three types of values
+#
+#       (blank)         Use corresponding column from data file
+#       (static value)  Use the provided value in lieu of a column value
+#       (dynamic value) Perform an EXPAND function to evaluate the column value
+#
+#   A dynamic value is determined if there are any % signs that exist in the
+#   parameter value.   If a static value does contain a % sign (such as Var %),
+#   the EXPAND function will be used, but it will still return the proper
+#   result.   As long as the EXPAND function is valid, any number of column(s)
+#   and/or variables can be concatenated to generate the dimension member value.
+#
+#   STATIC VALUE MEMBER REPLACEMENT EXAMPLE:
+#
+#       ExecuteProcess( 'sys_Cube - Import Data', 
+#           'pFilename', '..\model_upload\BegBalData.txt',
+#           'pCubeName', 'Balance Sheet',
+#           'pMemberExpr1', 'Budget',
+#           'pMemberExpr5', 'Beginning Balance',
+#           'pRecordFormat', 'tab'
+#           'pHeaderRecords', 1,
+#           'pIncrementCubeCells', 0
+#       );
+#
+#
+#   DYNAMIC MEMBER REPLACEMENT EXAMPLE:
+#
+#       ExecuteProcess( 'sys_Cube - Import Data', 
+#           'pFilename', '..\model_upload\YTDVendorData.txt',
+#           'pCubeName', 'Vendor Planning',
+#           'pMemberExpr1', 'Forecast',
+#           'pMemberExpr3', '%vCol4% YTD',
+#           'pMemberExpr4', '%vCol3%-%vCol5%',
+#           'pRecordFormat', 'tab'
+#           'pHeaderRecords', 1,
+#           'pIncrementCubeCells', 1
+#       );
+#
+#    Date      WHO  Description
+#  ----------  ---  -----------------------------------------------------------
+#  2023-08-02  SWG  Created
+#
+#==============================================================================
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = TM1User();
+sProcessName = GetProcessName();
+sTimeStamp = TIMST( NOW, '\Y-\m-\d(\h\i\s)' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+sLogPath = './model_upload/Logs/';
+sLogFile = sLogPath | sUniqueName | '.log';
+
+# --- Values
+bDebug = 0;
+nErrorCount = 0;
+FALSE = 0;
+TRUE = 1;
+
+#==============================================================================
+#                        PARAMETER VALIDATION SECTION
+#==============================================================================
+
+# --- Copy the parameters to internal values
+sFilename = pFilename;
+sCubeName = pCubeName;
+sRecordFormat = LOWER(pRecordFormat);
+bIncrement = If( pIncrementCubeCells = 0, 0, 1 );
+bLogNonUpdateableCells = If( pLogNonUpdateableCells = 0, 0, 1 );
+sSemaphoreFilename = pSemaphoreFilename;
+bIsParallel = If( sSemaphoreFilename @= '', FALSE, TRUE );
+
+# --- Prepare the member expressions
+sMemberExpr1    = TRIM( pMemberExpr1 );
+sMemberExpr2    = TRIM( pMemberExpr2 );
+sMemberExpr3    = TRIM( pMemberExpr3 );
+sMemberExpr4    = TRIM( pMemberExpr4 );
+sMemberExpr5    = TRIM( pMemberExpr5 );
+sMemberExpr6    = TRIM( pMemberExpr6 );
+sMemberExpr7    = TRIM( pMemberExpr7 );
+sMemberExpr8    = TRIM( pMemberExpr8 );
+sMemberExpr9    = TRIM( pMemberExpr9 );
+sMemberExpr10   = TRIM( pMemberExpr10 );
+sMemberExpr11   = TRIM( pMemberExpr11 );
+sMemberExpr12   = TRIM( pMemberExpr12 );
+sMemberExpr13   = TRIM( pMemberExpr13 );
+sMemberExpr14   = TRIM( pMemberExpr14 );
+sMemberExpr15   = TRIM( pMemberExpr15 );
+sMemberExpr16   = TRIM( pMemberExpr16 );
+sMemberExpr17   = TRIM( pMemberExpr17 );
+sMemberExpr18   = TRIM( pMemberExpr18 );
+sMemberExpr19   = TRIM( pMemberExpr19 );
+sMemberExpr20   = TRIM( pMemberExpr20 );
+sMemberExpr21   = TRIM( pMemberExpr21 );
+
+#------------------------------------------------------------------------------
+#                       Validate Output File
+#------------------------------------------------------------------------------
+
+# --- Validate the file exists but only if not in parallel mode, in that 
+# --- case we just want to exit and write the semaphore file out that
+# --- there was no data to load.
+If( FileExists( sFilename ) = 0 );
+    If( bIsParallel = FALSE );
+        sMessage = Expand( 'Specified file [%sFilename%] does not exists.');
+        LogOutput( 'ERROR', sMessage );
+        If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+        nErrorCount = nErrorCount + 1;
+    Else;
+        LogOutput( 'INFO', Expand( '%sProcessName%: File [%sFilename%] did not exist.  No records loaded into cube [%sCubeName%]' ) );
+        
+        If( bDebug = 1 );
+            TextOutput( sLogFile, Expand( 'File [%sFilename%] did not exist.  No records loaded into cube [%sCubeName%]' ) );
+        EndIf;
+        
+        TextOutput( sSemaphoreFilename, TIMST( NOW, '\Y-\m-\d \h:\i:\s' ) );
+        ProcessBreak;
+
+    EndIf;
+EndIf;
+
+#------------------------------------------------------------------------------
+#                       Validate Cube Name
+#------------------------------------------------------------------------------
+
+# --- Validate the cube exists
+If( CubeExists( sCubeName ) = 0 );
+    sMessage = Expand( 'Specified cube [%sCubeName%] does not exist.');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    nErrorCount = nErrorCount + 1;
+EndIf;
+
+#------------------------------------------------------------------------------
+#                       Validate Format
+#------------------------------------------------------------------------------
+
+# --- Validate the format specified is supported
+bEscapeDoubleQuote = 0;
+sQuote = '';
+sDelimeter = '';
+If( sRecordFormat @= 'csv' );
+    sDelimeter = ',';
+    sQuote = '"';
+    bEscapeDoubleQuote = 1;
+ElseIf( sRecordFormat @= 'tab' );
+    sDelimeter = CHAR(09);
+ElseIf( sRecordFormat @= 'comma' );
+    sDelimeter = ',';
+ElseIf( sRecordFormat @= 'pipe' );
+    sDelimeter = '|';
+Else;
+    sMessage = Expand( 'Specified record format [%sRecordFormat%] is invalid.   Must be csv, tab, comma or pipe');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    nErrorCount = nErrorCount + 1;
+EndIf;
+
+#------------------------------------------------------------------------------
+#                       Report validation errors
+#------------------------------------------------------------------------------
+If( nErrorCount > 0 );
+    sMessage = Expand( NumberToString(nErrorCount) | ' validation error(s) occured.  Check logs for detail.');
+    LogOutput( 'ERROR', sMessage );
+    If( bDebug = 1 ); TextOutput( sLogFile, sMessage ); EndIf;
+    ProcessError;
+EndIf;
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+# --- Initialize input
+DatasourceNameForServer =  sFilename;
+DatasourceASCIIDelimiter = sDelimeter;
+DatasourceASCIIQuoteCharacter =  sQuote;
+SetOutputEscapeDoubleQuote( sFileName, bEscapeDoubleQuote);
+
+# --- Iniitalize counts
+nRecCount = 0;
+nNumDims = CubeDimensionCountGet( sCubeName );
+#endregion
+#region Metadata
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+#endregion
+#region Data
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+#--------------------------------------------------------------------------------
+#                        EVALUATE EXPRESSIONS
+#--------------------------------------------------------------------------------
+
+nNumCols = 21;
+nColIdx = 0;
+While( nColIdx < nNumCols );
+    nColIdx = nColIdx + 1;
+    sMemberExpr = Expand( Expand( '%sMemberExpr' | TRIM( STR( nColIdx, 0, 0 ) ) | '%' ) );
+
+    # --- Evaluate the expression to see how to obtain the value.  If the expression
+    # --- is empty, then just use the corresponding column value.
+    If( sMemberExpr @= '' );
+        sCol = Expand( '%vCol' | TRIM( STR( nColIdx, 0, 0 ) ) | '%' );
+        
+    # --- Handle =PeriodOffset( <column>, offset )    
+    ElseIf( SUBST( LOWER( sMemberExpr ), 1, 13 ) @= '=periodoffset' );
+        nStartPos = SCAN( '(', sMemberExpr );
+        nSepPos = SCAN( ',', sMemberExpr );
+        nEndPos = SCAN( ')', sMemberExpr );
+
+        If( nStartPos > 0 & nSepPos > nStartPos & nEndPos > nSepPos );        
+            sSourcePeriod = TRIM( SUBST( sMemberExpr, nStartPos + 1, nSepPos - nStartPos - 1 ) );
+            nOffset = NUMBR( SUBST( sMemberExpr, nSepPos + 1, nEndPos - nSepPos - 1 ) );
+
+            # --- If the period is YYYY-MM    
+            If( LONG( sSourcePeriod ) = 7 );
+    
+                nSourceYear = NUMBR( SUBST( sSourcePeriod, 1, 4 ) );
+                nSourceMonth = NUMBR( SUBST( sSourcePeriod, 6, 2 ) );
+    
+                nTotalMonths = ( nSourceYear * 12 ) + nSourceMonth - 1 + nOffset;
+    
+                nDestYear = INT( nTotalMonths / 12 );
+                nDestMonth = MOD( nTotalMonths, 12 ) + 1;
+    
+                sCol =
+                    NumberToStringEx( nDestYear, '0000', '', '' ) 
+                    | '-' | NumberToStringEx( nDestMonth, '00', '', '' );
+    
+            # --- If the period is YYYY
+            ElseIf( LONG( sSourcePeriod ) = 4 );
+    
+                nSourceYear = NUMBR( sSourcePeriod );
+                nDestYear = nSourceYear + nOffset;
+    
+                sCol = NumberToStringEx( nDestYear, '0000', '', '' );
+                
+            Else;
+                sCol = 'ERR:' | sMemberExpr;
+    
+            EndIf;
+        Else;
+            sCol = 'ERR:' | sMemberExpr;
+        Endif;
+        
+    # --- Assume variable substitution is being used if nothing else was 
+    # --- identified.  i.e. 'FY %sCol2%' or '%sCol4%-%sCol5%'
+    Else;
+        sCol = sMemberExpr;
+
+    EndIf;
+
+    # --- Now put the converted value back
+    If( nColIdx = 1  ); sCol1   = sCol; EndIf;
+    If( nColIdx = 2  ); sCol2   = sCol; EndIf;
+    If( nColIdx = 3  ); sCol3   = sCol; EndIf;
+    If( nColIdx = 4  ); sCol4   = sCol; EndIf;
+    If( nColIdx = 5  ); sCol5   = sCol; EndIf;
+    If( nColIdx = 6  ); sCol6   = sCol; EndIf;
+    If( nColIdx = 7  ); sCol7   = sCol; EndIf;
+    If( nColIdx = 8  ); sCol8   = sCol; EndIf;
+    If( nColIdx = 9  ); sCol9   = sCol; EndIf;
+    If( nColIdx = 10 ); sCol10  = sCol; EndIf;
+    If( nColIdx = 11 ); sCol11  = sCol; EndIf;
+    If( nColIdx = 12 ); sCol12  = sCol; EndIf;
+    If( nColIdx = 13 ); sCol13  = sCol; EndIf;
+    If( nColIdx = 14 ); sCol14  = sCol; EndIf;
+    If( nColIdx = 15 ); sCol15  = sCol; EndIf;
+    If( nColIdx = 16 ); sCol16  = sCol; EndIf;
+    If( nColIdx = 17 ); sCol17  = sCol; EndIf;
+    If( nColIdx = 18 ); sCol18  = sCol; EndIf;
+    If( nColIdx = 19 ); sCol19  = sCol; EndIf;
+    If( nColIdx = 20 ); sCol20  = sCol; EndIf;
+    If( nColIdx = 21 ); sCol21  = sCol; EndIf;
+
+End;
+
+
+#--------------------------------------------------------------------------------
+#                        IMPORT THE DATA
+#--------------------------------------------------------------------------------
+
+If( nNumDims = 2 );
+    If( CellIsUpdateable( sCubeName, sCol1, sCol2 ) = 1 );
+        If( DTYPE( TABDIM( sCubeName, nNumDims ), sCol2 ) @= 'S' );
+            CellPutS( sCol3, sCubeName, sCol1, sCol2 );
+        ElseIf( bIncrement = 1 );
+            CellIncrementN( NUMBR( sCol3 ), sCubeName, sCol1, sCol2 );
+        Else;
+            CellPutN( NUMBR( sCol3 ), sCubeName, sCol1, sCol2 );
+        EndIf;
+    Else;
+        If( bLogNonUpdateableCells = 1 );
+            TextOutput( sLogFile, 'Cell is not writeable. Check rules and/or permissions', 
+                sCubeName, sCol1, sCol2, sCol3 );
+        EndIf;
+    EndIf;
+
+ElseIf( nNumDims = 3 );
+    If( CellIsUpdateable( sCubeName, sCol1, sCol2, sCol3 ) = 1 );
+        If( DTYPE( TABDIM( sCubeName, nNumDims ), sCol3 ) @= 'S' );
+            CellPutS( sCol4, sCubeName, sCol1, sCol2, sCol3 );
+        ElseIf( bIncrement = 1 );
+            CellIncrementN( NUMBR( sCol4 ), sCubeName, sCol1, sCol2, sCol3 );
+        Else;
+            CellPutN( NUMBR( sCol4 ), sCubeName, sCol1, sCol2, sCol3 );
+        EndIf;
+    Else;
+        If( bLogNonUpdateableCells = 1 );
+            TextOutput( sLogFile | '.err', 'Cell is not writeable. Check rules and/or permissions', 
+                sCubeName, sCol1, sCol2, sCol3 );
+        EndIf;
+    EndIf;
+
+ElseIf( nNumDims = 4 );
+    If( CellIsUpdateable( sCubeName, sCol1, sCol2, sCol3, sCol4 ) = 1 );
+        If( DTYPE( TABDIM( sCubeName, nNumDims ), sCol4 ) @= 'S' );
+            CellPutS( sCol5, sCubeName, sCol1, sCol2, sCol3, sCol4 );
+        ElseIf( bIncrement = 1 );
+            CellIncrementN( NUMBR( sCol5 ), sCubeName, sCol1, sCol2, sCol3, sCol4 );
+        Else;
+            CellPutN( NUMBR( sCol5 ), sCubeName, sCol1, sCol2, sCol3, sCol4 );
+        EndIf;
+    Else;
+        If( bLogNonUpdateableCells = 1 );
+            TextOutput( sLogFile | '.err', 'Cell is not writeable. Check rules and/or permissions', 
+                sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5 );
+        EndIf;
+    EndIf;
+
+ElseIf( nNumDims = 5 );
+    If( CellIsUpdateable( sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5 ) = 1 );
+        If( DTYPE( TABDIM( sCubeName, nNumDims ), sCol5 ) @= 'S' );
+            CellPutS( sCol6, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5 );
+        ElseIf( bIncrement = 1 );
+            CellIncrementN( NUMBR( sCol6 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5 );
+        Else;
+            CellPutN( NUMBR( sCol6 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5 );
+        EndIf;
+    Else;
+        If( bLogNonUpdateableCells = 1 );
+            TextOutput( sLogFile | '.err', 'Cell is not writeable. Check rules and/or permissions', 
+                sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6 );
+        EndIf;
+    EndIf;
+
+ElseIf( nNumDims = 6 );
+    If( CellIsUpdateable( sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6 ) = 1 );
+        If( DTYPE( TABDIM( sCubeName, nNumDims ), sCol6 ) @= 'S' );
+            CellPutS( sCol7, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6 );
+        ElseIf( bIncrement = 1 );
+            CellIncrementN( NUMBR( sCol7 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6 );
+        Else;
+            CellPutN( NUMBR( sCol7 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6 );
+        EndIf;
+    Else;
+        If( bLogNonUpdateableCells = 1 );
+            TextOutput( sLogFile | '.err', 'Cell is not writeable. Check rules and/or permissions', 
+                sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7 );
+        EndIf;
+    EndIf;
+
+ElseIf( nNumDims = 7 );
+    If( CellIsUpdateable( sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7 ) = 1 );
+        If( DTYPE( TABDIM( sCubeName, nNumDims ), sCol7 ) @= 'S' );
+            CellPutS( sCol8, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7 );
+        ElseIf( bIncrement = 1 );
+            CellIncrementN( NUMBR( sCol8 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+                sCol7 );
+        Else;
+            CellPutN( NUMBR( sCol8 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7 );
+        EndIf;
+    Else;
+        If( bLogNonUpdateableCells = 1 );
+            TextOutput( sLogFile | '.err', 'Cell is not writeable. Check rules and/or permissions', 
+                sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8 );
+        EndIf;
+    EndIf;
+
+ElseIf( nNumDims = 8 );
+    If( CellIsUpdateable( sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8 ) = 1 );
+        If( DTYPE( TABDIM( sCubeName, nNumDims ), sCol8 ) @= 'S' );
+            CellPutS( sCol9, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8 );
+        ElseIf( bIncrement = 1 );
+            CellIncrementN( NUMBR( sCol9 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+                sCol7, sCol8 );
+        Else;
+            CellPutN( NUMBR( sCol9 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, 
+                sCol8 );
+        EndIf;
+    Else;
+        If( bLogNonUpdateableCells = 1 );
+            TextOutput( sLogFile | '.err', 'Cell is not writeable. Check rules and/or permissions', 
+                sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, sCol9 );
+        EndIf;
+    EndIf;
+
+ElseIf( nNumDims = 9 );
+    If( CellIsUpdateable( sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, sCol9 ) = 1 );
+        If( DTYPE( TABDIM( sCubeName, nNumDims ), sCol9 ) @= 'S' );
+            CellPutS( sCol10, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, 
+                sCol9 );
+        ElseIf( bIncrement = 1 );
+            CellIncrementN( NUMBR( sCol10 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+                sCol7, sCol8, sCol9 );
+        Else;
+            CellPutN( NUMBR( sCol10 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, 
+                sCol8, sCol9 );
+        EndIf;
+    Else;
+        If( bLogNonUpdateableCells = 1 );
+            TextOutput( sLogFile | '.err', 'Cell is not writeable. Check rules and/or permissions', 
+                sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, sCol9, sCol10 );
+        EndIf;
+    EndIf;
+
+ElseIf( nNumDims = 10 );
+    If( CellIsUpdateable( sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, sCol9, 
+            sCol10 ) = 1 );
+        If( DTYPE( TABDIM( sCubeName, nNumDims ), sCol10 ) @= 'S' );
+            CellPutS( sCol11, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, 
+                sCol9, sCol10 );
+        ElseIf( bIncrement = 1 );
+            CellIncrementN( NUMBR( sCol11 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+                sCol7, sCol8, sCol9, sCol10 );
+        Else;
+            CellPutN( NUMBR( sCol11 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, 
+                sCol8, sCol9, sCol10 );
+        EndIf;
+    Else;
+        If( bLogNonUpdateableCells = 1 );
+            TextOutput( sLogFile | '.err', 'Cell is not writeable. Check rules and/or permissions', 
+                sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, sCol9, sCol10, sCol11 );
+        EndIf;
+    EndIf;
+
+ElseIf( nNumDims = 11 );
+    If( CellIsUpdateable( sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, sCol9, 
+            sCol10, sCol11 ) = 1 );
+        If( DTYPE( TABDIM( sCubeName, nNumDims ), sCol11 ) @= 'S' );
+            CellPutS( sCol12, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, 
+                sCol9, sCol10, sCol11 );
+        ElseIf( bIncrement = 1 );
+            CellIncrementN( NUMBR( sCol12 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+                sCol7, sCol8, sCol9, sCol10, sCol11 );
+        Else;
+            CellPutN( NUMBR( sCol12 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, 
+                sCol8, sCol9, sCol10, sCol11 );
+        EndIf;
+    Else;
+        If( bLogNonUpdateableCells = 1 );
+            TextOutput( sLogFile | '.err', 'Cell is not writeable. Check rules and/or permissions', 
+                sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, sCol9, sCol10, sCol11, 
+                sCol12 );
+        EndIf;
+    EndIf;
+
+ElseIf( nNumDims = 12 );
+    If( CellIsUpdateable( sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, sCol9, 
+            sCol10, sCol11, sCol12 ) = 1 );
+        If( DTYPE( TABDIM( sCubeName, nNumDims ), sCol12 ) @= 'S' );
+            CellPutS( sCol13, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, 
+                sCol9, sCol10, sCol11, sCol12 );
+        ElseIf( bIncrement = 1 );
+            CellIncrementN( NUMBR( sCol13 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+                sCol7, sCol8, sCol9, sCol10, sCol11, sCol12 );
+        Else;
+            CellPutN( NUMBR( sCol13 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, 
+                sCol8, sCol9, sCol10, sCol11, sCol12 );
+        EndIf;
+    Else;
+        If( bLogNonUpdateableCells = 1 );
+            TextOutput( sLogFile | '.err', 'Cell is not writeable. Check rules and/or permissions', 
+                sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, sCol9, sCol10, sCol11, 
+                sCol12, sCol13 );
+        EndIf;
+    EndIf;
+
+ElseIf( nNumDims = 13 );
+    If( CellIsUpdateable( sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, sCol9, 
+            sCol10, sCol11, sCol12, sCol13 ) = 1 );
+        If( DTYPE( TABDIM( sCubeName, nNumDims ), sCol13 ) @= 'S' );
+            CellPutS( sCol14, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, 
+                sCol9, sCol10, sCol11, sCol12, sCol13 );
+        ElseIf( bIncrement = 1 );
+            CellIncrementN( NUMBR( sCol14 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+                sCol7, sCol8, sCol9, sCol10, sCol11, sCol12, sCol13 );
+        Else;
+            CellPutN( NUMBR( sCol14 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, 
+                sCol8, sCol9, sCol10, sCol11, sCol12, sCol13 );
+        EndIf;
+    Else;
+        If( bLogNonUpdateableCells = 1 );
+            TextOutput( sLogFile | '.err', 'Cell is not writeable. Check rules and/or permissions', 
+                sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, sCol9, sCol10, sCol11, 
+                sCol12, sCol13, sCol14 );
+        EndIf;
+    EndIf;
+
+ElseIf( nNumDims = 14 );
+    If( CellIsUpdateable( sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, sCol9, 
+            sCol10, sCol11, sCol12, sCol13, sCol14 ) = 1 );
+        If( DTYPE( TABDIM( sCubeName, nNumDims ), sCol14 ) @= 'S' );
+            CellPutS( sCol15, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, 
+                sCol9, sCol10, sCol11, sCol12, sCol13, sCol14 );
+        ElseIf( bIncrement = 1 );
+            CellIncrementN( NUMBR( sCol15 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+                sCol7, sCol8, sCol9, sCol10, sCol11, sCol12, sCol13, sCol14 );
+        Else;
+            CellPutN( NUMBR( sCol15 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, 
+                sCol8, sCol9, sCol10, sCol11, sCol12, sCol13, sCol14 );
+        EndIf;
+    Else;
+        If( bLogNonUpdateableCells = 1 );
+            TextOutput( sLogFile | '.err', 'Cell is not writeable. Check rules and/or permissions', 
+                sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, sCol9, sCol10, sCol11, 
+                sCol12, sCol13, sCol14, sCol15 );
+        EndIf;
+    EndIf;
+
+
+ElseIf( nNumDims = 15 );
+    If( CellIsUpdateable( sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, sCol9, 
+            sCol10, sCol11, sCol12, sCol13, sCol14, sCol15 ) = 1 );
+        If( DTYPE( TABDIM( sCubeName, nNumDims ), sCol15 ) @= 'S' );
+            CellPutS( sCol16, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, 
+                sCol9, sCol10, sCol11, sCol12, sCol13, sCol14, sCol15 );
+        ElseIf( bIncrement = 1 );
+            CellIncrementN( NUMBR( sCol16 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+                sCol7, sCol8, sCol9, sCol10, sCol11, sCol12, sCol13, sCol14, sCol15 );
+        Else;
+            CellPutN( NUMBR( sCol16 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, 
+                sCol8, sCol9, sCol10, sCol11, sCol12, sCol13, sCol14, sCol15 );
+        EndIf;
+    Else;
+        If( bLogNonUpdateableCells = 1 );
+            TextOutput( sLogFile | '.err', 'Cell is not writeable. Check rules and/or permissions', 
+                sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, sCol9, sCol10, sCol11, 
+                sCol12, sCol13, sCol14, sCol15, sCol16 );
+        EndIf;
+    EndIf;
+
+ElseIf( nNumDims = 16 );
+    If( CellIsUpdateable( sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, sCol9, 
+            sCol10, sCol11, sCol12, sCol13, sCol14, sCol15, sCol16 ) = 1 );
+        If( DTYPE( TABDIM( sCubeName, nNumDims ), sCol16 ) @= 'S' ); 
+            CellPutS( sCol17, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, 
+                sCol9, sCol10, sCol11, sCol12, sCol13, sCol14, sCol15, sCol16 );
+        ElseIf( bIncrement = 1 );
+            CellIncrementN( NUMBR( sCol17 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+                sCol7, sCol8, sCol9, sCol10, sCol11, sCol12, sCol13, sCol14, sCol15, sCol16 );
+        Else;
+            CellPutN( NUMBR( sCol17 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, 
+                sCol8, sCol9, sCol10, sCol11, sCol12, sCol13, sCol14, sCol15, sCol16 );
+        EndIf;
+    Else;
+        If( bLogNonUpdateableCells = 1 );
+            TextOutput( sLogFile | '.err', 'Cell is not writeable. Check rules and/or permissions', 
+                sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, sCol9, sCol10, sCol11, 
+                sCol12, sCol13, sCol14, sCol15, sCol16, sCol17 );
+        EndIf;
+    EndIf;
+ElseIf( nNumDims = 17 );
+    If( CellIsUpdateable( sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, sCol9, 
+            sCol10, sCol11, sCol12, sCol13, sCol14, sCol15, sCol16, sCol17 ) = 1 );
+        If( DTYPE( TABDIM( sCubeName, nNumDims ), sCol17 ) @= 'S' ); 
+            CellPutS( sCol18, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, 
+                sCol9, sCol10, sCol11, sCol12, sCol13, sCol14, sCol15, sCol16, sCol17 );
+        ElseIf( bIncrement = 1 );
+            CellIncrementN( NUMBR( sCol18 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+                sCol7, sCol8, sCol9, sCol10, sCol11, sCol12, sCol13, sCol14, sCol15, sCol16, sCol17 );
+        Else;
+            CellPutN( NUMBR( sCol18 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, 
+                sCol8, sCol9, sCol10, sCol11, sCol12, sCol13, sCol14, sCol15, sCol16, sCol17 );
+        EndIf;
+    Else;
+        If( bLogNonUpdateableCells = 1 );
+            TextOutput( sLogFile | '.err', 'Cell is not writeable. Check rules and/or permissions', 
+                sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, sCol9, sCol10, sCol11, 
+                sCol12, sCol13, sCol14, sCol15, sCol16, sCol17, sCol18 );
+        EndIf;
+    EndIf;
+ElseIf( nNumDims = 18 );
+    If( CellIsUpdateable( sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, sCol9, 
+            sCol10, sCol11, sCol12, sCol13, sCol14, sCol15, sCol16, sCol17, sCol18 ) = 1 );
+        If( DTYPE( TABDIM( sCubeName, nNumDims ), sCol18 ) @= 'S' ); 
+            CellPutS( sCol19, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, 
+                sCol9, sCol10, sCol11, sCol12, sCol13, sCol14, sCol15, sCol16, sCol17, sCol18 );
+        ElseIf( bIncrement = 1 );
+            CellIncrementN( NUMBR( sCol19 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+                sCol7, sCol8, sCol9, sCol10, sCol11, sCol12, sCol13, sCol14, sCol15, sCol16, sCol17, 
+                sCol18 );
+        Else;
+            CellPutN( NUMBR( sCol19 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, 
+                sCol8, sCol9, sCol10, sCol11, sCol12, sCol13, sCol14, sCol15, sCol16, sCol17, sCol18 );
+        EndIf;
+    Else;
+        If( bLogNonUpdateableCells = 1 );
+            TextOutput( sLogFile | '.err', 'Cell is not writeable. Check rules and/or permissions', 
+                sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, sCol9, sCol10, sCol11, 
+                sCol12, sCol13, sCol14, sCol15, sCol16, sCol17, sCol18, sCol19 );
+        EndIf;
+    EndIf;
+ElseIf( nNumDims = 19 );
+    If( CellIsUpdateable( sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, sCol9, 
+            sCol10, sCol11, sCol12, sCol13, sCol14, sCol15, sCol16, sCol17, sCol18, sCol19 ) = 1 );
+        If( DTYPE( TABDIM( sCubeName, nNumDims ), sCol19 ) @= 'S' ); 
+            CellPutS( sCol20, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, 
+                sCol9, sCol10, sCol11, sCol12, sCol13, sCol14, sCol15, sCol16, sCol17, sCol18, sCol19 );
+        ElseIf( bIncrement = 1 );
+            CellIncrementN( NUMBR( sCol20 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+                sCol7, sCol8, sCol9, sCol10, sCol11, sCol12, sCol13, sCol14, sCol15, sCol16, sCol17, 
+                sCol18, sCol19 );
+        Else;
+            CellPutN( NUMBR( sCol20 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, 
+                sCol8, sCol9, sCol10, sCol11, sCol12, sCol13, sCol14, sCol15, sCol16, sCol17, sCol18, 
+                sCol19 );
+        EndIf;
+    Else;
+        If( bLogNonUpdateableCells = 1 );
+            TextOutput( sLogFile | '.err', 'Cell is not writeable. Check rules and/or permissions', 
+                sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, sCol9, sCol10, sCol11, 
+                sCol12, sCol13, sCol14, sCol15, sCol16, sCol17, sCol18, sCol19, sCol20 );
+        EndIf;
+    EndIf;
+ElseIf( nNumDims = 20 );
+    If( CellIsUpdateable( sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, sCol9, 
+            sCol10, sCol11, sCol12, sCol13, sCol14, sCol15, sCol16, sCol17, sCol18, sCol19, sCol20 ) = 1 );
+        If( DTYPE( TABDIM( sCubeName, nNumDims ), sCol20 ) @= 'S' ); 
+            CellPutS( sCol21, sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, 
+                sCol9, sCol10, sCol11, sCol12, sCol13, sCol14, sCol15, sCol16, sCol17, sCol18, sCol19, sCol20 );
+        ElseIf( bIncrement = 1 );
+            CellIncrementN( NUMBR( sCol21 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, 
+                sCol7, sCol8, sCol9, sCol10, sCol11, sCol12, sCol13, sCol14, sCol15, sCol16, sCol17, 
+                sCol18, sCol19, sCol20 );
+        Else;
+            CellPutN( NUMBR( sCol21 ), sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, 
+                sCol8, sCol9, sCol10, sCol11, sCol12, sCol13, sCol14, sCol15, sCol16, sCol17, sCol18, 
+                sCol19, sCol20 );
+        EndIf;
+    Else;
+        If( bLogNonUpdateableCells = 1 );
+            TextOutput( sLogFile | '.err', 'Cell is not writeable. Check rules and/or permissions', 
+                sCubeName, sCol1, sCol2, sCol3, sCol4, sCol5, sCol6, sCol7, sCol8, sCol9, sCol10, sCol11, 
+                sCol12, sCol13, sCol14, sCol15, sCol16, sCol17, sCol18, sCol19, sCol20, sCol21 );
+        EndIf;
+    EndIf;
+EndIf;
+
+nRecCount = nRecCount + 1;
+#endregion
+#region Epilog
+#****Begin: Generated Statements***
+#****End: Generated Statements****
+
+
+LogOutput( 'INFO', Expand( '%sProcessName%: [%nRecCount%] records loaded into cube [%sCubeName%] from file [%sFilename%]' ) );
+
+If( bDebug = 1 );
+    TextOutput( sLogFile, Expand( '[%nRecCount%] records loaded into cube [%sCubeName%]' ) );
+EndIf;
+
+# --- If multi-threading control is needed, then create the semaphore file
+# --- that must be tracked by the parent process.
+If( sSemaphoreFilename @<> '' );
+    TextOutput( sSemaphoreFilename, TIMST( NOW, '\Y-\m-\d \h:\i:\s' ) );
+EndIf;
+#endregion

@@ -1,0 +1,399 @@
+{
+	"@type":"Hierarchy",
+	"Name":"Scenario",
+	"Elements":
+	[
+		{
+			"Name":"Actual",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Scenarios",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Total Working Forecast + RO",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Snapshots",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"Forecast 2+10",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Forecast 5+7",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Forecast 8+4",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Working AOP",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Working Forecast",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"AOP",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Forecast 3+9",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"RO 3+9",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Forecast 6+6",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"RO 6+6",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Forecast 9+3",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"RO 9+3",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Forecast 3+9 Base",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Forecast 1+11",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Forecast 4+8",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Forecast 7+5",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Forecast 10+2",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Forecast 11+1",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Forecast 9+3 Base",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Forecast 6+6 Base",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Constant Currencies",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"AOP_PY_RATE",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"PRIOR_FCST_AOP_RATE",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"CURRENT_FCST_AOP_RATE",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"NEXT_FCST_AOP_RATE",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"NEXT_FCST_CURR_FCST_RATE",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"PRIOR_FCST_PY_RATE",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"CURRENT_FCST_PY_RATE",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"NEXT_FCST_PY_RATE",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"PY_AOP_RATE",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"PY-2_AOP_RATE",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"PY-3_AOP_RATE",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"PY-4_AOP_RATE",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"ACT_PY_RATE",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"ACT_AOP_RATE",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Working RO",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"ACTADJ",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Snapshot 1",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Snapshot 2",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Snapshot 3",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Snapshot 4",
+			"Type":"Numeric"
+		}
+	],
+	"Edges":
+	[
+		{
+			"ParentName":"Scenarios",
+			"ComponentName":"Total Working Forecast + RO",
+			"Weight":1
+		},
+		{
+			"ParentName":"Scenarios",
+			"ComponentName":"Working AOP",
+			"Weight":0
+		},
+		{
+			"ParentName":"Total Working Forecast + RO",
+			"ComponentName":"Working Forecast",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Working Forecast + RO",
+			"ComponentName":"Working RO",
+			"Weight":1
+		},
+		{
+			"ParentName":"Snapshots",
+			"ComponentName":"Forecast 1+11",
+			"Weight":0
+		},
+		{
+			"ParentName":"Snapshots",
+			"ComponentName":"Forecast 2+10",
+			"Weight":0
+		},
+		{
+			"ParentName":"Snapshots",
+			"ComponentName":"Forecast 3+9",
+			"Weight":0
+		},
+		{
+			"ParentName":"Snapshots",
+			"ComponentName":"Forecast 4+8",
+			"Weight":0
+		},
+		{
+			"ParentName":"Snapshots",
+			"ComponentName":"Forecast 5+7",
+			"Weight":0
+		},
+		{
+			"ParentName":"Snapshots",
+			"ComponentName":"Forecast 6+6",
+			"Weight":0
+		},
+		{
+			"ParentName":"Snapshots",
+			"ComponentName":"Forecast 7+5",
+			"Weight":0
+		},
+		{
+			"ParentName":"Snapshots",
+			"ComponentName":"Forecast 8+4",
+			"Weight":0
+		},
+		{
+			"ParentName":"Snapshots",
+			"ComponentName":"Forecast 9+3",
+			"Weight":0
+		},
+		{
+			"ParentName":"Snapshots",
+			"ComponentName":"Forecast 10+2",
+			"Weight":0
+		},
+		{
+			"ParentName":"Snapshots",
+			"ComponentName":"Forecast 11+1",
+			"Weight":0
+		},
+		{
+			"ParentName":"Snapshots",
+			"ComponentName":"AOP",
+			"Weight":0
+		},
+		{
+			"ParentName":"Snapshots",
+			"ComponentName":"Snapshot 1",
+			"Weight":1
+		},
+		{
+			"ParentName":"Snapshots",
+			"ComponentName":"Snapshot 2",
+			"Weight":1
+		},
+		{
+			"ParentName":"Snapshots",
+			"ComponentName":"Snapshot 3",
+			"Weight":1
+		},
+		{
+			"ParentName":"Snapshots",
+			"ComponentName":"Snapshot 4",
+			"Weight":1
+		},
+		{
+			"ParentName":"Forecast 3+9",
+			"ComponentName":"Forecast 3+9 Base",
+			"Weight":1
+		},
+		{
+			"ParentName":"Forecast 3+9",
+			"ComponentName":"RO 3+9",
+			"Weight":1
+		},
+		{
+			"ParentName":"Forecast 6+6",
+			"ComponentName":"Forecast 6+6 Base",
+			"Weight":1
+		},
+		{
+			"ParentName":"Forecast 6+6",
+			"ComponentName":"RO 6+6",
+			"Weight":1
+		},
+		{
+			"ParentName":"Forecast 9+3",
+			"ComponentName":"Forecast 9+3 Base",
+			"Weight":1
+		},
+		{
+			"ParentName":"Forecast 9+3",
+			"ComponentName":"RO 9+3",
+			"Weight":1
+		},
+		{
+			"ParentName":"Constant Currencies",
+			"ComponentName":"AOP_PY_RATE",
+			"Weight":1
+		},
+		{
+			"ParentName":"Constant Currencies",
+			"ComponentName":"PRIOR_FCST_AOP_RATE",
+			"Weight":1
+		},
+		{
+			"ParentName":"Constant Currencies",
+			"ComponentName":"CURRENT_FCST_AOP_RATE",
+			"Weight":1
+		},
+		{
+			"ParentName":"Constant Currencies",
+			"ComponentName":"NEXT_FCST_AOP_RATE",
+			"Weight":1
+		},
+		{
+			"ParentName":"Constant Currencies",
+			"ComponentName":"NEXT_FCST_CURR_FCST_RATE",
+			"Weight":1
+		},
+		{
+			"ParentName":"Constant Currencies",
+			"ComponentName":"PRIOR_FCST_PY_RATE",
+			"Weight":1
+		},
+		{
+			"ParentName":"Constant Currencies",
+			"ComponentName":"CURRENT_FCST_PY_RATE",
+			"Weight":1
+		},
+		{
+			"ParentName":"Constant Currencies",
+			"ComponentName":"NEXT_FCST_PY_RATE",
+			"Weight":1
+		},
+		{
+			"ParentName":"Constant Currencies",
+			"ComponentName":"PY_AOP_RATE",
+			"Weight":1
+		},
+		{
+			"ParentName":"Constant Currencies",
+			"ComponentName":"PY-2_AOP_RATE",
+			"Weight":1
+		},
+		{
+			"ParentName":"Constant Currencies",
+			"ComponentName":"PY-3_AOP_RATE",
+			"Weight":1
+		},
+		{
+			"ParentName":"Constant Currencies",
+			"ComponentName":"PY-4_AOP_RATE",
+			"Weight":1
+		},
+		{
+			"ParentName":"Constant Currencies",
+			"ComponentName":"ACT_PY_RATE",
+			"Weight":1
+		},
+		{
+			"ParentName":"Constant Currencies",
+			"ComponentName":"ACT_AOP_RATE",
+			"Weight":1
+		}
+	],
+	"Subsets@Code.links":
+	[
+		"Scenario.subsets/AOP Snapshot Scenarios.json",
+		"Scenario.subsets/CC Scenarios.json",
+		"Scenario.subsets/Historical Forecasts.json",
+		"Scenario.subsets/Planning Scenarios.json",
+		"Scenario.subsets/RO Snapshot Scenarios.json",
+		"Scenario.subsets/WF Snapshot Scenarios.json"
+	]
+}

@@ -1,0 +1,141 @@
+#region Prolog
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = ATTRS( '}Clients', TM1User(), '}TM1_DefaultDisplayValue' );
+sProcessName = GetProcessName();
+sDateStamp = TIMST( NOW, '\Y-\m-\d' );
+sTimeStamp = TIMST( NOW, '\Y-\m-\d \h.\i.\s' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+# --- Static Values
+ERROR  = 1; WARN   = 2; STATS  = 3;
+INFO   = 4; DEBUG  = 5; TRACE  = 6;
+TRUE   = 1; FALSE  = 0;
+LF     = CHAR(10);
+EXCEL_ADJUSTMENT = 21916;
+
+# --- Setup processing information
+bUseTemporaryObjects = TRUE;
+
+sLogFile = '.\model_upload\logs\' | GetProcessName() | '.log';
+
+# --- Cubes
+sConfigCube    = 'sys.Config';
+sStatsCube     = 'sys.Process Stats';
+sStagingCube   = 'HFM Staging';
+
+# --- Dimensions
+sScenarioDim   = 'HFM Scenario';
+sPeriodDim     = 'Period';
+sFileDim       = 'HFM Load File';
+sCurrencyDim   = 'HFM Currency';
+sEntityDim     = 'HFM Entity';
+sProductDim    = 'HFM Product';
+sFunctionDim   = 'HFM Function';
+sAccountDim    = 'HFM Account';
+sPeriodXRefDim = 'Period XRef';
+
+# --- Members
+sFileRoot    = 'All Files';
+sEntityRoot    = 'All Entities';
+sProductRoot   = 'All Products';
+sFunctionRoot  = 'All Functions';
+sAccountRoot   = 'All Accounts';
+
+# --- Data values
+sHFMDir = CellGetS( sConfigCube, 'HFM Mapped Directory', 'String' );
+
+sPeriod = pPeriod;
+sFilename = 'hfm_bs_begbal.txt';
+
+#------------------------------------------
+# Destination View:  HFM Staging
+#------------------------------------------
+# --- Setup destination
+sCubeName = sStagingCube;
+
+# --- If the period to clear parameter was specified, then clear out that
+# --- period from the cube, if not just load the data.   This is to allow for
+# --- partial and incremental loads.
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { TM1FilterByLevel( TM1SubsetAll( [HFM Scenario] ), 0 ) } %LF%
+        SET PeriodSet     as { TM1FilterByLevel( TM1SubsetAll( [Period] ), 0 ) } %LF%
+        SET FileSet       as { [HFM Load File].[HFM Load File].[%sFilename%] } %LF%
+        SET CurrencySet   as { TM1FilterByLevel( TM1SubsetAll( [HFM Currency] ), 0 ) } %LF%
+        SET EntitySet     as { TM1FilterByLevel( TM1SubsetAll( [HFM Entity] ), 0 ) } %LF%
+        SET ProductSet    as { TM1FilterByLevel( TM1SubsetAll( [HFM Product] ), 0 ) } %LF%
+        SET FunctionSet   as { TM1FilterByLevel( TM1SubsetAll( [HFM Function] ), 0 ) } %LF%
+        SET AccountSet    as { TM1FilterByLevel( TM1SubsetAll( [HFM Account] ), 0 ) } %LF%
+        SET MeasureSet    as { TM1FilterByLevel( TM1SubsetAll( [HFM Staging Measure] ), 0 ) } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * PeriodSet * FileSet * CurrencySet * EntitySet * ProductSet * FunctionSet * AccountSet ON 1 %LF%
+
+    FROM [%sCubeName%] %LF%
+' );
+
+sViewName = sTempName | ' - Clear ';
+ViewCreateByMDX( sCubeName, sViewName, sViewMDX, bUseTemporaryObjects );
+ViewZeroOut( sCubeName, sViewName );
+
+processbreak;
+#endregion
+#region Metadata
+
+sVersion = inVersion;
+sScenario = inScenario;
+sCurrency = inCurrency;
+sEntity = inEntity;
+sProduct = inProduct;
+sFunction = 'NoFunction';
+sAccount = inAccount;
+nValue = inValue;
+
+# ----------------------------------------------------
+# Entity
+# ----------------------------------------------------
+sParentID = sEntityRoot;
+sDimName = sEntityDim;
+sElemID = sEntity;
+
+# --- Make sure the parent exists in the dimension already
+If( DimensionElementExists( sDimName, sParentID ) = FALSE );
+    DimensionElementInsert( sDimName, '', sParentID, 'C' );
+EndIf;
+
+# --- Now, check to see if the element exists, if not, add it.
+If( DimensionElementExists( sDimName, sElemID ) = FALSE );
+    DimensionElementInsert( sDimName, '', sElemID, 'N' );
+    DimensionElementComponentAdd( sDimName, sParentID, sElemID, 1 );
+EndIf;
+
+# --- Now make the child and parent relationship
+DimensionSortOrder( sDimName, 'By Name' , 'Ascending', 'By Hierarchy', 'Ascending' );
+
+#endregion
+#region Data
+
+sVersion = inVersion;
+sScenario = inScenario;
+sCurrency = inCurrency;
+sEntity = inEntity;
+sProduct = inProduct;
+sFunction = 'NoFunction';
+sAccount = inAccount;
+nValue = inValue;
+
+sCubeName = sStagingCube;
+
+# --- Clean up the currency
+sCurrency = If( sCurrency @= '<Entity Curr Total>', 'Local', sCurrency );
+sProduct = if( sProduct @= '[None]', 'NoProduct', sProduct );
+
+CellIncrementN(  nValue, sCubeName, sScenario, sPeriod, sFilename, sCurrency, sEntity, sProduct, sFunction, sAccount, 'Amount' );
+
+#endregion

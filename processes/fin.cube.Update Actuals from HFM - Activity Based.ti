@@ -1,0 +1,409 @@
+#region Prolog
+
+#==============================================================================
+#                            Load Actuals from HFM
+#
+#  This script will update actuals into the planning and reporting cubes from
+#  HFM Actuals cube.   The dimensions in the planning system are manually
+#  maintained, thus this process will not create any new elements, but it will
+#  load values into 'Unmapped xxxxxxx' (to maintain parity) if the element
+#  is not found.
+#
+#      Date    WHO  Description
+#  ----------  ---  -----------------------------------------------------------
+#  2026/04/07  SWG  Created.
+#
+#==============================================================================
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = ATTRS( '}Clients', TM1User(), '}TM1_DefaultDisplayValue' );
+sProcessName = GetProcessName();
+sDateStamp = TIMST( NOW, '\Y-\m-\d' );
+sTimeStamp = TIMST( NOW, '\Y-\m-\d \h.\i.\s' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+# --- Static Values
+ERROR  = 1; WARN   = 2; STATS  = 3;
+INFO   = 4; DEBUG  = 5; TRACE  = 6;
+TRUE   = 1; FALSE  = 0;
+LF     = CHAR(10);
+EXCEL_ADJUSTMENT = 21916;
+
+# --- Setup processing information
+bUseTemporaryObjects = TRUE;
+
+# --- Cubes
+sConfigCube    = 'sys.Config';
+sStatsCube     = 'sys.Process Stats';
+sActualsCube   = 'HFM Actuals';
+sPLInputCube   = 'PL Input';
+sPLRptCube     = 'PL Reporting';
+sBSInputCube   = 'BS Input';
+sBSRptCube     = 'BS Reporting';
+
+# --- Dimensions
+sScenarioDim   = 'HFM Scenario';
+sPeriodDim     = 'Period';
+sCurrencyDim   = 'Currency';
+sEntityDim     = 'Entity';
+sProductDim    = 'Product';
+sFunctionDim   = 'Function';
+sPLAccountDim  = 'PL Account';
+sBSAccountDim  = 'BS Account';
+sPeriodXRefDim = 'Period XRef';
+
+# --- Members
+sFileRoot    = 'All Files';
+sEntityRoot    = 'All Entities';
+sProductRoot   = 'All Products';
+sFunctionRoot  = 'All Functions';
+sAccountRoot   = 'All Accounts';
+
+
+#==============================================================================
+#                               LOGGING SECTION
+#==============================================================================
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Started At' );
+CellPutS( sUser, sStatsCube, sProcessName, 'Executed By' );
+
+# --- Setup Logging
+nLogLevel = CellGetN( sStatsCube, sProcessName, 'Logging Level' );
+sLogDir = CellGetS( sConfigCube, 'Log Directory', 'String' );
+sLogFile = sLogDir | sProcessName | '.log';
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log startup
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Started');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+# --- Report how the script was executed 
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand( '%LF%
+        ============================================================================ %LF%
+                        %sProcessName%                                               %LF%
+        ============================================================================ %LF%
+        Executed by [%sUser%]                                                        %LF%
+              pPeriod     = [%pPeriod%]                                              %LF%
+        ============================================================================ %LF%
+    ');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+#==============================================================================
+#                        PARAMETER VALIDATION SECTION
+#==============================================================================
+
+# --- Validate period to process
+sPeriod = pPeriod;
+If( sPeriod @<> '' );
+    If( DimensionElementExists( sPeriodDim, sPeriod ) = FALSE );
+        sMsgLevel = 'ERROR';
+        sMessage = Expand( 'Specified period to clear [%sPeriod%] does not exist in dimension [%sPeriodDim%]');
+        ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+        ProcessError();
+    EndIf;
+EndIf;
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+sSubsetName = sTempName | ' - Periods';
+sPeriodSubsetMDX = Expand( '{ DISTINCT(DESCENDANTS([Period].[Period].[%sPeriod%] , 99 , LEAVES)) }' );
+nNumPeriods = SubsetCreatebyMDX( sSubsetName, sPeriodSubsetMDX, bUseTemporaryObjects );
+
+# --- Get the date range we are delaing with
+sStartPeriod = SubsetGetElementName( sPeriodDim, sSubsetName, 1 );
+sEndPeriod = SubsetGetElementName( sPeriodDim, sSubsetName, nNumPeriods );
+sPriorPeriod = ATTRS( 'Period XRef', sStartPeriod, 'Period Prior' );
+
+#------------------------------------------
+# Source View:  HFM Actuals
+#------------------------------------------
+
+# --- Build the query that will generate the source data records
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { [HFM Scenario].[HFM Scenario].[Actual] } %LF%
+        SET PeriodSet     as { [Period].[Period].[%sPriorPeriod%], DISTINCT(DESCENDANTS([Period].[Period].[%sPeriod%] , 99 , LEAVES)) } %LF%
+        SET FileSet       as { TM1FilterByLevel( TM1SubsetAll( [HFM Load File] ), 0 ) } %LF%
+        SET CurrencySet   as { TM1FilterByLevel( TM1SubsetAll( [HFM Currency] ), 0 ) } %LF%
+        SET EntitySet     as { TM1FilterByLevel( TM1SubsetAll( [HFM Entity] ), 0 ) } %LF%
+        SET ProductSet    as { TM1FilterByLevel( TM1SubsetAll( [HFM Product] ), 0 ) } %LF%
+        SET FunctionSet   as { TM1FilterByLevel( TM1SubsetAll( [HFM Function] ), 0 ) } %LF%
+        SET AccountSet    as { TM1FilterByLevel( TM1SubsetAll( [HFM Account] ), 0 ) } %LF%
+        SET MeasureSet    as { [HFM Actuals Measure].[HFM Actuals Measure].[Amount] } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * PeriodSet * FileSet * CurrencySet * EntitySet * ProductSet * FunctionSet * AccountSet ON 1 %LF%
+
+    FROM [%sActualsCube%] %LF%
+' );
+    
+sViewName = sTempName | ' - Source ';
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand('Source view: %sViewMDX%');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+ViewCreateByMDX( sActualsCube, sViewName, sViewMDX, bUseTemporaryObjects );
+DatasourceNameForServer = sActualsCube;
+DatasourceCubeview = sViewName;
+
+
+#------------------------------------------
+# Destination View:  PL Input
+#------------------------------------------
+
+# --- Clear out the data from the P&L cube to reload
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { [Scenario].[Scenario].[Actual] } %LF%
+        SET PeriodSet     as { DISTINCT(DESCENDANTS([Period].[Period].[%sPeriod%] , 99 , LEAVES)) } %LF%
+        SET CurrencySet   as { TM1FilterByLevel( TM1SubsetAll( [Currency] ), 0 ) } %LF%
+        SET EntitySet     as { TM1FilterByLevel( TM1SubsetAll( [Entity] ), 0 ) } %LF%
+        SET ProductSet    as { TM1FilterByLevel( TM1SubsetAll( [Product] ), 0 ) } %LF%
+        SET FunctionSet   as { TM1FilterByLevel( TM1SubsetAll( [Function] ), 0 ) } %LF%
+        SET AccountSet    as { TM1FilterByLevel( TM1SubsetAll( [PL Account] ), 0 ) } %LF%
+        SET MeasureSet    as { TM1FilterByLevel( TM1SubsetAll( [PL Input Measure] ), 0 ) } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * PeriodSet * CurrencySet * EntitySet * ProductSet * FunctionSet * AccountSet ON 1 %LF%
+
+    FROM [%sPLInputCube%] %LF%
+' );
+
+sViewName = sTempName | ' - PL Input ';
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand('PL Input cube destination view: %sViewMDX%');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+ViewCreateByMDX( sPLInputCube, sViewName, sViewMDX, bUseTemporaryObjects );
+ViewZeroOut( sPLInputCube, sViewName );
+
+
+#------------------------------------------
+# Destination View:  PL Reporting
+#------------------------------------------
+
+# --- Clear out the data from the P&L cube to reload
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { [Scenario].[Scenario].[Actual] } %LF%
+        SET PeriodSet     as { DISTINCT(DESCENDANTS([Period].[Period].[%sPeriod%] , 99 , LEAVES)) } %LF%
+        SET CurrencySet   as { TM1FilterByLevel( TM1SubsetAll( [Currency] ), 0 ) } %LF%
+        SET EntitySet     as { TM1FilterByLevel( TM1SubsetAll( [Entity] ), 0 ) } %LF%
+        SET ProductSet    as { TM1FilterByLevel( TM1SubsetAll( [Product] ), 0 ) } %LF%
+        SET FunctionSet   as { TM1FilterByLevel( TM1SubsetAll( [Function] ), 0 ) } %LF%
+        SET AccountSet    as { TM1FilterByLevel( TM1SubsetAll( [PL Account] ), 0 ) } %LF%
+        SET MeasureSet    as { TM1FilterByLevel( TM1SubsetAll( [PL Reporting Measure] ), 0 ) } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * PeriodSet * CurrencySet * EntitySet * ProductSet * FunctionSet * AccountSet ON 1 %LF%
+
+    FROM [%sPLRptCube%] %LF%
+' );
+
+sViewName = sTempName | ' - PL Reporting ';
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand('PL Reporting cube destination view: %sViewMDX%');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+ViewCreateByMDX( sPLRptCube, sViewName, sViewMDX, bUseTemporaryObjects );
+ViewZeroOut( sPLRptCube, sViewName );
+
+#------------------------------------------
+# Destination View:  BS Input 
+#------------------------------------------
+
+# --- Clear out the data from the P&L cube to reload
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { [Scenario].[Scenario].[Actual] } %LF%
+        SET PeriodSet     as { DISTINCT(DESCENDANTS([Period].[Period].[%sPeriod%] , 99 , LEAVES)) } %LF%
+        SET CurrencySet   as { TM1FilterByLevel( TM1SubsetAll( [Currency] ), 0 ) } %LF%
+        SET EntitySet     as { TM1FilterByLevel( TM1SubsetAll( [Entity] ), 0 ) } %LF%
+        SET ProductSet    as { TM1FilterByLevel( TM1SubsetAll( [Product] ), 0 ) } %LF%
+        SET AccountSet    as { TM1FilterByLevel( TM1SubsetAll( [BS Account] ), 0 ) } %LF%
+        SET MeasureSet    as { TM1FilterByLevel( TM1SubsetAll( [BS Input Measure] ), 0 ) } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * PeriodSet * CurrencySet * EntitySet * ProductSet * AccountSet ON 1 %LF%
+
+    FROM [%sBSInputCube%] %LF%
+' );
+
+sViewName = sTempName | ' - BS Input ';
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand('BS Input cube destination view: %sViewMDX%');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+ViewCreateByMDX( sBSInputCube, sViewName, sViewMDX, bUseTemporaryObjects );
+ViewZeroOut( sBSInputCube, sViewName );
+
+
+#------------------------------------------
+# Destination View:  BS Reporting 
+#------------------------------------------
+
+# --- Clear out the data from the P&L cube to reload
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { [Scenario].[Scenario].[Actual] } %LF%
+        SET PeriodSet     as { DISTINCT(DESCENDANTS([Period].[Period].[%sPeriod%] , 99 , LEAVES)) } %LF%
+        SET CurrencySet   as { TM1FilterByLevel( TM1SubsetAll( [Currency] ), 0 ) } %LF%
+        SET EntitySet     as { TM1FilterByLevel( TM1SubsetAll( [Entity] ), 0 ) } %LF%
+        SET ProductSet    as { TM1FilterByLevel( TM1SubsetAll( [Product] ), 0 ) } %LF%
+        SET AccountSet    as { TM1FilterByLevel( TM1SubsetAll( [BS Account] ), 0 ) } %LF%
+        SET MeasureSet    as { TM1FilterByLevel( TM1SubsetAll( [BS Reporting Measure] ), 0 ) } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * PeriodSet * CurrencySet * EntitySet * ProductSet * AccountSet ON 1 %LF%
+
+    FROM [%sBSRptCube%] %LF%
+' );
+
+sViewName = sTempName | ' - BS Reporting ';
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand('BS Reporting cube destination view: %sViewMDX%');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+ViewCreateByMDX( sBSRptCube, sViewName, sViewMDX, bUseTemporaryObjects );
+ViewZeroOut( sBSRptCube, sViewName );
+
+#------------------------------------------
+# Unmapped elements
+#------------------------------------------
+DimensionElementInsert( sCurrencyDim,  '', 'Unmapped Currency', 'N' );
+DimensionElementInsert( sEntityDim,    '', 'Unmapped Entity', 'N' );
+DimensionElementInsert( sProductDim,   '', 'Unmapped Product', 'N' );
+DimensionElementInsert( sFunctionDim,  '', 'Unmapped Function', 'N' );
+DimensionElementInsert( sPLAccountDim, '', 'Unmapped Account', 'N' );
+DimensionElementInsert( sBSAccountDim, '', 'Unmapped Account', 'N' );
+
+#endregion
+#region Data
+
+
+# ----------------------------------------------------
+# Handle incoming record
+# ----------------------------------------------------
+sScenario  = 'Actual';
+sPeriod    = inPeriod;
+sCurrency  = If( DIMIX( sCurrencyDim, inCurrency ) = 0, 'Unmapped Currency', inCurrency );
+sEntity    = If( DIMIX( sEntityDim, inEntity )     = 0, 'Unmapped Entity',   inEntity );
+sProduct   = If( DIMIX( sProductDim, inProduct )   = 0, 'Unmapped Product',  inProduct );
+sFunction  = If( DIMIX( sFunctionDim, inFunction ) = 0, 'Unmapped Function', inFunction );
+sAccount   = inAccount;
+nValue     = inValue;
+
+
+If( DIMIX( sBSAccountDim, inAccount ) > 0 );
+    sOffsetPeriod = ATTRS( 'Period XRef', sPeriod, 'Period Next' );
+    
+    If( sPeriod @< sStartPeriod );
+        
+        # --- Subtract out prior period activyt (but forward processed)
+        CellIncrementN( -1 * NValue, sBSInputCube, sScenario, sOffsetPeriod, sCurrency, sEntity, sProduct, sAccount, 'Activity' );
+        CellIncrementN( -1 * NValue, sBSRptCube, sScenario, sOffsetPeriod, sCurrency, sEntity, sProduct, sAccount, 'Activity' );
+        
+    ElseIf( sOffsetPeriod @> sEndPeriod );
+        
+        # --- Write to the current period activity
+        CellIncrementN( NValue, sBSInputCube, sScenario, sPeriod, sCurrency, sEntity, sProduct, sAccount, 'Activity' );
+        CellIncrementN( NValue, sBSRptCube, sScenario, sPeriod, sCurrency, sEntity, sProduct, sAccount, 'Activity' );
+        
+    Else;
+        
+        # --- Write to the current period activity
+        CellIncrementN( NValue, sBSInputCube, sScenario, sPeriod, sCurrency, sEntity, sProduct, sAccount, 'Activity' );
+        CellIncrementN( NValue, sBSRptCube, sScenario, sPeriod, sCurrency, sEntity, sProduct, sAccount, 'Activity' );
+
+        # --- Subtract out prior period balance (but forward processed)
+        CellIncrementN( -1 * NValue, sBSInputCube, sScenario, sOffsetPeriod, sCurrency, sEntity, sProduct, sAccount, 'Activity' );
+        CellIncrementN( -1 * NValue, sBSRptCube, sScenario, sOffsetPeriod, sCurrency, sEntity, sProduct, sAccount, 'Activity' );
+        
+    EndIf;
+
+
+ElseIf( DIMIX( sPLAccountDim, inAccount ) > 0 );
+    CellIncrementN( NValue, sPLInputCube, sScenario, sPeriod, sCurrency, sEntity, sProduct, sFunction, sAccount, 'Reported Amount' );
+    CellIncrementN( NValue, sPLRptCube, sScenario, sPeriod, sCurrency, sEntity, sProduct, sFunction, sAccount, 'Reported Amount' );
+Else;
+    If( SUBST( sAccount, 1, 1 ) @< '4' );
+
+        sOffsetPeriod = ATTRS( 'Period XRef', sPeriod, 'Period Next' );
+        
+        If( sPeriod @< sStartPeriod );
+            
+            # --- Subtract out prior period activyt (but forward processed)
+            CellIncrementN( -1 * NValue, sBSInputCube, sScenario, sOffsetPeriod, sCurrency, sEntity, sProduct, 'Unmapped Account', 'Activity' );
+            CellIncrementN( -1 * NValue, sBSRptCube, sScenario, sOffsetPeriod, sCurrency, sEntity, sProduct, 'Unmapped Account', 'Activity' );
+            
+        ElseIf( sOffsetPeriod @> sEndPeriod );
+            
+            # --- Write to the current period activity
+            CellIncrementN( NValue, sBSInputCube, sScenario, sPeriod, sCurrency, sEntity, sProduct, 'Unmapped Account', 'Activity' );
+            CellIncrementN( NValue, sBSRptCube, sScenario, sPeriod, sCurrency, sEntity, sProduct, 'Unmapped Account', 'Activity' );
+            
+        Else;
+            
+            # --- Write to the current period activity
+            CellIncrementN( NValue, sBSInputCube, sScenario, sPeriod, sCurrency, sEntity, sProduct, 'Unmapped Account', 'Activity' );
+            CellIncrementN( NValue, sBSRptCube, sScenario, sPeriod, sCurrency, sEntity, sProduct, 'Unmapped Account', 'Activity' );
+    
+            # --- Subtract out prior period balance (but forward processed)
+            CellIncrementN( -1 * NValue, sBSInputCube, sScenario, sOffsetPeriod, sCurrency, sEntity, sProduct, 'Unmapped Account', 'Activity' );
+            CellIncrementN( -1 * NValue, sBSRptCube, sScenario, sOffsetPeriod, sCurrency, sEntity, sProduct, 'Unmapped Account', 'Activity' );
+            
+        EndIf;
+        
+    Else;
+        CellIncrementN( NValue, sPLInputCube, sScenario, sPeriod, sCurrency, sEntity, sProduct, sFunction, 'Unmapped Account', 'Reported Amount' );
+        CellIncrementN( NValue, sPLRptCube, sScenario, sPeriod, sCurrency, sEntity, sProduct, sFunction, 'Unmapped Account', 'Reported Amount' );
+    EndIf;
+
+
+EndIf;
+
+ 
+#endregion
+#region Epilog
+
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Completed At' );
+
+# --- Append to the log (will overwrite if not done before AsciiOutput)
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log completion
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Completed');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+#endregion

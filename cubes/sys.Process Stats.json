@@ -1,0 +1,18 @@
+{
+	"@type":"Cube",
+	"Name":"sys.Process Stats",
+	"Dimensions":
+	[
+		{
+			"@id":"Dimensions('}Processes')"
+		},
+		{
+			"@id":"Dimensions('sys.Process Stats Measure')"
+		}
+	],
+	"Rules@Code.link":"sys.Process Stats.rules",
+	"Views@Code.links":
+	[
+		"sys.Process Stats.views/Default.json"
+	]
+}

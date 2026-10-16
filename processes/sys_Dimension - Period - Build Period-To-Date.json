@@ -1,0 +1,91 @@
+{
+	"@type":"Process",
+	"Name":"sys_Dimension - Period - Build Period-To-Date",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"sys_Dimension - Period - Build Period-To-Date.ti",
+	"UIData":"_ParameterConstraints=e30=\f",
+	"VariablesUIData":
+	[
+		"VarType=32\fColType=827\f"
+	],
+	"DataSource":
+	{
+		"Type":"TM1DimensionSubset",
+		"dataSourceNameForClient":"Period v2:Period v2",
+		"dataSourceNameForServer":"Period v2:Period v2",
+		"subset":"All"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pDimension",
+			"Prompt":"Period dimension",
+			"Value":"Period",
+			"Type":"String"
+		},
+		{
+			"Name":"pHierarchy",
+			"Prompt":"Hierarchy",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pHierRootMember",
+			"Prompt":"Hierarchy root member",
+			"Value":"All Periods",
+			"Type":"String"
+		},
+		{
+			"Name":"pPTDType",
+			"Prompt":"Period-to-Date type (Current or Periodic)",
+			"Value":"Periodic",
+			"Type":"String"
+		},
+		{
+			"Name":"pPTDRootMember",
+			"Prompt":"Period-to-Date root member",
+			"Value":"All YTD Periods",
+			"Type":"String"
+		},
+		{
+			"Name":"pPTDGranularity",
+			"Prompt":"Period-to-Date granularity (WTD, MTD, QTD or YTD)",
+			"Value":"YTD",
+			"Type":"String"
+		},
+		{
+			"Name":"pPTDFormat",
+			"Prompt":"Period-to-Date member format",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pPTDYearFormat",
+			"Prompt":"Period-to-Date year caption format",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pGranularity",
+			"Prompt":"Member granularity (Day, Week, Month, or Quarter)",
+			"Value":"Month",
+			"Type":"String"
+		},
+		{
+			"Name":"pPeriodXRefDimension",
+			"Prompt":"Period Cross-Reference Dimension",
+			"Value":"Period XRef",
+			"Type":"String"
+		}
+	],
+	"Variables":
+	[
+		{
+			"Name":"inMemberID",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		}
+	]
+}

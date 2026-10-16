@@ -1,0 +1,12 @@
+{
+	"@type":"Process",
+	"Name":"swg_Export Snapshots",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"swg_Export Snapshots.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[]
+}

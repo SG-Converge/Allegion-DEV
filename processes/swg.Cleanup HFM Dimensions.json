@@ -1,0 +1,12 @@
+{
+	"@type":"Process",
+	"Name":"swg.Cleanup HFM Dimensions",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"swg.Cleanup HFM Dimensions.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":[],
+	"Variables":[]
+}

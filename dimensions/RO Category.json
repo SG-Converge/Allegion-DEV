@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"RO Category",
+	"Hierarchies@Code.links":
+	[
+		"RO Category.hierarchies/RO Category.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('RO Category')/Hierarchies('RO Category')"
+	}
+}

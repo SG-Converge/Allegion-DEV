@@ -1,0 +1,68 @@
+{
+	"@type":"Process",
+	"Name":"proto.process.Generate Snapshots",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"proto.process.Generate Snapshots.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pForecastType",
+			"Prompt":"Forecast type to load (Forecast/AOP)",
+			"Value":"Forecast",
+			"Type":"String"
+		},
+		{
+			"Name":"pForecastPeriod",
+			"Prompt":"Enter forecast period to process (YYYY-MM)",
+			"Value":"2025-03",
+			"Type":"String"
+		},
+		{
+			"Name":"pForecastScenario",
+			"Prompt":"Source scenario to populate WF/AOP",
+			"Value":"Forecast 2+10",
+			"Type":"String"
+		},
+		{
+			"Name":"pROScenario",
+			"Prompt":"Source scenario for RO",
+			"Value":"RO 3+9",
+			"Type":"String"
+		},
+		{
+			"Name":"pBridgeScenario",
+			"Prompt":"Source scenario for Bridge",
+			"Value":"BRIDGE_AOPCY_VPY",
+			"Type":"String"
+		},
+		{
+			"Name":"pDestForecast",
+			"Prompt":"",
+			"Value":"Forecast 3+9 Base",
+			"Type":"String"
+		},
+		{
+			"Name":"pDestRO",
+			"Prompt":"",
+			"Value":"RO 3+9",
+			"Type":"String"
+		},
+		{
+			"Name":"pDestBridge",
+			"Prompt":"",
+			"Value":"BRIDGE_FCST03_09_VPY",
+			"Type":"String"
+		},
+		{
+			"Name":"pClearAllData",
+			"Prompt":"Clear all data (Yes/No)",
+			"Value":"Yes",
+			"Type":"String"
+		}
+	],
+	"Variables":[]
+}

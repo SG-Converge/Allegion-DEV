@@ -1,0 +1,52 @@
+{
+	"@type":"Hierarchy",
+	"Name":"Scenario Assumptions Measure",
+	"Elements":
+	[
+		{
+			"Name":"CC - Data - PL Year",
+			"Type":"String"
+		},
+		{
+			"Name":"CC - Data - PL Scenario",
+			"Type":"String"
+		},
+		{
+			"Name":"CC - Data - PL Rate",
+			"Type":"String"
+		},
+		{
+			"Name":"CC - FX - PL Year",
+			"Type":"String"
+		},
+		{
+			"Name":"CC - FX - PL Scenario",
+			"Type":"String"
+		},
+		{
+			"Name":"CC - Data - BS Year",
+			"Type":"String"
+		},
+		{
+			"Name":"CC - Data - BS Scenario",
+			"Type":"String"
+		},
+		{
+			"Name":"CC - Data - BS Rate",
+			"Type":"String"
+		},
+		{
+			"Name":"CC - FX - BS Year",
+			"Type":"String"
+		},
+		{
+			"Name":"CC - FX - BS Scenario",
+			"Type":"String"
+		}
+	],
+	"Subsets@Code.links":
+	[
+		"Scenario Assumptions Measure.subsets/Balance Sheet.json",
+		"Scenario Assumptions Measure.subsets/Profit & Loss.json"
+	]
+}

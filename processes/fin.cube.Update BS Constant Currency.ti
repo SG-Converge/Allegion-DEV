@@ -1,0 +1,251 @@
+#region Prolog
+#==============================================================================
+#                            Update BS Constant Currency
+#
+#  This script will re-generate the constant currency scenarios which take
+#  base data and FX rates from various scenarios and time frames and combines
+#  them to see the impact of currency fluctuations on forecasts & actuals.
+#
+#      Date    WHO  Description
+#  ----------  ---  -----------------------------------------------------------
+#  2026/05/06  SWG  Created.
+#
+#==============================================================================
+
+#==============================================================================
+#                           CONFIGURATION SECTION
+#==============================================================================
+sUser = ATTRS( '}Clients', TM1User(), '}TM1_DefaultDisplayValue' );
+sProcessName = GetProcessName();
+sDateStamp = TIMST( NOW, '\Y-\m-\d' );
+sTimeStamp = TIMST( NOW, '\Y-\m-\d \h.\i.\s' );
+sUniqueID = NumbertoString(INT(RAND()*10000));
+sUniqueName = Expand('%sProcessName%_%sTimeStamp%_%sUniqueID%' );
+sTempName = Expand('_tmp_%sUniqueName%' );
+
+# --- Static Values
+ERROR  = 1; WARN   = 2; STATS  = 3;
+INFO   = 4; DEBUG  = 5; TRACE  = 6;
+TRUE   = 1; FALSE  = 0;
+LF     = CHAR(10);
+EXCEL_ADJUSTMENT = 21916;
+
+# --- Setup processing information
+bUseTemporaryObjects = TRUE;
+
+# --- Cubes
+sConfigCube     = 'sys.Config';
+sStatsCube      = 'sys.Process Stats';
+sCCRulesCube    = 'Scenario Assumptions';
+sGlobalCube     = 'Global Assumptions';
+sPLRptCube      = 'BS Reporting';
+sFXRateCube     = 'FX Rates';
+
+# --- Dimensions
+sScenarioDim    = 'Scenario';
+sPeriodDim      = 'Period';
+sCurrencyDim    = 'Currency';
+sEntityDim      = 'Entity';
+sProductDim     = 'Product';
+sFunctionDim    = 'Function';
+sBSAccountDim   = 'BS Account';
+sPeriodXRefDim  = 'Period XRef';
+
+# --- Members
+sEntityRoot     = 'All Entities';
+sProductRoot    = 'All Products';
+sFunctionRoot   = 'All Functions';
+sAccountRoot    = 'All Accounts';
+
+#==============================================================================
+#                               LOGGING SECTION
+#==============================================================================
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Started At' );
+CellPutS( sUser, sStatsCube, sProcessName, 'Executed By' );
+
+# --- Setup Logging
+nLogLevel = CellGetN( sStatsCube, sProcessName, 'Logging Level' );
+sLogDir = CellGetS( sConfigCube, 'Log Directory', 'String' );
+sLogFile = sLogDir | sProcessName | '.log';
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log startup
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Started');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+# --- Report how the script was executed 
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand( '%LF%
+        ============================================================================ %LF%
+                        %sProcessName%                                               %LF%
+        ============================================================================ %LF%
+        Executed by [%sUser%]                                                        %LF%
+              pScenario     = [%pScenario%]                                          %LF%
+        ============================================================================ %LF%
+    ');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+
+#==============================================================================
+#                        PARAMETER VALIDATION SECTION
+#==============================================================================
+
+# --- Validate scenario to process
+sCCScenario = pScenario;
+If( sCCScenario @<> '' );
+    If( DimensionElementExists( sScenarioDim, sCCScenario ) = FALSE );
+        sMsgLevel = 'ERROR';
+        sMessage = Expand( 'Specified Scenario [%sCCScenario%] does not exist in dimension [%sScenarioDim%]');
+        ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+        ProcessError();
+    EndIf;
+EndIf;
+
+#==============================================================================
+#                           PROCESS LOGIC SECTION
+#==============================================================================
+
+#------------------------------------------
+# Collect the information to generate the source view
+#------------------------------------------
+sSourceScenario  = CellGetS( sCCRulesCube, sCCScenario, 'CC - Data - BS Scenario');
+sSourceYear      = CellGetS( sCCRulesCube, sCCScenario, 'CC - Data - BS Year');
+sFXRateType      = CellGetS( sCCRulesCube, sCCScenario, 'CC - Data - BS Rate');
+sFXScenario      = CellGetS( sCCRulesCube, sCCScenario, 'CC - FX - BS Scenario');
+sFXYear          = CellGetS( sCCRulesCube, sCCScenario, 'CC - FX - BS Year');
+sBaseYear        = CellGetS( sGlobalCube,  'Constant Currency Base Year', 'String' );
+
+If( sSourceScenario @= '' % sSourceYear @= '');
+    sMsgLevel = 'WARN';
+    sMessage = Expand( 'Specified Scenario [%sCCScenario%] is not configured.  Currency will not be calculated');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+    ProcessBreak;
+EndIf;
+
+If( sFXScenario @= '' % sFXYear @= '' % sFXRateType @= '' );
+    sMsgLevel = 'WARN';
+    sMessage = Expand( 'Specified Scenario [%sCCScenario%] is not configured.  Currency will not be calculated');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+    ProcessBreak;
+EndIf;
+
+
+#------------------------------------------
+# Source View from the PL Reporting cube based on CC Rule parameters
+#------------------------------------------
+sCubeName = sPLRptCube;
+
+# --- Build the query that will generate the source data records
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { [Scenario].[%sSourceScenario%] } %LF%
+        SET PeriodSet     as { DISTINCT(DESCENDANTS([Period].[%sSourceYear%] , 99 , LEAVES)) } %LF%
+        SET CurrencySet   as { [Currency].[Local] } %LF%
+        SET EntitySet     as { TM1FilterByLevel( TM1SubsetAll( [Entity] ), 0 ) } %LF%
+        SET ProductSet    as { TM1FilterByLevel( TM1SubsetAll( [Product] ), 0 ) } %LF%
+        SET AccountSet    as { TM1FilterByLevel( TM1SubsetAll( [BS Account] ), 0 ) } %LF%
+        SET MeasureSet    as { TM1FilterByLevel( TM1SubsetAll( [BS Reporting Measure] ), 0 ) } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * PeriodSet * CurrencySet * EntitySet * ProductSet * AccountSet ON 1 %LF%
+
+    FROM [%sCubeName%] %LF%
+' );
+    
+sViewName = sTempName | ' - Source ';
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand('Source view: %sViewMDX%');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+ViewCreateByMDX( sCubeName, sViewName, sViewMDX, bUseTemporaryObjects );
+ViewExtractSkipRuleValuesSet( sCubeName, sViewName, FALSE );
+ViewExtractSkipZeroesSet( sCubeName, sViewName, TRUE );
+ViewExtractSkipCalcsSet( sCubeName, sViewName, FALSE );
+DatasourceNameForServer = sCubeName;
+DatasourceCubeview = sViewName;
+
+
+
+#------------------------------------------
+# Destination View for the constant currency results
+#------------------------------------------
+
+# --- Clear out the data from the P&L cube to reload
+sViewMDX = Expand( '%LF%
+    WITH %LF%
+        SET ScenarioSet   as { [Scenario].[%sCCScenario%] } %LF%
+        SET PeriodSet     as { TM1FilterByLevel( TM1SubsetAll( [Period] ), 0 ) } %LF%
+        SET CurrencySet   as { TM1FilterByLevel( TM1SubsetAll( [Currency] ), 0 ) } %LF%
+        SET EntitySet     as { TM1FilterByLevel( TM1SubsetAll( [Entity] ), 0 ) } %LF%
+        SET ProductSet    as { TM1FilterByLevel( TM1SubsetAll( [Product] ), 0 ) } %LF%
+        SET AccountSet    as { TM1FilterByLevel( TM1SubsetAll( [BS Account] ), 0 ) } %LF%
+        SET MeasureSet    as { TM1FilterByLevel( TM1SubsetAll( [BS Reporting Measure] ), 0 ) } %LF%
+
+    SELECT %LF%
+        MeasureSet ON 0, %LF%
+        NON EMPTY ScenarioSet * PeriodSet * CurrencySet * EntitySet * ProductSet * AccountSet ON 1 %LF%
+
+    FROM [%sCubeName%] %LF%
+' );
+
+sViewName = sTempName | ' - Dest ';
+If( nLogLevel >= DEBUG );
+    sMsgLevel = 'DEBUG';
+    sMessage = Expand('BS Reporting cube destination view: %sViewMDX%');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+ViewCreateByMDX( sCubeName, sViewName, sViewMDX, bUseTemporaryObjects );
+ViewZeroOut( sCubeName, sViewName );
+
+
+#endregion
+#region Data
+
+
+sPeriod = sBaseYear | SUBST( inPeriod, 5, 3 );
+sCurrency = ATTRS( sEntityDim, inEntity, 'Local Currency' );
+If( sCurrency @= '' );
+    nFXRate = 1;
+Else;
+    nFXRate = CellGetN( sFXRateCube, sFXScenario, sFXYear | SUBST( inPeriod, 5, 3 ), sCurrency, sFXRateType );
+EndIf;
+
+# --- Some accounts are not to be FX'd
+If( ATTRS( sBSAccountDim, inAccount, 'Skip FX Conversion') @<> ''); 
+    nFXRate = 1; 
+EndIf;
+
+If( CellIsUpdateable( sCubeName, sCCScenario, sPeriod, 'Local', inEntity, inProduct, inAccount, inMeasure ) = TRUE );
+    CellPutN( inValue, sCubeName, sCCScenario, sPeriod, 'Local', inEntity, inProduct, inAccount, inMeasure );
+    CellPutN( inValue * nFXRate, sCubeName, sCCScenario, sPeriod, 'USD', inEntity, inProduct, inAccount, inMeasure );
+EndIf;
+
+#endregion
+#region Epilog
+
+
+# --- Keep track of when the process starts (ALWAYS)
+CellPutN( Now(), sStatsCube, sProcessName, 'Completed At' );
+
+# --- Append to the log (will overwrite if not done before AsciiOutput)
+If( FileExists( sLogFile ) = TRUE ); 
+    ASCIIOutputOpen( sLogFile, FILE_OPEN_APPEND() );
+EndIf;
+
+# --- Log completion
+If( nLogLevel >= INFO );
+    sMsgLevel = 'INFO';
+    sMessage  = Expand('Completed');
+    ASCIIOutput( sLogFile, Expand( '%sTimeStamp% [%sMsgLevel%]: %sMessage%' ) );
+EndIf;
+#endregion

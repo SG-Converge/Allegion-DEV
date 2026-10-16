@@ -1,0 +1,17 @@
+{
+	"@type":"Subset",
+	"Name":"Profit & Loss",
+	"Alias":"MEMBER_NAME",
+	"Elements":
+	[
+		{
+			"@id":"Dimensions('util.map.Ruleset')/Hierarchies('util.map.Ruleset')/Elements('ACTPL')"
+		},
+		{
+			"@id":"Dimensions('util.map.Ruleset')/Hierarchies('util.map.Ruleset')/Elements('PLUELI')"
+		},
+		{
+			"@id":"Dimensions('util.map.Ruleset')/Hierarchies('util.map.Ruleset')/Elements('PLALTE')"
+		}
+	]
+}

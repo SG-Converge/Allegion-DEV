@@ -1,0 +1,20 @@
+{
+	"@type":"Process",
+	"Name":"fin.process.Load All Constant Currencies",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"fin.process.Load All Constant Currencies.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pConstantCurrency",
+			"Prompt":"Enter constant currency to calculate (blank=all)",
+			"Value":"",
+			"Type":"String"
+		}
+	],
+	"Variables":[]
+}

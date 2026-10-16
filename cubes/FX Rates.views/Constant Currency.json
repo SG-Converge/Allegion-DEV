@@ -1,0 +1,32 @@
+{
+	"@type":"MDXView",
+	"Name":"Constant Currency",
+	"MDX@Code.link":"Constant Currency.mdx",
+	"IsAutocalculate" : true,
+	"IsDeferComputeOnLeafDataEntry" : false,
+	"IsSuppressComputeOnOpen" : false,
+	"Meta" : 
+	{
+		"Aliases" : 
+		{
+			"[Currency].[Currency]" : "ID - Name",
+			"[Period].[Period]" : "Caption",
+			"[Scenario].[Scenario]" : "MEMBER_NAME"
+		},
+		"ContextSets" : 
+		{
+			"[Period].[Period]" : 
+			{
+				"IsPublic" : true,
+				"SubsetName" : "Default"
+			}
+		},
+		"ExpandAboves" : 
+		{
+			"[Currency].[Currency]" : false,
+			"[FX Rates Measure].[FX Rates Measure]" : false,
+			"[Period].[Period]" : false,
+			"[Scenario].[Scenario]" : false
+		}
+	}
+}

@@ -1,0 +1,26 @@
+{
+	"@type":"Process",
+	"Name":"fin.cube.Clear MgtAmer Forecast Data",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"fin.cube.Clear MgtAmer Forecast Data.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pStartingPeriod",
+			"Prompt":"Starting Period",
+			"Value":"2025-08",
+			"Type":"String"
+		},
+		{
+			"Name":"pScenario",
+			"Prompt":"Scenario to clear",
+			"Value":"Working Forecast",
+			"Type":"String"
+		}
+	],
+	"Variables":[]
+}

@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"Leaves",
+	"Alias":"Caption",
+	"Expression":"{ORDER(TM1FILTERBYLEVEL(TM1SUBSETALL([RO Product].[RO Product]) , 0) , IIF([RO Product].[RO Product].CURRENTMEMBER.PROPERTIES(\"Caption\")=\"\", [RO Product].[RO Product].CURRENTMEMBER.PROPERTIES(\"MEMBER_CAPTION\"), [RO Product].[RO Product].CURRENTMEMBER.PROPERTIES(\"Caption\")) , BASC)}"
+}

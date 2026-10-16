@@ -1,0 +1,74 @@
+{
+	"@type":"Process",
+	"Name":"fin.cube.Update Working AOP FX Rates",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"fin.cube.Update Working AOP FX Rates.ti",
+	"VariablesUIData":
+	[
+		"VarType=32\fColType=827\f",
+		"VarType=32\fColType=827\f",
+		"VarType=32\fColType=827\f",
+		"VarType=32\fColType=827\f",
+		"VarType=33\fColType=827\f"
+	],
+	"DataSource":
+	{
+		"Type":"TM1CubeView",
+		"dataSourceNameForClient":"FX Rates",
+		"dataSourceNameForServer":"FX Rates",
+		"view":"_tmp_fin.cube.Update Working AOP FX Rates_2026-10-09 17.39.34_8808 - Source"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pActualPeriod",
+			"Prompt":"Period from actual fx rates to copy",
+			"Value":"2026-06",
+			"Type":"String"
+		},
+		{
+			"Name":"pAOPYear",
+			"Prompt":"Working AOP Year",
+			"Value":"2027",
+			"Type":"String"
+		}
+	],
+	"Variables":
+	[
+		{
+			"Name":"inMeasure",
+			"Type":"String",
+			"Position":1,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"inScenario",
+			"Type":"String",
+			"Position":2,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"inPeriod",
+			"Type":"String",
+			"Position":3,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"inCurrency",
+			"Type":"String",
+			"Position":4,
+			"StartByte":0,
+			"EndByte":0
+		},
+		{
+			"Name":"inValue",
+			"Type":"Numeric",
+			"Position":5,
+			"StartByte":0,
+			"EndByte":0
+		}
+	]
+}

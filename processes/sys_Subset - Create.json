@@ -1,0 +1,57 @@
+{
+	"@type":"Process",
+	"Name":"sys_Subset - Create",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"sys_Subset - Create.ti",
+	"UIData":"_ParameterConstraints=e30=\f",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pDimName",
+			"Prompt":"Name of dimension to create a subset in",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pHierName",
+			"Prompt":"Name of hierarchy (blank=dimension name)",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pSubsetName",
+			"Prompt":"Name of subset to create",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pMemberExpr",
+			"Prompt":"Member expression",
+			"Value":"",
+			"Type":"String"
+		},
+		{
+			"Name":"pUseTemporaryObjects",
+			"Prompt":"Use temporary subset creation (1=Temporary)",
+			"Value":1,
+			"Type":"Numeric"
+		},
+		{
+			"Name":"pErrorOnEmptySubset",
+			"Prompt":"Error if expression returns empty subset",
+			"Value":0,
+			"Type":"Numeric"
+		},
+		{
+			"Name":"pParallelMode",
+			"Prompt":"Enable/disable parallel mode (Yes/No)",
+			"Value":0,
+			"Type":"Numeric"
+		}
+	],
+	"Variables":[]
+}

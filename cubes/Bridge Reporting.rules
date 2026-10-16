@@ -1,0 +1,122 @@
+SKIPCHECK;
+
+# ['BRIDGE_ACTCY_VPY','S_OPS_Revenues','Period Reported', 'NoProduct'] = N:
+#     DB( 'PL Reporting', 'Actual', !Period, 'USD', !Bridge Entity, 'Products', 'Total Function', '410000', 'Reported Amount' );
+# ['BRIDGE_ACTCY_VPY','S_OPS_COGS','Period Reported', 'NoProduct'] = N:
+#     DB( 'PL Reporting', 'Actual', !Period, 'USD', !Bridge Entity, 'Products', 'Total Function', 'mgt_costofsales', 'Reported Amount' );
+# ['BRIDGE_ACTCY_VPY','S_OPS_SGA','Period Reported', 'NoProduct'] = N:
+#     DB( 'PL Reporting', 'Actual', !Period, 'USD', !Bridge Entity, 'Products', 'Total Function', 'SGA', 'Reported Amount' );
+
+# ['BRIDGE_WRK_FCST_VPY','S_OPS_Revenues','Period Reported', 'NoProduct'] = N:
+#     DB( 'PL Reporting', 'Working Forecast', !Period, 'USD', !Bridge Entity, 'Products', 'Total Function', '410000', 'Reported Amount' );
+# ['BRIDGE_WRK_FCST_VPY','S_OPS_COGS','Period Reported', 'NoProduct'] = N:
+#     DB( 'PL Reporting', 'Working Forecast', !Period, 'USD', !Bridge Entity, 'Products', 'Total Function', 'mgt_costofsales', 'Reported Amount' );
+# ['BRIDGE_WRK_FCST_VPY','S_OPS_SGA','Period Reported', 'NoProduct'] = N:
+#     DB( 'PL Reporting', 'Working Forecast', !Period, 'USD', !Bridge Entity, 'Products', 'Total Function', 'SGA', 'Reported Amount' );
+
+# ['BRIDGE_WRK_AOP_VPY','S_OPS_Revenues','Period Reported', 'NoProduct'] = N:
+#     DB( 'PL Reporting', 'Working AOP', !Period, 'USD', !Bridge Entity, 'Products', 'Total Function', '410000', 'Reported Amount' );
+# ['BRIDGE_WRK_AOP_VPY','S_OPS_COGS','Period Reported', 'NoProduct'] = N:
+#     DB( 'PL Reporting', 'Working AOP', !Period, 'USD', !Bridge Entity, 'Products', 'Total Function', 'mgt_costofsales', 'Reported Amount' );
+# ['BRIDGE_WRK_AOP_VPY','S_OPS_SGA','Period Reported', 'NoProduct'] = N:
+#     DB( 'PL Reporting', 'Working AOP', !Period, 'USD', !Bridge Entity, 'Products', 'Total Function', 'SGA', 'Reported Amount' );
+
+
+['BRIDGE_ACTCY_VAOP'] = 
+  ['BRIDGE_ACTCY_VPY'] - ['BRIDGE_AOPCY_VPY'];
+
+['BRIDGE_ACTCY_VCF'] = 
+  ['BRIDGE_ACTCY_VPY'] 
+  - DB( 'Bridge Reporting', DB('Global Assumptions', 'Bridge Interim forecast', 'String' ), 
+        !Period, !Bridge Entity, !Bridge Product, !Bridge Category, !Bridge Reporting Measure );
+
+['BRIDGE_FCSTCY_VAOP'] = 
+  DB( 'Bridge Reporting', DB('Global Assumptions', 'Bridge Current forecast', 'String' ), 
+      !Period, !Bridge Entity, !Bridge Product, !Bridge Category, !Bridge Reporting Measure )
+  - ['BRIDGE_AOPCY_VPY'];
+
+['BRIDGE_FCSTCY_VPF'] = 
+  DB( 'Bridge Reporting', DB('Global Assumptions', 'Bridge Current forecast', 'String' ), 
+      !Period, !Bridge Entity, !Bridge Product, !Bridge Category, !Bridge Reporting Measure )
+  - DB( 'Bridge Reporting', DB('Global Assumptions', 'Bridge Prior forecast', 'String' ), 
+        !Period, !Bridge Entity, !Bridge Product, !Bridge Category, !Bridge Reporting Measure );
+
+['BRIDGE_ACTCY_VWFCST'] = 
+  ['BRIDGE_ACTCY_VPY'] - ['BRIDGE_WRK_FCST_VPY'];
+
+['BRIDGE_ACTCY_VWAOP'] = 
+  ['BRIDGE_ACTCY_VPY'] - ['BRIDGE_WRK_AOP_VPY'];
+
+# ['Revenue Pct'] = 
+#   If( !Bridge Category @= 'Period Adjusted' % ELISANC( 'Bridge Category', 'Period Adjusted', !Bridge Category ) = 1,
+#     0,  
+#     ['S_OPS_Revenues'] \ ['Period Adjusted','S_OPS_Revenues']
+#   );
+
+# ['COGS Pct'] = 
+#   If( !Bridge Category @= 'Period Adjusted' % ELISANC( 'Bridge Category', 'Period Adjusted', !Bridge Category ) = 1,
+#     0,  
+#     ['S_OPS_COGS'] \ ['Period Adjusted','S_OPS_Revenues']
+#   );
+
+# ['SGA Pct'] = 
+#   If( !Bridge Category @= 'Period Adjusted' % ELISANC( 'Bridge Category', 'Period Adjusted', !Bridge Category ) = 1,
+#     0,  
+#     ['S_OPS_SGA'] \ ['Period Adjusted','S_OPS_Revenues']
+#   );
+
+# ['OI Pct'] = 
+#   If( !Bridge Category @= 'Period Adjusted' % ELISANC( 'Bridge Category', 'Period Adjusted', !Bridge Category ) = 1,
+#     0,  
+#     ['OI'] \ ['Period Adjusted','S_OPS_Revenues']
+#   );
+
+[{'S_OPS_Revenues', 'S_OPS_COGS', 'S_OPS_SGA'}] = N:
+  If( ATTRS('Bridge Category',!Bridge Category, 'Bridge Function') @= '',
+    STET,
+    DB( 'Bridge Input', !Bridge Version, !Period, !Bridge Entity, !Bridge Product,
+        ATTRS('Bridge Category',!Bridge Category, 'Bridge Function'), 
+        !Bridge Reporting Measure, 'Amount' )
+  );
+
+FEEDERS;
+
+
+['BRIDGE_ACTCY_VPY'] =>
+    ['BRIDGE_ACTCY_VAOP'], ['BRIDGE_ACTCY_VCF'], ['BRIDGE_ACTCY_VWFCST'], ['BRIDGE_ACTCY_VWAOP'];
+
+['BRIDGE_AOPCY_VPY'] =>
+    ['BRIDGE_ACTCY_VAOP'];
+
+['BRIDGE_WRK_FCST_VPY'] =>
+  ['BRIDGE_ACTCY_VWFCST'];
+  
+['BRIDGE_WRK_AOP_VPY'] =>
+  ['BRIDGE_ACTCY_VWAOP'];
+
+[] =>
+    DB(
+        IF(!Bridge Version @= DB('Global Assumptions', 'Bridge Interim forecast', 'String'), 'Bridge Reporting', '*** No Feed ***'),
+        'BRIDGE_ACTCY_VCF', !Period, !Bridge Entity, !Bridge Product, !Bridge Category, !Bridge Reporting Measure
+    );
+
+[] =>
+    DB(
+        IF(!Bridge Version @= DB('Global Assumptions', 'Bridge Current forecast', 'String'), 'Bridge Reporting', '*** No Feed ***'),
+        'BRIDGE_FCSTCY_VAOP', !Period, !Bridge Entity, !Bridge Product, !Bridge Category, !Bridge Reporting Measure
+    );
+
+['BRIDGE_AOPCY_VPY'] =>
+    ['BRIDGE_FCSTCY_VAOP'];
+
+[] =>
+    DB(
+        IF(!Bridge Version @= DB('Global Assumptions', 'Bridge Current forecast', 'String'), 'Bridge Reporting', '*** No Feed ***'),
+        'BRIDGE_FCSTCY_VPF', !Period, !Bridge Entity, !Bridge Product, !Bridge Category, !Bridge Reporting Measure
+    );
+
+[] =>
+    DB(
+        IF(!Bridge Version @= DB('Global Assumptions', 'Bridge Prior forecast', 'String'), 'Bridge Reporting', '*** No Feed ***'),
+        'BRIDGE_FCSTCY_VPF', !Period, !Bridge Entity, !Bridge Product, !Bridge Category, !Bridge Reporting Measure
+    );

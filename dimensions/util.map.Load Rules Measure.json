@@ -1,0 +1,12 @@
+{
+	"@type":"Dimension",
+	"Name":"util.map.Load Rules Measure",
+	"Hierarchies@Code.links":
+	[
+		"util.map.Load Rules Measure.hierarchies/util.map.Load Rules Measure.json"
+	],
+	"DefaultHierarchy":
+	{
+		"@id":"Dimensions('util.map.Load Rules Measure')/Hierarchies('util.map.Load Rules Measure')"
+	}
+}

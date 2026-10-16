@@ -1,0 +1,39 @@
+{
+	"@type":"Cube",
+	"Name":"HFM Staging",
+	"Dimensions":
+	[
+		{
+			"@id":"Dimensions('HFM Scenario')"
+		},
+		{
+			"@id":"Dimensions('Period')"
+		},
+		{
+			"@id":"Dimensions('HFM Load File')"
+		},
+		{
+			"@id":"Dimensions('HFM Currency')"
+		},
+		{
+			"@id":"Dimensions('HFM Entity')"
+		},
+		{
+			"@id":"Dimensions('HFM Product')"
+		},
+		{
+			"@id":"Dimensions('HFM Function')"
+		},
+		{
+			"@id":"Dimensions('HFM Account')"
+		},
+		{
+			"@id":"Dimensions('HFM Staging Measure')"
+		}
+	],
+	"Rules@Code.link":"HFM Staging.rules",
+	"Views@Code.links":
+	[
+		"HFM Staging.views/sys_All Data.json"
+	]
+}

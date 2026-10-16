@@ -1,0 +1,155 @@
+{
+	"@type":"Hierarchy",
+	"Name":"RO Input Measure",
+	"Elements":
+	[
+		{
+			"Name":"Type",
+			"Type":"String"
+		},
+		{
+			"Name":"Product",
+			"Type":"String"
+		},
+		{
+			"Name":"Account",
+			"Type":"String"
+		},
+		{
+			"Name":"Function",
+			"Type":"String"
+		},
+		{
+			"Name":"Category",
+			"Type":"String"
+		},
+		{
+			"Name":"Error",
+			"Type":"String"
+		},
+		{
+			"Name":"Comments",
+			"Type":"String"
+		},
+		{
+			"Name":"Total Year",
+			"Type":"Consolidated"
+		},
+		{
+			"Name":"01",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"02",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"03",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"04",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"05",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"06",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"07",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"08",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"09",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"10",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"11",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"12",
+			"Type":"Numeric"
+		},
+		{
+			"Name":"Count",
+			"Type":"Numeric"
+		}
+	],
+	"Edges":
+	[
+		{
+			"ParentName":"Total Year",
+			"ComponentName":"01",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Year",
+			"ComponentName":"02",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Year",
+			"ComponentName":"03",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Year",
+			"ComponentName":"04",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Year",
+			"ComponentName":"05",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Year",
+			"ComponentName":"06",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Year",
+			"ComponentName":"07",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Year",
+			"ComponentName":"08",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Year",
+			"ComponentName":"09",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Year",
+			"ComponentName":"10",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Year",
+			"ComponentName":"11",
+			"Weight":1
+		},
+		{
+			"ParentName":"Total Year",
+			"ComponentName":"12",
+			"Weight":1
+		}
+	],
+	"Subsets@Code.links":[]
+}

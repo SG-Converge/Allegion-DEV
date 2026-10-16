@@ -1,0 +1,26 @@
+{
+	"@type":"Process",
+	"Name":"fin.process.Create Bridge WF Snapshot",
+	"HasSecurityAccess":false,
+	"Code@Code.link":"fin.process.Create Bridge WF Snapshot.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pDestScenario",
+			"Prompt":"Destination Scenario",
+			"Value":"BRIDGE_FCST02_10_VPY",
+			"Type":"String"
+		},
+		{
+			"Name":"pYear",
+			"Prompt":"Year to copy",
+			"Value":"2025",
+			"Type":"String"
+		}
+	],
+	"Variables":[]
+}

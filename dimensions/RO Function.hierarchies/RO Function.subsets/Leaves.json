@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"Leaves",
+	"Alias":"Caption",
+	"Expression":"{ORDER(TM1FILTERBYLEVEL(TM1SUBSETALL([RO Function].[RO Function]) , 0) , [RO Function].[RO Function].CURRENTMEMBER.PROPERTIES(\"MEMBER_NAME\") , BASC)}"
+}

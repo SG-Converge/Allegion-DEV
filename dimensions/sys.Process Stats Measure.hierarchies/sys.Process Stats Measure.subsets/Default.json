@@ -1,0 +1,6 @@
+{
+	"@type":"Subset",
+	"Name":"Default",
+	"Alias":"Caption",
+	"Expression":"{EXCEPT([sys.Process Stats Measure].[sys.Process Stats Measure].MEMBERS , {[sys.Process Stats Measure].[sys.Process Stats Measure].[Started At],[sys.Process Stats Measure].[sys.Process Stats Measure].[Completed At],[sys.Process Stats Measure].[sys.Process Stats Measure].[Logging Level]})}"
+}
